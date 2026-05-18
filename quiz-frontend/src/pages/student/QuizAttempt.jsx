@@ -1,0 +1,457 @@
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
+import { questionApi, attemptApi, studentQuizApi, examTokenApi } from '../../api/axios'
+import { useAuth } from '../../context/AuthContext'
+import toast from 'react-hot-toast'
+import { ChevronLeft, ChevronRight, CheckCircle2, Clock, Send, AlertTriangle, Shield, Flag } from 'lucide-react'
+import FaceDetectionGuard from '../../components/FaceDetectionGuard'
+import CameraSetupGate from '../../components/CameraSetupGate'
+
+export default function QuizAttempt() {
+  const { id } = useParams()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get('token')
+  const tokenStudentId = searchParams.get('studentId')
+  const activeStudentId = tokenStudentId || user?.id
+  const attemptIdRef = useRef(null)
+  const autoSubmittedRef = useRef(false)
+  const antiCheatActiveRef = useRef(false)
+
+  const [questions, setQuestions] = useState([])
+  const [quiz, setQuiz] = useState(null)
+  const [attemptId, setAttemptId] = useState(null)
+  const [current, setCurrent] = useState(0)
+  const [answers, setAnswers] = useState({})
+  const [markedForReview, setMarkedForReview] = useState(new Set())
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [timeLeft, setTimeLeft] = useState(null)   // seconds remaining
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [violations, setViolations] = useState(0)
+  const [violationPopup, setViolationPopup] = useState(null)
+  const [cameraVerified, setCameraVerified] = useState(false)
+  const cameraStreamRef = useRef(null)
+
+  useEffect(() => {
+    if (cameraVerified) {
+      const timer = setTimeout(() => { antiCheatActiveRef.current = true }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [cameraVerified])
+
+  // ── Init ─────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!cameraVerified) return
+    let cancelled = false
+    const init = async () => {
+      try {
+        const [startRes, questRes, quizRes] = await Promise.all([
+          attemptApi.start(id, activeStudentId),
+          questionApi.getForStudent(id),
+          studentQuizApi.getById(id),
+        ])
+        if (cancelled) return
+        const aId = startRes.data.data.attemptId
+        setAttemptId(aId)
+        attemptIdRef.current = aId
+        const qData = questRes.data.data || []
+        setQuestions(qData)
+        const qz = quizRes.data.data
+        setQuiz(qz)
+        // Set countdown timer if quiz has a duration
+        if (qz?.durationMinutes && qz.durationMinutes > 0) {
+          setTimeLeft(qz.durationMinutes * 60)
+        }
+        if (location.state?.requestFullscreen) {
+          try { await document.documentElement.requestFullscreen() } catch {}
+        }
+      } catch (err) {
+        if (cancelled) return
+        const msg = err.response?.data?.message || ''
+        if (document.fullscreenElement) {
+          try { await document.exitFullscreen() } catch {}
+        }
+        if (msg.includes('ATTEMPT_LIMIT_REACHED')) {
+          navigate(`/student/quizzes/${id}`, { replace: true, state: { attemptsExhausted: true } })
+        } else {
+          toast.error('Could not start quiz. Please try again.')
+          navigate(`/student/quizzes/${id}`, { replace: true })
+        }
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    init()
+    return () => { cancelled = true }
+  }, [cameraVerified, id, activeStudentId, navigate, location.state])
+
+  // ── Countdown Timer — auto-submit when reaches 0 ─────────────
+  useEffect(() => {
+    if (timeLeft === null) return  // no duration set
+    if (timeLeft <= 0) {
+      // Time is up — auto submit
+      if (!autoSubmittedRef.current) {
+        autoSubmittedRef.current = true
+        const aId = attemptIdRef.current
+        toast('⏱️ Time is up! Submitting quiz…', { duration: 3000, icon: '⏱️' })
+        setTimeout(async () => {
+          if (aId) {
+            try { await attemptApi.submit(aId) } catch {}
+            if (document.fullscreenElement) { try { await document.exitFullscreen() } catch {} }
+            navigate(`/student/success`)
+          }
+        }, 1500)
+      }
+      return
+    }
+    const tick = setInterval(() => setTimeLeft(t => t - 1), 1000)
+    return () => clearInterval(tick)
+  }, [timeLeft, navigate])
+
+  // ── Anti-cheat ────────────────────────────────────────────────
+  const handleViolation = useCallback((reason) => {
+    if (!antiCheatActiveRef.current) return
+    if (autoSubmittedRef.current) return
+    setViolations(v => {
+      const next = v + 1
+      const aId = attemptIdRef.current
+      if (next >= 3) {
+        if (autoSubmittedRef.current) return next
+        autoSubmittedRef.current = true
+        setViolationPopup({ count: 3, reason, autoSubmit: true })
+        setTimeout(async () => {
+          if (aId) {
+            try { await attemptApi.submit(aId) } catch {}
+            if (document.fullscreenElement) { try { await document.exitFullscreen() } catch {} }
+            navigate(`/student/success`)
+          }
+        }, 2500)
+      } else {
+        setViolationPopup({ count: next, reason, autoSubmit: false })
+      }
+      return next
+    })
+  }, [navigate])
+
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      if (!document.fullscreenElement) handleViolation('Exited full screen')
+    }
+    const onVisibilityChange = () => {
+      if (document.hidden) handleViolation('Tab switch detected')
+    }
+    const onBlur = () => handleViolation('Window lost focus')
+    const onKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault()
+        handleViolation('Attempted to open a new tab')
+      }
+    }
+
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('blur', onBlur)
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+      window.removeEventListener('blur', onBlur)
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [handleViolation])
+
+  const formatTime = (s) => {
+    if (s === null) return '--:--'
+    const m = Math.floor(s / 60).toString().padStart(2, '0')
+    const sec = (s % 60).toString().padStart(2, '0')
+    return `${m}:${sec}`
+  }
+
+  const isUrgent = timeLeft !== null && timeLeft <= 60
+
+  const selectAnswer = useCallback(async (questionId, option) => {
+    setAnswers(prev => ({ ...prev, [questionId]: option }))
+    const aId = attemptIdRef.current
+    if (!aId) return  // attempt not ready yet, just update local state
+    try {
+      await attemptApi.submitAnswer({ attemptId: aId, questionId, selectedOption: option })
+    } catch {
+      // Silent fail — answer is stored locally, will be counted on submit
+    }
+  }, [])
+
+  const toggleReview = (questionId) => {
+    setMarkedForReview(prev => {
+      const next = new Set(prev)
+      if (next.has(questionId)) next.delete(questionId)
+      else next.add(questionId)
+      return next
+    })
+  }
+
+  const handleFinish = async () => {
+    setSubmitting(true)
+    try {
+      await attemptApi.submit(attemptId)
+      if (token) {
+        try { await examTokenApi.consume(token) } catch {}
+      }
+      if (document.fullscreenElement) { try { await document.exitFullscreen() } catch {} }
+      toast.success('Quiz submitted!')
+      navigate(`/student/success`)
+    } catch {
+      toast.error('Submission failed')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (!cameraVerified) {
+    return (
+      <CameraSetupGate
+        onReady={(stream) => {
+          cameraStreamRef.current = stream;
+          setCameraVerified(true);
+        }}
+        onCancel={() => navigate(-1)}
+        title="Quiz Setup"
+      />
+    )
+  }
+
+  if (loading) return <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div className="spinner" /></div>
+
+  const q = questions[current]
+  const answered = Object.keys(answers).length
+  const progress = questions.length > 0 ? (answered / questions.length) * 100 : 0
+  const options = q ? [
+    { key: 'A', val: q.optionA }, { key: 'B', val: q.optionB },
+    { key: 'C', val: q.optionC }, { key: 'D', val: q.optionD },
+  ].filter(o => o.val) : []
+
+  const isMarked = q && markedForReview.has(q.id)
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
+
+      {/* Header Bar */}
+      <div style={{ height: 72, background: 'rgba(6,8,24,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', height: '100%', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 32 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6, fontSize: 12, fontWeight: 600 }}>
+              <span style={{ color: 'rgba(255,255,255,0.5)' }}>Progress: {answered} / {questions.length}</span>
+              {/* Timer */}
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                color: isUrgent ? '#f87171' : '#38bdf8',
+                fontFamily: 'monospace', fontSize: 15, fontWeight: 700,
+                ...(isUrgent ? { animation: 'pulse 1s ease-in-out infinite' } : {}),
+              }}>
+                <Clock size={14} /> {timeLeft !== null ? formatTime(timeLeft) : 'No limit'}
+              </span>
+            </div>
+            <div className="progress-track"><div className="progress-fill" style={{ width: `${progress}%` }} /></div>
+          </div>
+          <button onClick={() => setShowConfirm(true)} className="btn-primary" style={{ padding: '12px 28px', fontSize: 15 }}>
+            <Send size={15} /> Submit Quiz
+          </button>
+        </div>
+      </div>
+
+      {/* Main Area */}
+      <div style={{ flex: 1, padding: '32px 40px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+
+          {/* Left: Question */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <AnimatePresence mode="wait">
+              <motion.div key={current} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}
+                className="card" style={{ padding: '40px 48px', minHeight: 460, display: 'flex', flexDirection: 'column' }}>
+
+                {/* Question header */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(124,58,237,0.15)', color: '#a78bfa', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {current + 1}
+                    </div>
+                    <span style={{ fontSize: 14, color: 'var(--text-sec)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                      Question {current + 1} of {questions.length}
+                    </span>
+                    {isMarked && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 6, padding: '3px 8px' }}>
+                        <Flag size={10} /> Marked for Review
+                      </span>
+                    )}
+                  </div>
+                  {/* Mark for review button */}
+                  <button
+                    onClick={() => q && toggleReview(q.id)}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'all 0.2s',
+                      background: isMarked ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.06)',
+                      color: isMarked ? '#f59e0b' : 'var(--text-sec)',
+                    }}
+                  >
+                    <Flag size={13} />
+                    {isMarked ? 'Unmark' : 'Mark for Review'}
+                  </button>
+                </div>
+
+                <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.55, marginBottom: 40 }}>
+                  {q?.questionText}
+                </h2>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 'auto' }}>
+                  {options.map(({ key, val }) => {
+                    const sel = answers[q.id] === key
+                    return (
+                      <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 16 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 9, background: sel ? '#7c3aed' : 'rgba(255,255,255,0.06)', color: sel ? '#fff' : 'var(--text-sec)', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          {key}
+                        </div>
+                        <span style={{ flex: 1, fontSize: 16 }}>{val}</span>
+                        {sel && <CheckCircle2 size={20} color="#a78bfa" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0} className="btn-ghost" style={{ padding: '12px 22px', fontSize: 15, opacity: current === 0 ? 0.4 : 1, cursor: current === 0 ? 'not-allowed' : 'pointer' }}>
+                <ChevronLeft size={17} /> Previous
+              </button>
+              <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))} disabled={current === questions.length - 1} className="btn-ghost" style={{ padding: '12px 22px', fontSize: 15, opacity: current === questions.length - 1 ? 0.4 : 1, cursor: current === questions.length - 1 ? 'not-allowed' : 'pointer' }}>
+                Next <ChevronRight size={17} />
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Navigation Grid */}
+          <div className="card" style={{ padding: 24, position: 'sticky', top: 96 }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-sec)', marginBottom: 16 }}>
+              Navigation Map
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>
+              {questions.map((qs, i) => {
+                const ans = answers[qs?.id]
+                const isCurr = i === current
+                const isRev = markedForReview.has(qs?.id)
+                let bg, color, border = 'transparent'
+                if (isCurr)       { bg = '#8b5cf6'; color = '#fff'; border = '#7c3aed'; }
+                else if (isRev && ans) { bg = '#f59e0b'; color = '#fff'; border = '#d97706'; }
+                else if (isRev)   { bg = 'rgba(245,158,11,0.15)'; color = '#d97706'; border = 'rgba(245,158,11,0.4)'; }
+                else if (ans)     { bg = '#3b0764'; color = '#fff'; border = '#2e054e'; } // Answered -> Dark Purple
+                else              { bg = 'rgba(255,255,255,0.1)'; color = '#fff'; border = 'rgba(255,255,255,0.2)'; } // Unanswered -> Light
+                return (
+                  <button key={i} onClick={() => setCurrent(i)}
+                    style={{ width: '100%', aspectRatio: '1/1', borderRadius: 8, background: bg, border: `1px solid ${border}`, color, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                    {i + 1}
+                  </button>
+                )
+              })}
+            </div>
+            {/* Legend */}
+            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: '#8b5cf6', border: '1px solid #7c3aed' }} /> Current</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: '#3b0764', border: '1px solid #2e054e' }} /> Answered</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)' }} /> Marked for Review</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }} /> Unanswered</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Violation Modal ── */}
+      <AnimatePresence>
+        {violationPopup && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.82)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+              style={{
+                background: violationPopup.autoSubmit ? 'linear-gradient(135deg, #1a0a0a 0%, #2d0f0f 100%)' : 'linear-gradient(135deg, #0f0a1a 0%, #1a1040 100%)',
+                border: `1px solid ${violationPopup.autoSubmit ? 'rgba(239,68,68,0.5)' : 'rgba(251,191,36,0.4)'}`,
+                borderRadius: 24, padding: '48px 40px', maxWidth: 440, width: '100%', textAlign: 'center',
+                boxShadow: violationPopup.autoSubmit ? '0 0 60px rgba(239,68,68,0.3), 0 24px 64px rgba(0,0,0,0.7)' : '0 0 60px rgba(251,191,36,0.2), 0 24px 64px rgba(0,0,0,0.7)',
+              }}
+            >
+              <div style={{ width: 80, height: 80, borderRadius: '50%', margin: '0 auto 24px', background: violationPopup.autoSubmit ? 'rgba(239,68,68,0.15)' : 'rgba(251,191,36,0.12)', border: `2px solid ${violationPopup.autoSubmit ? 'rgba(239,68,68,0.5)' : 'rgba(251,191,36,0.4)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {violationPopup.autoSubmit ? <AlertTriangle size={38} color="#ef4444" /> : <Shield size={38} color="#fbbf24" />}
+              </div>
+              <div style={{ fontSize: violationPopup.autoSubmit ? 26 : 22, fontWeight: 800, color: violationPopup.autoSubmit ? '#ef4444' : '#fbbf24', marginBottom: 12 }}>
+                {violationPopup.autoSubmit ? '⛔ Cheating Detected!' : '⚠️ Violation Warning'}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 20 }}>
+                {[1, 2, 3].map(n => (
+                  <div key={n} style={{ width: 36, height: 36, borderRadius: '50%', background: n <= violationPopup.count ? (violationPopup.autoSubmit ? '#ef4444' : '#f59e0b') : 'rgba(255,255,255,0.08)', border: `2px solid ${n <= violationPopup.count ? (violationPopup.autoSubmit ? '#ef4444' : '#f59e0b') : 'rgba(255,255,255,0.15)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: n <= violationPopup.count ? '#fff' : '#475569', fontSize: 14, fontWeight: 800 }}>{n}</div>
+                ))}
+              </div>
+              <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', lineHeight: 1.65, marginBottom: 28 }}>
+                {violationPopup.autoSubmit
+                  ? <>You have reached <strong style={{ color: '#ef4444' }}>3 violations</strong>. Your quiz is being <strong style={{ color: '#ef4444' }}>automatically submitted</strong>.</>
+                  : <><strong style={{ color: '#fbbf24' }}>{violationPopup.reason}</strong>.<br />You have <strong style={{ color: '#fbbf24' }}>{violationPopup.count} of 3</strong> violations. One more will auto-submit.</>}
+              </p>
+              {!violationPopup.autoSubmit && (
+                <button onClick={async () => { try { await document.documentElement.requestFullscreen() } catch {} setViolationPopup(null) }}
+                  style={{ width: '100%', padding: '14px', borderRadius: 12, background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#000', border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
+                  I Understand — Return to Quiz
+                </button>
+              )}
+              {violationPopup.autoSubmit && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
+                  <div className="spinner" style={{ width: 16, height: 16, borderColor: 'rgba(239,68,68,0.3)', borderTopColor: '#ef4444' }} />
+                  Submitting your quiz…
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirm Submit Modal */}
+      <AnimatePresence>
+        {showConfirm && (
+          <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="modal-box" onClick={e => e.stopPropagation()} style={{ textAlign: 'center' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(251,191,36,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <AlertTriangle size={32} color="#fbbf24" />
+              </div>
+              <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-main)', marginBottom: 12 }}>Ready to submit?</h2>
+              <p style={{ fontSize: 14, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 8 }}>
+                You have answered <strong style={{ color: '#38bdf8' }}>{answered}</strong> out of <strong style={{ color: '#a78bfa' }}>{questions.length}</strong> questions.
+              </p>
+              {markedForReview.size > 0 && (
+                <p style={{ fontSize: 13, color: '#f59e0b', marginBottom: 24 }}>
+                  ⚠️ You have <strong>{markedForReview.size}</strong> question{markedForReview.size > 1 ? 's' : ''} marked for review.
+                </p>
+              )}
+              {markedForReview.size === 0 && <div style={{ marginBottom: 24 }} />}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setShowConfirm(false)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
+                <button onClick={handleFinish} disabled={submitting} className="btn-primary" style={{ flex: 1, justifyContent: 'center', opacity: submitting ? 0.7 : 1 }}>
+                  {submitting ? 'Submitting...' : 'Yes, Submit'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {!submitting && (
+        <FaceDetectionGuard
+          sharedStream={cameraStreamRef.current}
+          onViolation={handleViolation}
+        />
+      )}
+    </div>
+  )
+}
