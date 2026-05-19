@@ -120,7 +120,16 @@ public class AttemptService {
         }
 
         // Step 3 & 4 — Upsert answer
-        boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(request.getSelectedOption());
+        boolean isCorrect = false;
+        if (question.getCorrectAnswer() != null && request.getSelectedOption() != null) {
+            String[] correctOptions = question.getCorrectAnswer().split(",");
+            for (String opt : correctOptions) {
+                if (opt.trim().equalsIgnoreCase(request.getSelectedOption().trim())) {
+                    isCorrect = true;
+                    break;
+                }
+            }
+        }
 
         StudentAnswer answer = answerRepository
                 .findByAttemptIdAndQuestionId(request.getAttemptId(), request.getQuestionId())

@@ -158,16 +158,53 @@ function ImportModal({ quizId, onClose, onImported }) {
       rawQuestions = lines.map((line, index) => {
         const parts = line.split(',').map(part => part.trim())
         if (parts.length < 7) {
-          throw new Error(`Line ${index + 1} requires 7 values: questionText, optionA, optionB, optionC, optionD, correctAnswer, marks`)
+          throw new Error(`Line ${index + 1} requires at least 7 values: questionText, optionA, optionB, optionC, optionD, correctAnswer, marks`)
         }
+        
+        let marks = 1
+        let lastIndex = parts.length - 1
+        if (!isNaN(parts[lastIndex]) && parts[lastIndex] !== '') {
+          marks = Number(parts[lastIndex])
+          lastIndex--
+        }
+        
+        const correctAnswers = []
+        const validOptionsSet = new Set(['A', 'B', 'C', 'D'])
+        while (lastIndex >= 0 && validOptionsSet.has(parts[lastIndex].toUpperCase())) {
+          correctAnswers.unshift(parts[lastIndex].toUpperCase())
+          lastIndex--
+        }
+        
+        if (lastIndex < 3) {
+          throw new Error(`Line ${index + 1} has an invalid structure. Option A, B, C, D and Question Text are required.`)
+        }
+        
+        const optionD = parts[lastIndex--]
+        const optionC = parts[lastIndex--]
+        const optionB = parts[lastIndex--]
+        const optionA = parts[lastIndex--]
+        
+        const questionTextParts = []
+        for (let i = 0; i <= lastIndex; i++) {
+          questionTextParts.push(parts[i])
+        }
+        const questionText = questionTextParts.join(',')
+        
+        if (!questionText) {
+          throw new Error(`Line ${index + 1} has empty question text.`)
+        }
+        if (correctAnswers.length === 0) {
+          throw new Error(`Line ${index + 1} has no valid correct answer (must be A, B, C, or D).`)
+        }
+        
         return {
-          questionText: parts[0],
-          optionA: parts[1],
-          optionB: parts[2],
-          optionC: parts[3],
-          optionD: parts[4],
-          correctAnswer: parts[5].toUpperCase(),
-          marks: Number(parts[6]) || 1,
+          questionText,
+          optionA,
+          optionB,
+          optionC,
+          optionD,
+          correctAnswer: correctAnswers.join(','),
+          marks,
           quizId: Number(quizId),
         }
       })

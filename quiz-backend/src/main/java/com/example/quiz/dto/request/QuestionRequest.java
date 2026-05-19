@@ -40,7 +40,7 @@ public class QuestionRequest {
     private String optionD;
 
     @NotBlank(message = "Correct answer is required")
-    @Pattern(regexp = "^[ABCD]$", message = "Correct answer must be A, B, C, or D")
+    @Pattern(regexp = "^[A-D](,[A-D])*$", message = "Correct answer must be a single option (A, B, C, or D) or comma-separated options (e.g., A,C)")
     private String correctAnswer;
 
     @NotNull(message = "Marks are required")
