@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { authApi } from '../../api/axios'
+import logo from '../../assets/logo.png'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import { Zap, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, GraduationCap, ShieldCheck } from 'lucide-react'
@@ -37,8 +38,8 @@ export default function Register() {
         <div style={{ position: 'absolute', bottom: '15%', left: '10%', width: 160, height: 160, borderRadius: '50%', background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.08)' }} />
 
         <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} style={{ position: 'relative', zIndex: 1, maxWidth: 380 }}>
-          <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28, boxShadow: '0 0 40px rgba(124,58,237,0.5)' }} className="float-anim">
-            <Zap size={32} color="#fff" />
+          <div className="float-anim" style={{ marginBottom: 28 }}>
+            <img src={logo} alt="QuizVault Logo" style={{ width: 72, height: 72, borderRadius: 20, boxShadow: '0 0 40px rgba(124,58,237,0.5)', objectFit: 'contain' }} />
           </div>
           <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12 }} className="grad">Join QuizVault</h2>
           <p style={{ color: 'var(--text-sec)', fontSize: 15, lineHeight: 1.65, marginBottom: 36 }}>

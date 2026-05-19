@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.example.quiz.service.OtpService otpService;
 
 
     @PostMapping("/register")
@@ -37,5 +38,21 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(ApiResponse.success("Login successful", data));
+    }
+
+    @PostMapping("/forgot-password/request")
+    public ResponseEntity<ApiResponse<Void>> requestForgotPassword(
+            @Valid @RequestBody com.example.quiz.dto.request.ForgotPasswordRequest request
+    ) {
+        otpService.generateAndSendOtp(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("Verification code sent to your email address", null));
+    }
+
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody com.example.quiz.dto.request.ResetPasswordRequest request
+    ) {
+        otpService.verifyOtpAndResetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password reset successfully", null));
     }
 }

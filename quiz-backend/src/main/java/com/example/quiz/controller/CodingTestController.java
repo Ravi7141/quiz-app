@@ -45,6 +45,16 @@ public class CodingTestController {
     }
 
     /**
+     * GET /student/coding-tests/{id}
+     */
+    @GetMapping("/student/coding-tests/{id}")
+    public ResponseEntity<ApiResponse<CodingTestResponse>> getCodingTestById(@PathVariable Long id) {
+        CodingTestResponse data = codingTestService.getCodingTestById(id);
+        return ResponseEntity.ok(ApiResponse.success("Coding test fetched successfully", data));
+    }
+
+
+    /**
      * POST /student/code/run
      */
     @PostMapping("/student/code/run")
@@ -105,5 +115,16 @@ public class CodingTestController {
     public ResponseEntity<ApiResponse<Void>> deleteCodingTest(@PathVariable Long id) {
         codingTestService.deleteCodingTest(id);
         return ResponseEntity.ok(ApiResponse.success("Coding test deleted successfully"));
+    }
+
+    /**
+     * GET /admin/coding-tests/import-leetcode
+     */
+    @GetMapping("/admin/coding-tests/import-leetcode")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> importLeetCodeQuestion(
+            @RequestParam String query
+    ) {
+        Map<String, Object> data = codingTestService.importLeetCodeQuestion(query);
+        return ResponseEntity.ok(ApiResponse.success("LeetCode question imported successfully", data));
     }
 }
