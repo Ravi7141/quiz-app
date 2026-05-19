@@ -42,6 +42,34 @@ function DeleteConfirmModal({ test, onClose, onConfirm, loading }) {
 function CodingModal({ test, onClose, onSave }) {
   const [form, setForm] = useState({ title: '', description: '', sampleInput: '', sampleOutput: '', difficulty: 'EASY', scheduledFor: '', validUntil: '', ...test })
   const [loading, setLoading] = useState(false)
+  const [importQuery, setImportQuery] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [descTab, setDescTab] = useState('edit')
+
+  const handleImport = async () => {
+    if (!importQuery.trim()) {
+      toast.error('Please enter a LeetCode URL or Slug')
+      return
+    }
+    setImporting(true)
+    try {
+      const res = await codingApi.importLeetCode(importQuery)
+      const data = res.data.data
+      setForm(f => ({
+        ...f,
+        title: data.title || f.title,
+        description: data.description || f.description,
+        difficulty: data.difficulty || f.difficulty,
+        sampleInput: data.sampleInput || f.sampleInput,
+        sampleOutput: data.sampleOutput || f.sampleOutput,
+      }))
+      toast.success('LeetCode question imported!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to import question')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -66,10 +94,98 @@ function CodingModal({ test, onClose, onSave }) {
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}><X size={20} /></button>
         </div>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {!test?.id && (
+            <div style={{ background: 'rgba(56,189,248,0.04)', border: '1px dashed rgba(56,189,248,0.25)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#38bdf8' }}>Import from LeetCode</label>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input 
+                  placeholder="e.g., https://leetcode.com/problems/two-sum/ or two-sum" 
+                  value={importQuery} 
+                  onChange={e => setImportQuery(e.target.value)} 
+                  className="input-field" 
+                  style={{ flex: 1, height: 40 }}
+                />
+                <button 
+                  type="button" 
+                  onClick={handleImport} 
+                  disabled={importing}
+                  className="btn-primary" 
+                  style={{ height: 40, padding: '0 16px', background: 'linear-gradient(135deg, #38bdf8, #3b82f6)', border: 'none', minWidth: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  {importing ? <Loader2 size={16} className="spin" /> : 'Import'}
+                </button>
+              </div>
+              <span style={{ fontSize: 11, color: 'var(--text-sec)' }}>Note: Expected output won't be imported. Please paste it manually.</span>
+            </div>
+          )}
           <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Title *</label>
           <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="input-field" /></div>
-          <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description *</label>
-          <textarea required rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="input-field" style={{ resize: 'none' }} /></div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-sec)' }}>Description *</label>
+              <div style={{ display: 'flex', gap: 4, background: 'rgba(255,255,255,0.05)', padding: 2, borderRadius: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => setDescTab('edit')}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    borderRadius: 4,
+                    border: 'none',
+                    background: descTab === 'edit' ? '#7c3aed' : 'transparent',
+                    color: descTab === 'edit' ? '#fff' : 'var(--text-sec)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDescTab('preview')}
+                  style={{
+                    padding: '4px 10px',
+                    fontSize: 11,
+                    fontWeight: 600,
+                    borderRadius: 4,
+                    border: 'none',
+                    background: descTab === 'preview' ? '#7c3aed' : 'transparent',
+                    color: descTab === 'preview' ? '#fff' : 'var(--text-sec)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  Preview
+                </button>
+              </div>
+            </div>
+            {descTab === 'edit' ? (
+              <textarea
+                required
+                rows={5}
+                value={form.description}
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                className="input-field"
+                style={{ resize: 'vertical', minHeight: 120 }}
+              />
+            ) : (
+              <div
+                className="leetcode-description"
+                style={{
+                  minHeight: 120,
+                  maxHeight: 250,
+                  overflowY: 'auto',
+                  background: '#0d1117',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: 12,
+                  padding: '12px 16px',
+                  textAlign: 'left'
+                }}
+                dangerouslySetInnerHTML={{ __html: form.description || '<span style="color:var(--text-sec); font-style:italic;">No description provided.</span>' }}
+              />
+            )}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Sample Input</label>
             <textarea rows={2} value={form.sampleInput || ''} onChange={e => setForm(f => ({ ...f, sampleInput: e.target.value }))} className="input-field" style={{ resize: 'none', fontFamily: 'monospace' }} /></div>
@@ -171,7 +287,9 @@ export default function AdminCodingTests() {
                 <span className={`badge ${diffClass[test.difficulty] || ''}`}>{test.difficulty}</span>
               </div>
               <h3 style={{ fontSize: 25, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>{test.title}</h3>
-              <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{test.description}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {test.description ? test.description.replace(/<[^>]*>/g, '') : ''}
+              </p>
               <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 <button onClick={() => setShareExam(test)} style={{ padding: '0 12px', height: 32, borderRadius: 8, background: 'rgba(56,189,248,0.1)', color: '#38bdf8', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', marginRight: 'auto' }}>
                   <Share2 size={14} /> Share Links

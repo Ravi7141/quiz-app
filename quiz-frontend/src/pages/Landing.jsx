@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import logo from '../assets/logo.png'
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion'
 import { Zap, BookOpen, Users, Target, Trophy, ArrowRight, Sun, Moon, ShieldCheck, Star, Brain, CheckCircle, BarChart3, Clock, GraduationCap, Sparkles, Layers, ChevronRight, Mail, MapPin, Phone, Globe, Camera, Play, MessageCircle, Share2 } from 'lucide-react'
 import ParticleBackground from '../components/ParticleBackground'
@@ -242,13 +243,13 @@ export default function Landing() {
         transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
       >
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <motion.div
-            style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(124,58,237,0.5)' }}
+          <motion.img
+            src={logo}
+            alt="QuizVault Logo"
+            style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'contain' }}
             whileHover={{ scale: 1.1, rotate: -5 }}
             whileTap={{ scale: 0.95 }}
-          >
-            <Zap size={18} color="#fff" />
-          </motion.div>
+          />
           <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }} className="grad">QuizVault</span>
         </Link>
 
@@ -513,9 +514,7 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
               >
-                <div style={{ width: 42, height: 42, borderRadius: 12, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(124,58,237,0.3)' }}>
-                  <Zap size={20} color="#fff" />
-                </div>
+                <img src={logo} alt="QuizVault Logo" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'contain' }} />
                 <span className="footer-logo-text grad">QuizVault</span>
               </motion.div>
               <p className="footer-brand-desc">

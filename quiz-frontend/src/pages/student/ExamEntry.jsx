@@ -34,7 +34,11 @@ export default function ExamEntry() {
   }
 
   const handleEnterExamClick = () => {
-    setShowInstructions(true)
+    if (examData.examType === 'CODING') {
+      navigate(`/student/coding/${examData.examId}?token=${token}&studentId=${examData.studentId}`)
+    } else {
+      setShowInstructions(true)
+    }
   }
 
   const handleConfirmStart = () => {
@@ -80,10 +84,20 @@ export default function ExamEntry() {
         </div>
 
         <div style={{ background: '#0d1117', borderRadius: 16, padding: 24, marginBottom: 32 }}>
-          {examData.description && (
+          {examData.examType === 'CODING' ? (
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: '#64748b', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
-              <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6 }}>{examData.description}</p>
+              <div style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div>• Please ensure you have a stable internet connection and your camera is working.</div>
+                <div>• The assessment requires you to stay in fullscreen mode.</div>
+                <div>• Switching tabs or exiting fullscreen may flag a violation.</div>
+                <div>• The exam will automatically submit when the timer ends.</div>
+              </div>
+            </div>
+          ) : examData.description && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ color: '#64748b', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
+              <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: examData.description }}></p>
             </div>
           )}
           

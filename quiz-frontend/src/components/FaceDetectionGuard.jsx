@@ -28,6 +28,11 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
   const warnTimeoutRef = useRef(null);
   const scanTimerRef = useRef(null);
 
+  const onViolationRef = useRef(onViolation);
+  useEffect(() => {
+    onViolationRef.current = onViolation;
+  }, [onViolation]);
+
   const showBackgroundWarning = (message) => {
     setBackgroundWarning(message);
     if (warnTimeoutRef.current) clearTimeout(warnTimeoutRef.current);
@@ -96,7 +101,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
         if (!streamAlive) {
           stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-            audio: false,
+            audio: true,
           });
         }
 
@@ -112,7 +117,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
       } catch (err) {
         if (!mounted) return;
         console.error('Error accessing webcam:', err);
-        onViolation('Webcam access denied. Camera is required for this exam.');
+        onViolationRef.current('Webcam access denied. Camera is required for this exam.');
       }
     };
 
@@ -126,7 +131,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
         streamRef.current = null;
       }
     };
-  }, [onViolation, sharedStream]);
+  }, [sharedStream]);
 
   // Face/person scanning once camera + face model are ready
   useEffect(() => {
@@ -172,7 +177,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
             if (violationCountRef.current.noFace >= NO_FACE_TICKS) {
               isViolatingRef.current = true;
-              onViolation('No face detected or looking away from camera');
+              onViolationRef.current('No face detected or looking away from camera');
               violationCountRef.current.noFace = 0;
               setTimeout(() => {
                 isViolatingRef.current = false;
@@ -184,7 +189,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
             if (violationCountRef.current.multiFace >= MULTI_FACE_TICKS) {
               isViolatingRef.current = true;
-              onViolation('Multiple faces detected in camera');
+              onViolationRef.current('Multiple faces detected in camera');
               violationCountRef.current.multiFace = 0;
               setTimeout(() => {
                 isViolatingRef.current = false;
@@ -217,7 +222,73 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
       mounted = false;
       if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
     };
-  }, [cameraReady, faceModelReady, onViolation]);
+  }, [cameraReady, faceModelReady]);
+
+  // Voice/Audio activity detection
+  useEffect(() => {
+    if (!cameraReady || !streamRef.current) return;
+
+    let audioContext;
+    let analyser;
+    let source;
+    let checkInterval;
+
+    try {
+      const audioTrack = streamRef.current.getAudioTracks()[0];
+      if (!audioTrack) {
+        console.warn("No audio track found in proctoring stream.");
+        return;
+      }
+
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioContext = new AudioContextClass();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+
+      source = audioContext.createMediaStreamSource(streamRef.current);
+      source.connect(analyser);
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      let consecutiveVoiceTicks = 0;
+      checkInterval = setInterval(() => {
+        if (isViolatingRef.current) return;
+
+        analyser.getByteFrequencyData(dataArray);
+        let sum = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          sum += dataArray[i];
+        }
+        const averageVolume = sum / bufferLength;
+
+        // Threshold for speaking/noise level. Typically background hum is 1-10, speaking is 25+
+        if (averageVolume > 25) {
+          consecutiveVoiceTicks += 1;
+          if (consecutiveVoiceTicks >= 5) { // ~1.7s of consecutive noise/speaking
+            onViolationRef.current('Voice / talking detected in background');
+            showBackgroundWarning('Voice/speaking detected. Please remain silent.');
+            consecutiveVoiceTicks = 0;
+          }
+        } else {
+          if (consecutiveVoiceTicks > 0) consecutiveVoiceTicks -= 1;
+        }
+      }, 350);
+
+      // Attempt to resume audio context if suspended (common browser autoplay policy behavior)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+      }
+    } catch (err) {
+      console.warn("Voice detection setup failed:", err);
+    }
+
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+      if (source) source.disconnect();
+      if (audioContext) audioContext.close().catch(() => {});
+    };
+  }, [cameraReady]);
 
   const showLoadingOverlay = !cameraReady;
 

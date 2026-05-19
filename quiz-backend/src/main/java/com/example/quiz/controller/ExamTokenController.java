@@ -35,6 +35,16 @@ public class ExamTokenController {
         return ResponseEntity.ok(ApiResponse.success("Tokens fetched successfully", data));
     }
 
+    @PostMapping("/admin/tokens/exam/{type}/{id}/email-all")
+    public ResponseEntity<ApiResponse<Void>> emailAllTokens(
+            @PathVariable String type,
+            @PathVariable Long id,
+            @RequestParam String baseUrl
+    ) {
+        examTokenService.emailAllTokens(type, id, baseUrl);
+        return ResponseEntity.ok(ApiResponse.success("Emails sent successfully", null));
+    }
+
     // ─── Public / Student Endpoints ──────────────────────────────────────────
 
     @GetMapping("/api/tokens/verify")

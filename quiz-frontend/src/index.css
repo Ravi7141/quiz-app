@@ -1359,3 +1359,73 @@ select, select option {
 .editor-timer.warning { color: #f59e0b; border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
 .editor-timer.danger  { color: #f87171; border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.08); animation: pulse 1s infinite; }
 
+/* ── LeetCode Description Formatting ── */
+.leetcode-description {
+  font-family: 'Inter', sans-serif;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.leetcode-description p {
+  margin-bottom: 12px;
+}
+.leetcode-description strong {
+  color: #fff;
+  font-weight: 700;
+}
+.leetcode-description pre {
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  overflow-x: auto;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+.leetcode-description code {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  color: #f43f5e;
+}
+.leetcode-description pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+.leetcode-description ul, .leetcode-description ol {
+  margin: 8px 0 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.leetcode-description li {
+  list-style-type: disc;
+  color: #cbd5e1;
+}
+.leetcode-description table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+.leetcode-description th, .leetcode-description td {
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 12px;
+  text-align: left;
+}
+.leetcode-description th {
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  font-weight: 600;
+}
+.leetcode-description .example {
+  margin-top: 16px;
+}
+

@@ -5,6 +5,8 @@ import {
   LogOut, Zap, ChevronRight, User
 } from 'lucide-react'
 
+import logo from '../assets/logo.png'
+
 const studentLinks = []
 const adminLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -24,9 +26,7 @@ export default function Sidebar({ isOpen, toggle }) {
       {/* Logo */}
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 14px rgba(124,58,237,0.5)' }}>
-            <Zap size={19} color="#fff" />
-          </div>
+          <img src={logo} alt="QuizVault Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
           <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em' }} className="grad">QuizVault</span>
         </Link>
         {/* Close Button */}

@@ -30,6 +30,8 @@ api.interceptors.response.use(
 export const authApi = {
   register: (data) => api.post('/register', data),
   login: (data) => api.post('/login', data),
+  forgotPasswordRequest: (data) => api.post('/forgot-password/request', data),
+  forgotPasswordReset: (data) => api.post('/forgot-password/reset', data),
 }
 
 // ─── Student Quiz ──────────────────────────────────────────────
@@ -82,11 +84,13 @@ export const adminApi = {
 // ─── Coding Tests ──────────────────────────────────────────────
 export const codingApi = {
   getAll: () => api.get('/student/coding-tests'),
+  getById: (id) => api.get(`/student/coding-tests/${id}`),
   run: (data) => api.post('/student/code/run', data),
   submit: (data) => api.post('/student/code/submit', data),
   create: (data) => api.post('/admin/coding-tests', data),
   update: (id, data) => api.put(`/admin/coding-tests/${id}`, data),
   delete: (id) => api.delete(`/admin/coding-tests/${id}`),
+  importLeetCode: (query) => api.get(`/admin/coding-tests/import-leetcode?query=${encodeURIComponent(query)}`),
 }
 
 // ─── Exam Tokens ───────────────────────────────────────────────
@@ -95,6 +99,8 @@ export const examTokenApi = {
   getForExam: (type, id) => api.get(`/admin/tokens/exam/${type}/${id}`),
   verify: (token) => api.get(`/api/tokens/verify?token=${token}`),
   consume: (token) => api.post(`/api/tokens/consume?token=${token}`),
+  emailAll: (type, id, baseUrl) =>
+    api.post(`/admin/tokens/exam/${type}/${id}/email-all?baseUrl=${encodeURIComponent(baseUrl)}`),
 }
 
 export default api

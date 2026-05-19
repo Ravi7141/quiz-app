@@ -17,7 +17,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
     
     const init = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         if (!mounted) {
           stream.getTracks().forEach(track => track.stop());
           return;
@@ -31,7 +31,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
       } catch (err) {
         if (!mounted) return;
         setStatus('error');
-        setErrorMsg('Camera permission denied or camera not found. Please allow camera access to continue.');
+        setErrorMsg('Camera or Microphone permission denied or not found. Please allow both camera and microphone access to continue.');
       }
     };
     init();
@@ -91,7 +91,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
           <Camera size={28} color="#a78bfa" />
         </div>
         <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>{title}</h2>
-        <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 24 }}>Please allow camera access and align your face before starting.</p>
+        <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 24 }}>Please allow camera and microphone access, and align your face before starting.</p>
 
         <div style={{ position: 'relative', width: 240, height: 240, margin: '0 auto 24px', borderRadius: '50%', overflow: 'hidden', border: `4px solid ${status === 'ready' ? '#4ade80' : status === 'error' ? '#f87171' : '#38bdf8'}`, background: '#000' }}>
           <video ref={videoRef} autoPlay muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />

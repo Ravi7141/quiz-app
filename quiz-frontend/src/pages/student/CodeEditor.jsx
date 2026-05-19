@@ -46,11 +46,13 @@ export default function CodeEditor() {
 
   // Anti-cheat state
   const [started, setStarted]       = useState(false)   // has fullscreen started?
-  const [verifyingCamera, setVerifyingCamera] = useState(false)
+  const [verifyingCamera, setVerifyingCamera] = useState(true)
   const [timeLeft, setTimeLeft]     = useState(0)
   const [violations, setViolations] = useState(0)
   const [violPopup, setViolPopup]   = useState(null)    // { count, autoSubmit }
   const [submitted, setSubmitted]   = useState(false)
+  const [error, setError]           = useState(null)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const violRef   = useRef(0)
   const timerRef  = useRef(null)
@@ -58,10 +60,17 @@ export default function CodeEditor() {
   const cameraStreamRef = useRef(null)
 
   useEffect(() => {
-    codingApi.getAll().then(r => {
-      const found = (r.data.data || []).find(t => String(t.id) === String(id))
-      setTest(found || null)
-      if (found?.timeLimitMinutes) setTimeLeft(found.timeLimitMinutes * 60)
+    codingApi.getById(id).then(r => {
+      const found = r.data.data
+      if (!found) {
+        setError('Coding challenge not found.')
+      } else {
+        setTest(found)
+        if (found.timeLimitMinutes) setTimeLeft(found.timeLimitMinutes * 60)
+      }
+    }).catch(err => {
+      console.error(err)
+      setError(err.response?.data?.message || 'Failed to load coding challenge details.')
     })
   }, [id])
 
@@ -80,7 +89,7 @@ export default function CodeEditor() {
     } finally {
       // Exit fullscreen then go back
       try { await document.exitFullscreen() } catch {}
-      navigate('/')
+      navigate('/student/success')
     }
   }, [submitted, id, code, lang, navigate])
 
@@ -106,6 +115,7 @@ export default function CodeEditor() {
     cameraStreamRef.current = stream || cameraStreamRef.current
     enterFullscreen()
     setStarted(true)
+    setVerifyingCamera(false)
     violRef.current = 0
     setViolations(0)
   }
@@ -162,18 +172,13 @@ export default function CodeEditor() {
     } finally { setRunning(false) }
   }
 
-  const handleSubmit = async () => {
+  const handleSubmitCode = async () => {
     if (submitted) return
     setSubmitting(true); setOutput(null)
     try {
       const res = await codingApi.submit({ codingTestId: Number(id), code, language: lang.toUpperCase() })
       const data = res.data.data
       setOutput({ type: 'submit', data })
-      setSubmitted(true)
-      if (token) {
-        try { await examTokenApi.consume(token) } catch {}
-      }
-      clearInterval(timerRef.current)
       const passed = data?.status === 'ACCEPTED' || data?.testCasesPassed === data?.totalTestCases
       toast[passed ? 'success' : 'error'](
         passed ? `✅ All ${data.testCasesPassed || ''} tests passed!` : `❌ ${data.testCasesPassed || 0}/${data.totalTestCases || '?'} tests passed`
@@ -182,12 +187,29 @@ export default function CodeEditor() {
       setOutput({ type: 'error', data: err.response?.data?.message || 'Submission error' })
     } finally {
       setSubmitting(false)
-      // exit fullscreen & navigate back regardless of pass/fail
+    }
+  }
+
+  const handleFinishExam = async () => {
+    if (submitted) return
+    setShowConfirm(false)
+    setSubmitting(true)
+    try {
+      // Consume the token to prevent retaking the test
+      if (token) {
+        try { await examTokenApi.consume(token) } catch {}
+      }
+      setSubmitted(true)
+      clearInterval(timerRef.current)
+      toast.success("Exam completed successfully!")
       setTimeout(async () => {
         try { await document.exitFullscreen() } catch {}
-        // The user doesn't have a dashboard anymore. Navigate to home or simple success page.
-        navigate('/')
-      }, 3500)
+        navigate('/student/success')
+      }, 2000)
+    } catch (err) {
+      toast.error("Failed to finish exam cleanly")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -197,7 +219,7 @@ export default function CodeEditor() {
 
   // ── Pre-start screen ───────────────────────────────────────────
   if (verifyingCamera) {
-    return <CameraSetupGate onReady={handleStart} onCancel={() => setVerifyingCamera(false)} title="Camera Setup" />
+    return <CameraSetupGate onReady={handleStart} onCancel={() => navigate(-1)} title="Camera Setup" />
   }
 
   if (!started) {
@@ -281,6 +303,38 @@ export default function CodeEditor() {
         )}
       </AnimatePresence>
 
+      {/* Confirm Finish Modal */}
+      <AnimatePresence>
+        {showConfirm && (
+          <div className="modal-overlay" style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24
+          }} onClick={() => setShowConfirm(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+              style={{
+                background: '#161b22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '36px 40px', maxWidth: 440, width: '100%', textAlign: 'center'
+              }} onClick={e => e.stopPropagation()}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(251,191,36,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <AlertTriangle size={32} color="#fbbf24" />
+              </div>
+              <h2 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0', marginBottom: 12 }}>Finish Exam?</h2>
+              <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, marginBottom: 24 }}>
+                Are you sure you want to finish the exam? This will submit your final code and close your assessment session.
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setShowConfirm(false)}
+                  style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  Cancel
+                </button>
+                <button onClick={handleFinishExam} disabled={submitting}
+                  style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg,#ef4444,#dc2626)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', opacity: submitting ? 0.7 : 1 }}>
+                  {submitting ? 'Submitting...' : 'Yes, Finish'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Top Bar */}
       <div className="editor-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -324,10 +378,14 @@ export default function CodeEditor() {
             {running ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Play size={14} />} Run
           </button>
 
-          <button onClick={handleSubmit} disabled={submitting || submitted}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: submitted ? '#21262d' : 'linear-gradient(135deg,#7c3aed,#4f46e5)', border: 'none', color: submitted ? '#64748b' : '#fff', fontSize: 13, fontWeight: 700, cursor: submitting || submitted ? 'not-allowed' : 'pointer', boxShadow: submitted ? 'none' : '0 2px 12px rgba(124,58,237,0.4)' }}>
-            {submitting ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Send size={14} />}
-            {submitted ? 'Submitted' : 'Submit'}
+          <button onClick={handleSubmitCode} disabled={submitting || submitted}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#21262d', border: '1px solid rgba(167,139,250,0.3)', color: '#a78bfa', fontSize: 13, fontWeight: 600, cursor: submitting || submitted ? 'not-allowed' : 'pointer', opacity: submitted ? 0.4 : 1 }}>
+            {submitting ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Send size={14} />} Submit Code
+          </button>
+
+          <button onClick={() => setShowConfirm(true)} disabled={submitting || submitted}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: submitted ? '#21262d' : 'linear-gradient(135deg,#ef4444,#dc2626)', border: 'none', color: submitted ? '#64748b' : '#fff', fontSize: 13, fontWeight: 700, cursor: submitting || submitted ? 'not-allowed' : 'pointer', boxShadow: submitted ? 'none' : '0 2px 12px rgba(239,68,68,0.4)' }}>
+            Finish Exam
           </button>
         </div>
       </div>
@@ -336,7 +394,12 @@ export default function CodeEditor() {
       <div className="editor-body">
         {/* Problem Panel */}
         <div className="problem-panel">
-          {test ? (
+          {error ? (
+            <div style={{ padding: '40px 20px', textAlign: 'center', color: '#ef4444' }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Failed to Load Challenge</h3>
+              <p style={{ fontSize: 13, color: '#94a3b8' }}>{error}</p>
+            </div>
+          ) : test ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
               <div>
                 <h2 style={{ fontSize: 20, fontWeight: 800, color: '#e2e8f0', marginBottom: 8, lineHeight: 1.3 }}>{test.title}</h2>
@@ -344,7 +407,11 @@ export default function CodeEditor() {
               </div>
               <div>
                 <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', marginBottom: 10 }}>Description</div>
-                <p style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.7 }}>{test.description}</p>
+                <div 
+                  className="leetcode-description"
+                  style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.7 }} 
+                  dangerouslySetInnerHTML={{ __html: test.description }}
+                />
               </div>
               {test.sampleInput && (
                 <div>
