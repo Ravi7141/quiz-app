@@ -6,47 +6,33 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
-/**
- * Records a student's attempt at a particular quiz.
- *
- * Table: quiz_attempts
- */
 @Entity
-@Table(name = "exam_attempts")
+@Table(name = "assessment_attempts")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuizAttempt {
+public class AssessmentAttempt {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** The student taking the quiz */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assessment_id", nullable = false)
+    private Assessment assessment;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
-    /** The quiz being attempted */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "exam_id", nullable = false)
-    private Quiz quiz;
-
-    /** Score calculated after submission */
     private Integer score;
 
-    /** IN_PROGRESS or SUBMITTED */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AttemptStatus status;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assessment_attempt_id")
-    private AssessmentAttempt assessmentAttempt;
 
     @Column(name = "started_at", updatable = false)
     private LocalDateTime startedAt;
@@ -54,9 +40,13 @@ public class QuizAttempt {
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 
+    @Column(nullable = false)
+    private Integer violations;
+
     @PrePersist
     public void prePersist() {
         this.startedAt = LocalDateTime.now();
         if (this.status == null) this.status = AttemptStatus.IN_PROGRESS;
+        if (this.violations == null) this.violations = 0;
     }
 }

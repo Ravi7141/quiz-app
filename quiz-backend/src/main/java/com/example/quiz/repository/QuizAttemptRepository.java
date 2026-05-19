@@ -35,8 +35,10 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Long> 
 
     /** Check if student already has an in-progress attempt for a quiz */
     Optional<QuizAttempt> findByStudentIdAndQuizIdAndStatus(
-            Long studentId,
-            Long quizId,
-            com.example.quiz.enums.AttemptStatus status
+        Long studentId,
+        Long quizId,
+        com.example.quiz.enums.AttemptStatus status
     );
+
+    List<QuizAttempt> findByAssessmentAttemptId(Long assessmentAttemptId);
 }

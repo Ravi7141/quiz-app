@@ -1,6 +1,7 @@
 package com.example.quiz.controller;
 
 import com.example.quiz.dto.request.SubmitAnswerRequest;
+import com.example.quiz.dto.request.CodingSubmissionRequest;
 import com.example.quiz.dto.response.ApiResponse;
 import com.example.quiz.dto.response.AttemptResponse;
 import com.example.quiz.service.AttemptService;
@@ -80,5 +81,16 @@ public class AttemptController {
     ) {
         AttemptResponse data = attemptService.submitAttempt(attemptId);
         return ResponseEntity.ok(ApiResponse.success("Quiz submitted successfully", data));
+    }
+
+    /**
+     * POST /student/quizzes/submit-coding
+     */
+    @PostMapping("/submit-coding")
+    public ResponseEntity<ApiResponse<Void>> submitCoding(
+            @Valid @RequestBody CodingSubmissionRequest request
+    ) {
+        attemptService.saveCodingSubmission(request);
+        return ResponseEntity.ok(ApiResponse.success("Coding submission recorded successfully"));
     }
 }

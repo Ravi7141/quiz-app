@@ -2,6 +2,9 @@ package com.example.quiz.service;
 
 import com.example.quiz.dto.request.QuizRequest;
 import com.example.quiz.dto.response.QuizResponse;
+import com.example.quiz.dto.response.AssessmentResponse;
+import com.example.quiz.dto.response.QuestionResponse;
+import com.example.quiz.dto.response.CodingTestResponse;
 import com.example.quiz.entity.Quiz;
 import com.example.quiz.entity.QuizAttempt;
 import com.example.quiz.exception.ResourceNotFoundException;
@@ -10,6 +13,7 @@ import com.example.quiz.repository.QuestionRepository;
 import com.example.quiz.repository.QuizAttemptRepository;
 import com.example.quiz.repository.QuizRepository;
 import com.example.quiz.repository.StudentAnswerRepository;
+import com.example.quiz.repository.CodingTestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +32,7 @@ public class QuizService {
     private final QuestionRepository questionRepository;
     private final QuizAttemptRepository quizAttemptRepository;
     private final StudentAnswerRepository studentAnswerRepository;
+    private final CodingTestRepository codingTestRepository;
     private final AuthService authService;
 
     // ─── Create Quiz ──────────────────────────────────────────────────────────
@@ -147,6 +152,19 @@ public class QuizService {
                 .scheduledFor(quiz.getScheduledFor())
                 .validUntil(quiz.getValidUntil())
                 .createdAt(quiz.getCreatedAt())
+                .build();
+    }
+
+    public AssessmentResponse getAssessment(Long examId) {
+        Quiz quiz = quizRepository.findById(examId)
+                .orElseThrow(() -> new ResourceNotFoundException("Exam", examId));
+
+        return AssessmentResponse.builder()
+                .id(quiz.getId())
+                .title(quiz.getTitle())
+                .description(quiz.getDescription())
+                .durationMinutes(quiz.getDurationMinutes())
+                .active(quiz.getActive())
                 .build();
     }
 }

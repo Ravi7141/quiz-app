@@ -1,6 +1,7 @@
 package com.example.quiz.service;
 
 import com.example.quiz.dto.request.SubmitAnswerRequest;
+import com.example.quiz.dto.request.CodingSubmissionRequest;
 import com.example.quiz.dto.response.AttemptResponse;
 import com.example.quiz.entity.*;
 import com.example.quiz.enums.AttemptStatus;
@@ -32,6 +33,8 @@ public class AttemptService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+    private final CodingTestRepository codingTestRepository;
+    private final StudentCodingSubmissionRepository studentCodingSubmissionRepository;
 
     // ─── Start Attempt ────────────────────────────────────────────────────────
 
@@ -188,5 +191,32 @@ public class AttemptService {
                 .startedAt(attempt.getStartedAt())
                 .submittedAt(attempt.getSubmittedAt())
                 .build();
+    }
+
+    @Transactional
+    public void saveCodingSubmission(CodingSubmissionRequest request) {
+        QuizAttempt attempt = attemptRepository.findById(request.getAttemptId())
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt", request.getAttemptId()));
+
+        if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
+            throw new BadRequestException("This attempt is already submitted. You cannot submit code.");
+        }
+
+        CodingTest codingTest = codingTestRepository.findById(request.getCodingTestId())
+                .orElseThrow(() -> new ResourceNotFoundException("CodingTest", request.getCodingTestId()));
+
+        StudentCodingSubmission submission = studentCodingSubmissionRepository
+                .findByAttemptIdAndCodingTestId(request.getAttemptId(), request.getCodingTestId())
+                .stream().findFirst()
+                .orElse(StudentCodingSubmission.builder()
+                        .attempt(attempt)
+                        .codingTest(codingTest)
+                        .build());
+
+        submission.setCode(request.getCode());
+        submission.setLanguage(request.getLanguage());
+        submission.setPassed(request.getPassed());
+
+        studentCodingSubmissionRepository.save(submission);
     }
 }

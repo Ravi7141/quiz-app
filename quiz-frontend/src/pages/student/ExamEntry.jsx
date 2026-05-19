@@ -34,20 +34,12 @@ export default function ExamEntry() {
   }
 
   const handleEnterExamClick = () => {
-    if (examData.examType === 'CODING') {
-      navigate(`/student/coding/${examData.examId}?token=${token}&studentId=${examData.studentId}`)
-    } else {
-      setShowInstructions(true)
-    }
+    setShowInstructions(true)
   }
 
   const handleConfirmStart = () => {
     setShowInstructions(false)
-    if (examData.examType === 'QUIZ') {
-      navigate(`/student/quizzes/${examData.examId}/attempt?token=${token}&studentId=${examData.studentId}`)
-    } else {
-      navigate(`/student/coding/${examData.examId}?token=${token}&studentId=${examData.studentId}`)
-    }
+    navigate(`/assessment/${examData.examId}?token=${token}&studentId=${examData.studentId}`, { state: { requestFullscreen: true } })
   }
 
   if (loading) {

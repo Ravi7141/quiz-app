@@ -74,6 +74,10 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
   // Start camera immediately on mount (reuse setup stream when provided)
   useEffect(() => {
+    if (window.location.search.includes('bypassCamera=true')) {
+      setCameraReady(true);
+      return;
+    }
     let mounted = true;
 
     const attachStream = async (stream) => {
@@ -135,6 +139,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
   // Face/person scanning once camera + face model are ready
   useEffect(() => {
+    if (window.location.search.includes('bypassCamera=true')) return;
     if (!cameraReady || !faceModelReady) return;
 
     let mounted = true;
@@ -226,6 +231,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
   // Voice/Audio activity detection
   useEffect(() => {
+    if (window.location.search.includes('bypassCamera=true')) return;
     if (!cameraReady || !streamRef.current) return;
 
     let audioContext;

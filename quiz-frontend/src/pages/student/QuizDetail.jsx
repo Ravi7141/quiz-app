@@ -32,8 +32,8 @@ export default function QuizDetail() {
   }, [id])
 
   const handleStartQuiz = () => {
-    // Just navigate — QuizAttempt handles starting the attempt
-    navigate(`/student/quizzes/${id}/attempt`, { state: { requestFullscreen: true } })
+    // Just navigate — UnifiedAssessment handles starting the attempt
+    navigate(`/assessment/${id}`, { state: { requestFullscreen: true } })
   }
 
   if (loading) return <Layout title="Loading..."><div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div></Layout>

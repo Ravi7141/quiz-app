@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, Code2, Users, BarChart2,
-  LogOut, Zap, ChevronRight, User
+  LogOut, Zap, ChevronRight, User, Sparkles
 } from 'lucide-react'
 
 import logo from '../assets/logo.png'
@@ -10,6 +10,7 @@ import logo from '../assets/logo.png'
 const studentLinks = []
 const adminLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/assessments', label: 'Assessments', icon: Sparkles },
   { to: '/admin/quizzes', label: 'Manage Quizzes', icon: BookOpen },
   { to: '/admin/coding', label: 'Coding Tests', icon: Code2 },
   { to: '/admin/students', label: 'Students', icon: Users },

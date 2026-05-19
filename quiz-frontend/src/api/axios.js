@@ -38,6 +38,7 @@ export const authApi = {
 export const studentQuizApi = {
   getAll: () => api.get('/student/quizzes'),
   getById: (id) => api.get(`/student/quizzes/${id}`),
+  getAssessment: (id) => api.get(`/student/quizzes/${id}/assessment`),
 }
 
 // ─── Quiz Attempt ──────────────────────────────────────────────
@@ -45,6 +46,7 @@ export const attemptApi = {
   start: (quizId, studentId) =>
     api.post(`/student/quizzes/start/${quizId}?studentId=${studentId}`),
   submitAnswer: (data) => api.post('/student/quizzes/submit-answer', data),
+  submitCoding: (data) => api.post('/student/quizzes/submit-coding', data),
   submit: (attemptId) => api.post(`/student/quizzes/submit/${attemptId}`),
 }
 
@@ -101,6 +103,20 @@ export const examTokenApi = {
   consume: (token) => api.post(`/api/tokens/consume?token=${token}`),
   emailAll: (type, id, baseUrl) =>
     api.post(`/admin/tokens/exam/${type}/${id}/email-all?baseUrl=${encodeURIComponent(baseUrl)}`),
+}
+
+// ─── Unified Assessments ───────────────────────────────────────
+export const assessmentApi = {
+  create: (data) => api.post('/admin/assessments', data),
+  getAll: () => api.get('/admin/assessments'),
+  regenerateShareToken: (id) => api.post(`/admin/assessments/${id}/share`),
+  getByToken: (token) => api.get(`/assessment/${token}`),
+  startAttempt: (assessmentId, studentId) =>
+    api.post(`/assessment/start?assessmentId=${assessmentId}&studentId=${studentId}`),
+  submitAttempt: (attemptId) =>
+    api.post(`/assessment/submit?attemptId=${attemptId}`),
+  submitCoding: (assessmentAttemptId, codingTestId, code, language, passed) =>
+    api.post(`/assessment/submit-coding?assessmentAttemptId=${assessmentAttemptId}&codingTestId=${codingTestId}&code=${encodeURIComponent(code)}&language=${language}&passed=${passed}`),
 }
 
 export default api

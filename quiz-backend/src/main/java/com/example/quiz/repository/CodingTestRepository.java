@@ -13,4 +13,5 @@ import java.util.List;
 public interface CodingTestRepository extends JpaRepository<CodingTest, Long> {
     List<CodingTest> findByCreatedById(Long createdById);
     long countByCreatedById(Long createdById);
+    List<CodingTest> findByQuizId(Long examId);
 }

@@ -58,6 +58,10 @@ public class CodingTest {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exam_id")
+    private Quiz quiz;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

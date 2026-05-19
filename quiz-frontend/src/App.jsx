@@ -10,10 +10,8 @@ import Profile from './pages/Profile'
 
 // Student
 import ExamEntry from './pages/student/ExamEntry'
-import QuizAttempt from './pages/student/QuizAttempt'
+import UnifiedAssessment from './pages/student/UnifiedAssessment'
 import Result from './pages/student/Result'
-
-import CodeEditor from './pages/student/CodeEditor'
 
 // Admin
 import AdminDashboard from './pages/admin/Dashboard'
@@ -25,6 +23,7 @@ import AdminResults from './pages/admin/Results'
 import AdminCodingTests from './pages/admin/CodingTests'
 import AdminQuizDetail from './pages/admin/QuizDetail'
 import QuizShareRedirect from './pages/QuizShareRedirect'
+import ManageAssessments from './pages/admin/ManageAssessments'
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const { user, isAdmin } = useAuth()
@@ -50,12 +49,14 @@ function AppRoutes() {
       <Route path="/exam/entry/:token" element={<ExamEntry />} />
 
       {/* Student (Token Secured) */}
-      <Route path="/student/quizzes/:id/attempt" element={<QuizAttempt />} />
+      <Route path="/assessment/:id" element={<UnifiedAssessment />} />
+      <Route path="/student/quizzes/:id/attempt" element={<UnifiedAssessment />} />
+      <Route path="/student/coding/:id" element={<UnifiedAssessment />} />
       <Route path="/student/success" element={<Result />} />
-      <Route path="/student/coding/:id" element={<CodeEditor />} />
 
       {/* Admin */}
       <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/assessments" element={<ProtectedRoute requireAdmin><ManageAssessments /></ProtectedRoute>} />
       <Route path="/admin/quizzes" element={<ProtectedRoute requireAdmin><ManageQuizzes /></ProtectedRoute>} />
       <Route path="/admin/quizzes/:id" element={<ProtectedRoute requireAdmin><AdminQuizDetail /></ProtectedRoute>} />
       <Route path="/admin/quizzes/:id/questions" element={<ProtectedRoute requireAdmin><ManageQuestions /></ProtectedRoute>} />
