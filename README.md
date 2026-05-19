@@ -1,6 +1,6 @@
-# 🎓 QuizVault — Full-Stack Multi-Admin Assessment Portal
+# 🎓 QuizVault — Full-Stack Java & React Assessment Portal
 
-Welcome to **QuizVault**, a state-of-the-art full-stack online examination and coding assessment portal. The project is designed with a premium, sleek dark-themed interface, robust anti-cheat controls, and full multi-administrator data isolation.
+Welcome to **QuizVault**, a premium, state-of-the-art full-stack online examination and coding assessment portal. This is a complete Java (Spring Boot) and React application engineered with a sleek modern design system, robust anti-cheat controls, and secure data isolation.
 
 ---
 
@@ -8,7 +8,7 @@ Welcome to **QuizVault**, a state-of-the-art full-stack online examination and c
 
 ```
 quiz-app/
-├── quiz-backend/      # Spring Boot + JPA + PostgreSQL Database REST API
+├── quiz-backend/      # Spring Boot + Spring Data JPA + PostgreSQL Database REST API
 ├── quiz-frontend/     # React + Vite + Vanilla CSS Premium Dark UI Dashboard
 └── README.md          # Project documentation and start-up guide
 ```
@@ -24,16 +24,16 @@ quiz-app/
 
 ### 👥 Student & Test Lifecycle
 * **Instant Sharing Tokens**: Bulk import student emails and generate unique links.
-* **Auto-Registration**: Bulk imported emails instantly register student profiles automatically under the creating administrator.
+* **Auto-Registration**: Bulk imported emails instantly register student profiles automatically under the creating coordinator.
 * **Timer Countdown**: Smooth countdown timers that trigger auto-submission on expiry.
 
-### 👤 Multi-Admin Data Isolation
-* **Full Tenant Separation**: Admins (e.g. `Ravi`) can only view, manage, and retrieve statistics for quizzes, coding tests, students, and attempts that they created.
-* **Student View Isolation**: Students taking tests only see active quizzes/assessments assigned by their registered admin.
+### ⚙️ Core Technical Architecture
+* **Spring Boot Backend**: Secure REST API endpoints, automated database schema configuration, and Spring Data JPA repositories.
+* **React Frontend**: Optimized Vite client with high-performance routing, dynamic layouts, and polished micro-animations.
 
 ---
 
-## 🚀 How to Run the App Local
+## 🚀 How to Run the App Locally
 
 ### 1. Database Setup
 Ensure PostgreSQL is running on your local machine with:
