@@ -11,6 +11,7 @@ import com.example.quiz.repository.CodingTestRepository;
 import com.example.quiz.repository.ExamTokenRepository;
 import com.example.quiz.repository.QuizRepository;
 import com.example.quiz.repository.UserRepository;
+import com.example.quiz.repository.QuestionRepository;
 import com.example.quiz.entity.User;
 import com.example.quiz.enums.Role;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +33,7 @@ public class ExamTokenService {
     private final QuizRepository quizRepository;
     private final CodingTestRepository codingTestRepository;
     private final UserRepository userRepository;
+    private final QuestionRepository questionRepository;
     private final AuthService authService;
     private final EmailService emailService;
 
@@ -255,7 +258,6 @@ public class ExamTokenService {
     @Transactional(readOnly = true)
     public void emailAllTokens(String examType, Long examId, String baseUrl) {
         List<ExamToken> tokens = examTokenRepository.findByExamIdAndExamType(examId, examType.toUpperCase());
-        String examTitle = getExamTitle(examType, examId);
 
         List<ExamToken> activeTokens = tokens.stream()
                 .filter(t -> !t.isUsed())
@@ -265,20 +267,93 @@ public class ExamTokenService {
             throw new IllegalArgumentException("No available tokens to email.");
         }
 
+        String examTitle = "";
+        String duration = "Not Specified";
+        int totalQuestions = 0;
+        LocalDateTime scheduledFor = null;
+        User creator = null;
+
+        if ("QUIZ".equalsIgnoreCase(examType)) {
+            Quiz quiz = quizRepository.findById(examId).orElse(null);
+            if (quiz != null) {
+                examTitle = quiz.getTitle();
+                duration = quiz.getDurationMinutes() != null ? quiz.getDurationMinutes() + " Minutes" : "Not Specified";
+                totalQuestions = questionRepository.countByQuizId(examId);
+                scheduledFor = quiz.getScheduledFor();
+                creator = quiz.getCreatedBy();
+            }
+        } else if ("CODING".equalsIgnoreCase(examType)) {
+            CodingTest test = codingTestRepository.findById(examId).orElse(null);
+            if (test != null) {
+                examTitle = test.getTitle();
+                duration = "45 Minutes";
+                totalQuestions = 1;
+                scheduledFor = test.getScheduledFor();
+                creator = test.getCreatedBy();
+            }
+        }
+
+        String examDate = "Flexible / Anytime";
+        String examTime = "Flexible / Anytime";
+        if (scheduledFor != null) {
+            try {
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+                examDate = scheduledFor.format(dateFormatter);
+                examTime = scheduledFor.format(timeFormatter);
+            } catch (Exception e) {
+                // Ignore formatting exception
+            }
+        }
+
+        String company = "QuizVault Portal";
+        String supportEmail = "support@example.com";
+        if (creator != null) {
+            if (creator.getName() != null && !creator.getName().isEmpty()) {
+                company = creator.getName();
+            }
+            if (creator.getEmail() != null && !creator.getEmail().isEmpty()) {
+                supportEmail = creator.getEmail();
+            }
+        }
+
         List<String> failedEmails = new ArrayList<>();
+        String subject = "Exam Invitation – Start Your Assessment";
+
         for (ExamToken t : activeTokens) {
             try {
                 String link = baseUrl + "/exam/entry/" + t.getToken();
-                String name = t.getStudentName() != null ? t.getStudentName() : "Student";
-                String subject = "Your Private Access Link for " + examTitle;
+                String name = t.getStudentName() != null ? t.getStudentName() : t.getStudentEmail().split("@")[0];
+                
                 String body = String.format(
-                        "Hi %s,\n\n" +
-                        "Here is your private link to access the assessment: %s\n\n" +
-                        "Link: %s\n\n" +
-                        "Do not share this link with anyone. It is strictly tied to your email.\n\n" +
-                        "Good luck!",
-                        name, examTitle, link
+                        "Hello %s,\n\n" +
+                        "You have been invited to attend the online examination.\n\n" +
+                        "📘 Exam Details\n" +
+                        "━━━━━━━━━━━━━━━━━━\n" +
+                        "Exam Name: %s\n" +
+                        "Date: %s\n" +
+                        "Time: %s\n" +
+                        "Duration: %s\n" +
+                        "Total Questions: %d\n\n" +
+                        "📝 Instructions\n" +
+                        "━━━━━━━━━━━━━━━━━━\n" +
+                        "• Ensure you have a stable internet connection.\n" +
+                        "• Do not refresh or close the browser during the exam.\n" +
+                        "• The exam will automatically submit once the timer ends.\n" +
+                        "• Full-screen mode is required during the test.\n" +
+                        "• Multiple attempts to exit full-screen may be marked as cheating.\n\n" +
+                        "🔗 Start Exam\n" +
+                        "━━━━━━━━━━━━━━━━━━\n" +
+                        "Click the link below to begin your exam:\n\n" +
+                        "%s\n\n" +
+                        "If the button/link does not work, copy and paste the URL into your browser.\n\n" +
+                        "Best of luck!\n\n" +
+                        "Regards,\n" +
+                        "%s\n" +
+                        "%s",
+                        name, examTitle, examDate, examTime, duration, totalQuestions, link, company, supportEmail
                 );
+                
                 emailService.sendEmail(t.getStudentEmail(), subject, body);
             } catch (Exception e) {
                 failedEmails.add(t.getStudentEmail() + " (" + e.getMessage() + ")");
