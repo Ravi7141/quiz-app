@@ -106,6 +106,7 @@ export default function CodeEditor() {
     cameraStreamRef.current = stream || cameraStreamRef.current
     enterFullscreen()
     setStarted(true)
+    setVerifyingCamera(false)
     violRef.current = 0
     setViolations(0)
   }

@@ -34,7 +34,11 @@ export default function ExamEntry() {
   }
 
   const handleEnterExamClick = () => {
-    setShowInstructions(true)
+    if (examData.examType === 'CODING') {
+      navigate(`/student/coding/${examData.examId}?token=${token}&studentId=${examData.studentId}`)
+    } else {
+      setShowInstructions(true)
+    }
   }
 
   const handleConfirmStart = () => {

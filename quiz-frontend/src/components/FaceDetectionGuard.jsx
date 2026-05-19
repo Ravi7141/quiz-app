@@ -28,6 +28,11 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
   const warnTimeoutRef = useRef(null);
   const scanTimerRef = useRef(null);
 
+  const onViolationRef = useRef(onViolation);
+  useEffect(() => {
+    onViolationRef.current = onViolation;
+  }, [onViolation]);
+
   const showBackgroundWarning = (message) => {
     setBackgroundWarning(message);
     if (warnTimeoutRef.current) clearTimeout(warnTimeoutRef.current);
@@ -112,7 +117,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
       } catch (err) {
         if (!mounted) return;
         console.error('Error accessing webcam:', err);
-        onViolation('Webcam access denied. Camera is required for this exam.');
+        onViolationRef.current('Webcam access denied. Camera is required for this exam.');
       }
     };
 
@@ -126,7 +131,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
         streamRef.current = null;
       }
     };
-  }, [onViolation, sharedStream]);
+  }, [sharedStream]);
 
   // Face/person scanning once camera + face model are ready
   useEffect(() => {
@@ -172,7 +177,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
             if (violationCountRef.current.noFace >= NO_FACE_TICKS) {
               isViolatingRef.current = true;
-              onViolation('No face detected or looking away from camera');
+              onViolationRef.current('No face detected or looking away from camera');
               violationCountRef.current.noFace = 0;
               setTimeout(() => {
                 isViolatingRef.current = false;
@@ -184,7 +189,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
             if (violationCountRef.current.multiFace >= MULTI_FACE_TICKS) {
               isViolatingRef.current = true;
-              onViolation('Multiple faces detected in camera');
+              onViolationRef.current('Multiple faces detected in camera');
               violationCountRef.current.multiFace = 0;
               setTimeout(() => {
                 isViolatingRef.current = false;
@@ -217,7 +222,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
       mounted = false;
       if (scanTimerRef.current) clearTimeout(scanTimerRef.current);
     };
-  }, [cameraReady, faceModelReady, onViolation]);
+  }, [cameraReady, faceModelReady]);
 
   const showLoadingOverlay = !cameraReady;
 
