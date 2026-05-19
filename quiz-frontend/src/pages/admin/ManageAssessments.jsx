@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Layout from '../../components/Layout'
+import ShareLinkModal from '../../components/ShareLinkModal'
 import { assessmentApi, adminQuizApi, codingApi } from '../../api/axios'
 import toast from 'react-hot-toast'
-import { Plus, Trash2, Check, X, Loader2, Link2, Calendar, Clock, BookOpen, Terminal, Sparkles, Copy } from 'lucide-react'
+import { Plus, Trash2, Check, X, Loader2, Link2, Calendar, Clock, BookOpen, Terminal, Sparkles, Copy, Mail } from 'lucide-react'
 
 function ShareModal({ assessment, onClose }) {
   const shareUrl = `${window.location.origin}/assessment/${assessment?.shareToken}`
@@ -228,6 +229,7 @@ export default function ManageAssessments() {
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [shareTarget, setShareTarget] = useState(null)
+  const [privateShareTarget, setPrivateShareTarget] = useState(null)
 
   const fetchData = async () => {
     try {
@@ -300,9 +302,16 @@ export default function ManageAssessments() {
                 <button
                   onClick={() => setShareTarget(assess)}
                   className="btn-ghost"
-                  style={{ flex: 1, justifyContent: 'center', color: '#c084fc', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(124,58,237,0.05)' }}
+                  style={{ flex: 1, justifyContent: 'center', color: '#c084fc', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(124,58,237,0.05)', fontSize: 13 }}
                 >
-                  <Link2 size={14} /> Share Link
+                  <Link2 size={13} /> Public Link
+                </button>
+                <button
+                  onClick={() => setPrivateShareTarget(assess)}
+                  className="btn-ghost"
+                  style={{ flex: 1, justifyContent: 'center', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(124,58,237,0.05)', fontSize: 13 }}
+                >
+                  <Mail size={13} /> Private Links
                 </button>
               </div>
             </motion.div>
@@ -340,6 +349,13 @@ export default function ManageAssessments() {
           />
         )}
       </AnimatePresence>
+
+      <ShareLinkModal
+        isOpen={!!privateShareTarget}
+        onClose={() => setPrivateShareTarget(null)}
+        examId={privateShareTarget?.id}
+        examType="ASSESSMENT"
+      />
     </Layout>
   )
 }

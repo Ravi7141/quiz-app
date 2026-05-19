@@ -9,6 +9,8 @@ import com.example.quiz.entity.Quiz;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.CodingTestRepository;
 import com.example.quiz.repository.ExamTokenRepository;
+import com.example.quiz.entity.Assessment;
+import com.example.quiz.repository.AssessmentRepository;
 import com.example.quiz.repository.QuizRepository;
 import com.example.quiz.repository.UserRepository;
 import com.example.quiz.repository.QuestionRepository;
@@ -32,6 +34,7 @@ public class ExamTokenService {
     private final ExamTokenRepository examTokenRepository;
     private final QuizRepository quizRepository;
     private final CodingTestRepository codingTestRepository;
+    private final AssessmentRepository assessmentRepository;
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
     private final AuthService authService;
@@ -55,8 +58,13 @@ public class ExamTokenService {
                     .orElseThrow(() -> new ResourceNotFoundException("CodingTest", request.getExamId()));
             examTitle = test.getTitle();
             if (expiresAt == null) expiresAt = validFrom.plusDays(7); // Default 7 days
+        } else if ("ASSESSMENT".equalsIgnoreCase(request.getExamType())) {
+            Assessment assessment = assessmentRepository.findById(request.getExamId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Assessment", request.getExamId()));
+            examTitle = assessment.getTitle();
+            if (expiresAt == null) expiresAt = validFrom.plusDays(7); // Default 7 days
         } else {
-            throw new IllegalArgumentException("Invalid exam type. Must be QUIZ or CODING.");
+            throw new IllegalArgumentException("Invalid exam type. Must be QUIZ, CODING or ASSESSMENT.");
         }
 
         List<TokenResponse> responses = new ArrayList<>();
@@ -230,6 +238,14 @@ public class ExamTokenService {
                    .difficulty(test.getDifficulty() != null ? test.getDifficulty() : "MEDIUM")
                    .scheduledFor(test.getScheduledFor())
                    .validUntil(test.getValidUntil());
+        } else if ("ASSESSMENT".equals(token.getExamType())) {
+            Assessment assessment = assessmentRepository.findById(token.getExamId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Assessment", token.getExamId()));
+            builder.examTitle(assessment.getTitle())
+                   .description(assessment.getDescription())
+                   .durationMinutes(assessment.getDurationMinutes())
+                   .scheduledFor(null)
+                   .validUntil(null);
         }
 
         return builder.build();
@@ -251,6 +267,8 @@ public class ExamTokenService {
             return quizRepository.findById(examId).map(Quiz::getTitle).orElse("Unknown Quiz");
         } else if ("CODING".equalsIgnoreCase(examType)) {
             return codingTestRepository.findById(examId).map(CodingTest::getTitle).orElse("Unknown Coding Test");
+        } else if ("ASSESSMENT".equalsIgnoreCase(examType)) {
+            return assessmentRepository.findById(examId).map(Assessment::getTitle).orElse("Unknown Assessment");
         }
         return "Unknown";
     }
@@ -290,6 +308,16 @@ public class ExamTokenService {
                 examTitle = test.getTitle();
                 scheduledFor = test.getScheduledFor();
                 creator = test.getCreatedBy();
+            }
+        } else if ("ASSESSMENT".equalsIgnoreCase(examType)) {
+            Assessment assessment = assessmentRepository.findById(examId).orElse(null);
+            if (assessment != null) {
+                examTitle = assessment.getTitle();
+                if (assessment.getDurationMinutes() != null) {
+                    duration = assessment.getDurationMinutes() + " Minutes";
+                }
+                scheduledFor = null;
+                creator = null;
             }
         }
 

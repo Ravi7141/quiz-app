@@ -69,14 +69,14 @@ export default function ExamEntry() {
         style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: '48px', maxWidth: 540, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(124,58,237,0.15)', color: '#a78bfa', borderRadius: 20, fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', marginBottom: 16 }}>
-            {examData.examType === 'QUIZ' ? 'ASSESSMENT QUIZ' : 'CODING CHALLENGE'}
+            {examData.examType === 'ASSESSMENT' ? 'FULL ASSESSMENT' : examData.examType === 'QUIZ' ? 'ASSESSMENT QUIZ' : 'CODING CHALLENGE'}
           </div>
           <h1 style={{ fontSize: 28, color: '#fff', fontWeight: 800, marginBottom: 8 }}>{examData.examTitle}</h1>
           <p style={{ color: '#94a3b8', fontSize: 15 }}>Welcome, <strong style={{ color: '#e2e8f0' }}>{examData.studentName || examData.studentEmail}</strong></p>
         </div>
 
         <div style={{ background: '#0d1117', borderRadius: 16, padding: 24, marginBottom: 32 }}>
-          {examData.examType === 'CODING' ? (
+          {(examData.examType === 'CODING' || examData.examType === 'ASSESSMENT') ? (
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: '#64748b', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
               <div style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -86,12 +86,12 @@ export default function ExamEntry() {
                 <div>• The exam will automatically submit when the timer ends.</div>
               </div>
             </div>
-          ) : examData.description && (
+          ) : examData.description ? (
             <div style={{ marginBottom: 20 }}>
               <div style={{ color: '#64748b', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
               <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: examData.description }}></p>
             </div>
-          )}
+          ) : null}
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {examData.durationMinutes && (
