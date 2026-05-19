@@ -117,6 +117,8 @@ export const assessmentApi = {
     api.post(`/assessment/submit?attemptId=${attemptId}`),
   submitCoding: (assessmentAttemptId, codingTestId, code, language, passed) =>
     api.post(`/assessment/submit-coding?assessmentAttemptId=${assessmentAttemptId}&codingTestId=${codingTestId}&code=${encodeURIComponent(code)}&language=${language}&passed=${passed}`),
+  enroll: (name, email, phone) =>
+    api.post(`/assessment/enroll?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone || '')}`),
 }
 
 export default api

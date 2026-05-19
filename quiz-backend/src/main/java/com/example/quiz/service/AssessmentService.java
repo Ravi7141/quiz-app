@@ -10,6 +10,7 @@ import com.example.quiz.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.quiz.enums.Role;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -351,5 +352,34 @@ public class AssessmentService {
         submission.setPassed(passed);
 
         studentCodingSubmissionRepository.save(submission);
+    }
+
+    @Transactional
+    public AuthResponse enrollStudent(String name, String email, String phone) {
+        User student = userRepository.findByEmail(email).map(u -> {
+            if ((u.getName() == null || u.getName().isEmpty()) && name != null) {
+                u.setName(name);
+            }
+            if ((u.getPhone() == null || u.getPhone().isEmpty()) && phone != null) {
+                u.setPhone(phone);
+            }
+            return userRepository.save(u);
+        }).orElseGet(() -> {
+            User newUser = User.builder()
+                    .name(name)
+                    .email(email)
+                    .phone(phone)
+                    .password(java.util.UUID.randomUUID().toString())
+                    .role(Role.STUDENT)
+                    .build();
+            return userRepository.save(newUser);
+        });
+
+        return AuthResponse.builder()
+                .id(student.getId())
+                .name(student.getName())
+                .email(student.getEmail())
+                .role(student.getRole().name())
+                .build();
     }
 }

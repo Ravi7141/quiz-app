@@ -5,6 +5,7 @@ import com.example.quiz.dto.response.ApiResponse;
 import com.example.quiz.dto.response.AssessmentResponse;
 import com.example.quiz.dto.response.AssessmentDetailsResponse;
 import com.example.quiz.dto.response.AssessmentAttemptResponse;
+import com.example.quiz.dto.response.AuthResponse;
 import com.example.quiz.service.AssessmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -71,5 +72,14 @@ public class AssessmentController {
             @RequestParam Boolean passed) {
         assessmentService.saveCodingSubmission(assessmentAttemptId, codingTestId, code, language, passed);
         return ResponseEntity.ok(ApiResponse.success("Coding submission saved successfully", null));
+    }
+
+    @PostMapping("/assessment/enroll")
+    public ResponseEntity<ApiResponse<AuthResponse>> enrollStudent(
+            @RequestParam String name,
+            @RequestParam String email,
+            @RequestParam(required = false) String phone) {
+        AuthResponse response = assessmentService.enrollStudent(name, email, phone);
+        return ResponseEntity.ok(ApiResponse.success("Student enrolled successfully", response));
     }
 }
