@@ -268,8 +268,8 @@ public class ExamTokenService {
         }
 
         String examTitle = "";
-        String duration = "Not Specified";
-        int totalQuestions = 0;
+        String duration = null;
+        Integer totalQuestions = null;
         LocalDateTime scheduledFor = null;
         User creator = null;
 
@@ -277,7 +277,9 @@ public class ExamTokenService {
             Quiz quiz = quizRepository.findById(examId).orElse(null);
             if (quiz != null) {
                 examTitle = quiz.getTitle();
-                duration = quiz.getDurationMinutes() != null ? quiz.getDurationMinutes() + " Minutes" : "Not Specified";
+                if (quiz.getDurationMinutes() != null) {
+                    duration = quiz.getDurationMinutes() + " Minutes";
+                }
                 totalQuestions = questionRepository.countByQuizId(examId);
                 scheduledFor = quiz.getScheduledFor();
                 creator = quiz.getCreatedBy();
@@ -286,8 +288,6 @@ public class ExamTokenService {
             CodingTest test = codingTestRepository.findById(examId).orElse(null);
             if (test != null) {
                 examTitle = test.getTitle();
-                duration = "45 Minutes";
-                totalQuestions = 1;
                 scheduledFor = test.getScheduledFor();
                 creator = test.getCreatedBy();
             }
@@ -317,6 +317,18 @@ public class ExamTokenService {
             }
         }
 
+        StringBuilder examDetails = new StringBuilder();
+        examDetails.append("Exam Name: ").append(examTitle);
+        examDetails.append("\nDate: ").append(examDate);
+        examDetails.append("\nTime: ").append(examTime);
+        if (duration != null) {
+            examDetails.append("\nDuration: ").append(duration);
+        }
+        if (totalQuestions != null) {
+            examDetails.append("\nTotal Questions: ").append(totalQuestions);
+        }
+        String examDetailsStr = examDetails.toString();
+
         List<String> failedEmails = new ArrayList<>();
         String subject = "Exam Invitation – Start Your Assessment";
 
@@ -330,11 +342,7 @@ public class ExamTokenService {
                         "You have been invited to attend the online examination.\n\n" +
                         "📘 Exam Details\n" +
                         "━━━━━━━━━━━━━━━━━━\n" +
-                        "Exam Name: %s\n" +
-                        "Date: %s\n" +
-                        "Time: %s\n" +
-                        "Duration: %s\n" +
-                        "Total Questions: %d\n\n" +
+                        "%s\n\n" +
                         "📝 Instructions\n" +
                         "━━━━━━━━━━━━━━━━━━\n" +
                         "• Ensure you have a stable internet connection.\n" +
@@ -351,7 +359,7 @@ public class ExamTokenService {
                         "Regards,\n" +
                         "%s\n" +
                         "%s",
-                        name, examTitle, examDate, examTime, duration, totalQuestions, link, company, supportEmail
+                        name, examDetailsStr, link, company, supportEmail
                 );
                 
                 emailService.sendEmail(t.getStudentEmail(), subject, body);
