@@ -32,6 +32,7 @@ public class ExamTokenService {
     private final CodingTestRepository codingTestRepository;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final EmailService emailService;
 
     @Transactional
     public List<TokenResponse> generateTokens(TokenGenerateRequest request) {
@@ -249,5 +250,43 @@ public class ExamTokenService {
             return codingTestRepository.findById(examId).map(CodingTest::getTitle).orElse("Unknown Coding Test");
         }
         return "Unknown";
+    }
+
+    @Transactional(readOnly = true)
+    public void emailAllTokens(String examType, Long examId, String baseUrl) {
+        List<ExamToken> tokens = examTokenRepository.findByExamIdAndExamType(examId, examType.toUpperCase());
+        String examTitle = getExamTitle(examType, examId);
+
+        List<ExamToken> activeTokens = tokens.stream()
+                .filter(t -> !t.isUsed())
+                .collect(Collectors.toList());
+
+        if (activeTokens.isEmpty()) {
+            throw new IllegalArgumentException("No available tokens to email.");
+        }
+
+        List<String> failedEmails = new ArrayList<>();
+        for (ExamToken t : activeTokens) {
+            try {
+                String link = baseUrl + "/exam/entry/" + t.getToken();
+                String name = t.getStudentName() != null ? t.getStudentName() : "Student";
+                String subject = "Your Private Access Link for " + examTitle;
+                String body = String.format(
+                        "Hi %s,\n\n" +
+                        "Here is your private link to access the assessment: %s\n\n" +
+                        "Link: %s\n\n" +
+                        "Do not share this link with anyone. It is strictly tied to your email.\n\n" +
+                        "Good luck!",
+                        name, examTitle, link
+                );
+                emailService.sendEmail(t.getStudentEmail(), subject, body);
+            } catch (Exception e) {
+                failedEmails.add(t.getStudentEmail() + " (" + e.getMessage() + ")");
+            }
+        }
+
+        if (!failedEmails.isEmpty()) {
+            throw new RuntimeException("Failed to send emails to: " + String.join(", ", failedEmails));
+        }
     }
 }

@@ -95,6 +95,8 @@ export const examTokenApi = {
   getForExam: (type, id) => api.get(`/admin/tokens/exam/${type}/${id}`),
   verify: (token) => api.get(`/api/tokens/verify?token=${token}`),
   consume: (token) => api.post(`/api/tokens/consume?token=${token}`),
+  emailAll: (type, id, baseUrl) =>
+    api.post(`/admin/tokens/exam/${type}/${id}/email-all?baseUrl=${encodeURIComponent(baseUrl)}`),
 }
 
 export default api

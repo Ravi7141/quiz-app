@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link as LinkIcon, QrCode, Copy, CheckCircle2 } from 'lucide-react'
+import { X, Link as LinkIcon, QrCode, Copy, CheckCircle2, Mail } from 'lucide-react'
 import { examTokenApi } from '../api/axios'
 import { QRCodeSVG } from 'qrcode.react'
 import toast from 'react-hot-toast'
@@ -10,6 +10,7 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType }) {
   const [generating, setGenerating] = useState(false)
   const [tokens, setTokens] = useState([])
   const [loading, setLoading] = useState(false)
+  const [emailing, setEmailing] = useState(false)
   const [showQrToken, setShowQrToken] = useState(null)
 
   useEffect(() => {
@@ -67,6 +68,23 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType }) {
     toast.success(`Copied ${available.length} links to clipboard!`)
   }
 
+  const handleEmailAll = async () => {
+    const available = tokens.filter(t => !t.isUsed)
+    if (!available.length) return toast.error('No available links to email')
+
+    setEmailing(true)
+    try {
+      const baseUrl = window.location.origin
+      await examTokenApi.emailAll(examType, examId, baseUrl)
+      toast.success('All private access links sent via email!')
+    } catch (err) {
+      const errMsg = err.response?.data?.message || 'Failed to send emails'
+      toast.error(errMsg)
+    } finally {
+      setEmailing(false)
+    }
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -98,10 +116,16 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType }) {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                 <h3 style={{ color: '#e2e8f0', fontSize: 15, fontWeight: 600 }}>Generated Tokens</h3>
                 {tokens.length > 0 && (
-                  <button onClick={handleCopyAll}
-                    style={{ padding: '6px 12px', background: 'rgba(56,189,248,0.1)', color: '#38bdf8', borderRadius: 6, border: '1px solid rgba(56,189,248,0.2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Copy size={14} /> Copy All Links
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <button onClick={handleEmailAll} disabled={emailing}
+                      style={{ padding: '6px 12px', background: 'rgba(124,58,237,0.1)', color: '#a78bfa', borderRadius: 6, border: '1px solid rgba(124,58,237,0.2)', fontSize: 13, fontWeight: 600, cursor: emailing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: emailing ? 0.7 : 1 }}>
+                      <Mail size={14} /> {emailing ? 'Sending...' : 'Email All'}
+                    </button>
+                    <button onClick={handleCopyAll}
+                      style={{ padding: '6px 12px', background: 'rgba(56,189,248,0.1)', color: '#38bdf8', borderRadius: 6, border: '1px solid rgba(56,189,248,0.2)', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <Copy size={14} /> Copy All Links
+                    </button>
+                  </div>
                 )}
               </div>
               {loading ? (
