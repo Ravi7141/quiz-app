@@ -5,7 +5,7 @@ import Layout from '../../components/Layout'
 import { adminQuizApi, questionApi, adminApi } from '../../api/axios'
 import {
   BookOpen, Clock, HelpCircle, ArrowLeft, CheckCircle, AlertTriangle,
-  Users, BarChart2, Award, Share2, RefreshCw, Calendar
+  Users, BarChart2, Award, Share2, RefreshCw, Calendar, Edit3, X, Loader2, Check
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ShareLinkModal from '../../components/ShareLinkModal'
@@ -20,6 +20,9 @@ export default function AdminQuizDetail() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editFormData, setEditFormData] = useState({})
+  const [savingEdit, setSavingEdit] = useState(false)
 
   const fetchResults = useCallback(async (showSpinner = false) => {
     if (showSpinner) setRefreshing(true)
@@ -58,6 +61,48 @@ export default function AdminQuizDetail() {
     setShowShareModal(true)
   }
 
+  const handleEditClick = () => {
+    setEditFormData({
+      title: quiz.title,
+      description: quiz.description || '',
+      durationMinutes: quiz.durationMinutes || quiz.duration || 0,
+      passMark: quiz.passMark || 60,
+      totalMarks: quiz.totalMarks || 100,
+      active: quiz.active,
+      scheduledFor: quiz.scheduledFor ? new Date(quiz.scheduledFor).toISOString().slice(0, 16) : '',
+      validUntil: quiz.validUntil ? new Date(quiz.validUntil).toISOString().slice(0, 16) : ''
+    })
+    setShowEditModal(true)
+  }
+
+  const handleEditChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }))
+  }
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    setSavingEdit(true)
+    try {
+      const payload = {
+        ...editFormData,
+        scheduledFor: editFormData.scheduledFor ? new Date(editFormData.scheduledFor).toISOString() : null,
+        validUntil: editFormData.validUntil ? new Date(editFormData.validUntil).toISOString() : null
+      }
+      const res = await adminQuizApi.update(id, payload)
+      toast.success('Quiz updated successfully')
+      setShowEditModal(false)
+      setQuiz(res.data.data)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update quiz')
+    } finally {
+      setSavingEdit(false)
+    }
+  }
+
   if (loading) return <Layout title="Loading..."><div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div></Layout>
   if (!quiz) return <Layout title="Not Found"><div style={{ textAlign: 'center', padding: 80, color: 'var(--text-sec)' }}>Quiz not found.</div></Layout>
 
@@ -77,6 +122,9 @@ export default function AdminQuizDetail() {
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={() => fetchResults(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }} disabled={refreshing}>
             <RefreshCw size={15} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} /> Refresh
+          </button>
+          <button onClick={handleEditClick} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Edit3 size={15} /> Edit
           </button>
           <button onClick={openShareModal} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Share2 size={15} /> Share Links
@@ -228,6 +276,71 @@ export default function AdminQuizDetail() {
         examId={id} 
         examType="QUIZ" 
       />
+
+      <AnimatePresence>
+        {showEditModal && (
+          <div className="modal-overlay" onClick={() => setShowEditModal(false)} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="modal-box" style={{ margin: '40px auto', maxWidth: 500, width: '100%' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>Edit Quiz</h2>
+                <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}><X size={20} /></button>
+              </div>
+              <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Title *</label>
+                <input required name="title" value={editFormData.title} onChange={handleEditChange} className="input-field" placeholder="Quiz title" /></div>
+                <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description</label>
+                <textarea name="description" value={editFormData.description} onChange={handleEditChange} rows={3} className="input-field" style={{ resize: 'none' }} placeholder="Optional description" /></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (min) *</label>
+                  <input required type="number" name="durationMinutes" value={editFormData.durationMinutes} onChange={handleEditChange} className="input-field" placeholder="e.g. 30" min="1" /></div>
+                  <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
+                  <input required type="number" name="totalMarks" value={editFormData.totalMarks} onChange={handleEditChange} className="input-field" placeholder="e.g. 100" min="1" /></div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled Start (Optional)</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input type="date" value={editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[0] : ''} onChange={e => {
+                        const date = e.target.value;
+                        const time = editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[1].substring(0, 5) : '00:00';
+                        setEditFormData(f => ({ ...f, scheduledFor: date ? `${date}T${time}` : '' }))
+                      }} className="input-field" style={{ flex: 1 }} />
+                      <input type="time" value={editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[1].substring(0, 5) : ''} onChange={e => {
+                        const time = e.target.value;
+                        const date = editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[0] : new Date().toISOString().split('T')[0];
+                        setEditFormData(f => ({ ...f, scheduledFor: time ? `${date}T${time}` : '' }))
+                      }} className="input-field" style={{ flex: 1 }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled End (Optional)</label>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input type="date" value={editFormData.validUntil ? editFormData.validUntil.split('T')[0] : ''} onChange={e => {
+                        const date = e.target.value;
+                        const time = editFormData.validUntil ? editFormData.validUntil.split('T')[1].substring(0, 5) : '23:59';
+                        setEditFormData(f => ({ ...f, validUntil: date ? `${date}T${time}` : '' }))
+                      }} className="input-field" style={{ flex: 1 }} />
+                      <input type="time" value={editFormData.validUntil ? editFormData.validUntil.split('T')[1].substring(0, 5) : ''} onChange={e => {
+                        const time = e.target.value;
+                        const date = editFormData.validUntil ? editFormData.validUntil.split('T')[0] : new Date().toISOString().split('T')[0];
+                        setEditFormData(f => ({ ...f, validUntil: time ? `${date}T${time}` : '' }))
+                      }} className="input-field" style={{ flex: 1 }} />
+                    </div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
+                  <button type="button" onClick={() => setEditFormData(f => ({ ...f, active: !f.active }))} className={`toggle ${editFormData.active ? 'on' : ''}`}><div className="toggle-knob" /></button>
+                  <span style={{ fontSize: 13, color: 'var(--text-main)' }}>{editFormData.active ? 'Active (Accessible via private link)' : 'Draft (Inactive)'}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+                  <button type="button" onClick={() => setShowEditModal(false)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={savingEdit}>Cancel</button>
+                  <button type="submit" disabled={savingEdit} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{savingEdit ? <Loader2 size={16} className="spin" /> : <Check size={16} />} Update</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </Layout>
   )
 }
