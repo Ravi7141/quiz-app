@@ -177,16 +177,16 @@ public class ExamTokenService {
             builder.examTitle(quiz.getTitle())
                    .description(quiz.getDescription())
                    .durationMinutes(quiz.getDurationMinutes())
-                   .scheduledFor(quiz.getScheduledFor())
-                   .validUntil(quiz.getValidUntil());
+                   .scheduledFor(null)
+                   .validUntil(null);
         } else if ("CODING".equals(token.getExamType())) {
             CodingTest test = codingTestRepository.findById(token.getExamId())
                     .orElseThrow(() -> new ResourceNotFoundException("CodingTest", token.getExamId()));
             builder.examTitle(test.getTitle())
                    .description(test.getDescription())
                    .difficulty(test.getDifficulty() != null ? test.getDifficulty() : "MEDIUM")
-                   .scheduledFor(test.getScheduledFor())
-                   .validUntil(test.getValidUntil());
+                   .scheduledFor(null)
+                   .validUntil(null);
         } else if ("ASSESSMENT".equals(token.getExamType())) {
             Assessment assessment = assessmentRepository.findById(token.getExamId())
                     .orElseThrow(() -> new ResourceNotFoundException("Assessment", token.getExamId()));
@@ -194,8 +194,8 @@ public class ExamTokenService {
                    .description(assessment.getDescription())
                    .durationMinutes(assessment.getDurationMinutes())
                    .shareToken(assessment.getShareToken())
-                   .scheduledFor(null)
-                   .validUntil(null);
+                   .scheduledFor(assessment.getScheduledFor())
+                   .validUntil(assessment.getValidUntil());
         }
 
         return builder.build();
@@ -249,14 +249,14 @@ public class ExamTokenService {
                     duration = quiz.getDurationMinutes() + " Minutes";
                 }
                 totalQuestions = questionRepository.countByQuizId(examId);
-                scheduledFor = quiz.getScheduledFor();
+                scheduledFor = null;
                 creator = quiz.getCreatedBy();
             }
         } else if ("CODING".equalsIgnoreCase(examType)) {
             CodingTest test = codingTestRepository.findById(examId).orElse(null);
             if (test != null) {
                 examTitle = test.getTitle();
-                scheduledFor = test.getScheduledFor();
+                scheduledFor = null;
                 creator = test.getCreatedBy();
             }
         } else if ("ASSESSMENT".equalsIgnoreCase(examType)) {
@@ -266,6 +266,7 @@ public class ExamTokenService {
                 if (assessment.getDurationMinutes() != null) {
                     duration = assessment.getDurationMinutes() + " Minutes";
                 }
+                scheduledFor = assessment.getScheduledFor();
             }
         }
 

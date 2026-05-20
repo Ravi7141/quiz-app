@@ -69,8 +69,6 @@ export default function AdminQuizDetail() {
       passMark: quiz.passMark || 60,
       totalMarks: quiz.totalMarks || 100,
       active: quiz.active,
-      scheduledFor: quiz.scheduledFor ? new Date(quiz.scheduledFor).toISOString().slice(0, 16) : '',
-      validUntil: quiz.validUntil ? new Date(quiz.validUntil).toISOString().slice(0, 16) : ''
     })
     setShowEditModal(true)
   }
@@ -89,8 +87,6 @@ export default function AdminQuizDetail() {
     try {
       const payload = {
         ...editFormData,
-        scheduledFor: editFormData.scheduledFor ? new Date(editFormData.scheduledFor).toISOString() : null,
-        validUntil: editFormData.validUntil ? new Date(editFormData.validUntil).toISOString() : null
       }
       const res = await adminQuizApi.update(id, payload)
       toast.success('Quiz updated successfully')
@@ -157,8 +153,6 @@ export default function AdminQuizDetail() {
                   { icon: HelpCircle, label: 'Questions', val: questions.length },
                   ...(quiz.durationMinutes || quiz.duration ? [{ icon: Clock, label: 'Duration', val: `${quiz.durationMinutes || quiz.duration} min` }] : []),
                   { icon: Award, label: 'Total Marks', val: quiz.totalMarks || '—' },
-                  ...(quiz.scheduledFor ? [{ icon: Calendar, label: 'Starts', val: new Date(quiz.scheduledFor).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'}) }] : []),
-                  ...(quiz.validUntil ? [{ icon: Calendar, label: 'Ends', val: new Date(quiz.validUntil).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'}) }] : []),
                   ...(quiz.passMark ? [{ icon: CheckCircle, label: 'Pass Mark', val: `${quiz.passMark}%` }] : []),
                 ].map(({ icon: Icon, label, val }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -296,38 +290,7 @@ export default function AdminQuizDetail() {
                   <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
                   <input required type="number" name="totalMarks" value={editFormData.totalMarks} onChange={handleEditChange} className="input-field" placeholder="e.g. 100" min="1" /></div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled Start (Optional)</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input type="date" value={editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[0] : ''} onChange={e => {
-                        const date = e.target.value;
-                        const time = editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[1].substring(0, 5) : '00:00';
-                        setEditFormData(f => ({ ...f, scheduledFor: date ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                      <input type="time" value={editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                        const time = e.target.value;
-                        const date = editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[0] : new Date().toISOString().split('T')[0];
-                        setEditFormData(f => ({ ...f, scheduledFor: time ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled End (Optional)</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input type="date" value={editFormData.validUntil ? editFormData.validUntil.split('T')[0] : ''} onChange={e => {
-                        const date = e.target.value;
-                        const time = editFormData.validUntil ? editFormData.validUntil.split('T')[1].substring(0, 5) : '23:59';
-                        setEditFormData(f => ({ ...f, validUntil: date ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                      <input type="time" value={editFormData.validUntil ? editFormData.validUntil.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                        const time = e.target.value;
-                        const date = editFormData.validUntil ? editFormData.validUntil.split('T')[0] : new Date().toISOString().split('T')[0];
-                        setEditFormData(f => ({ ...f, validUntil: time ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                    </div>
-                  </div>
-                </div>
+
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
                   <button type="button" onClick={() => setEditFormData(f => ({ ...f, active: !f.active }))} className={`toggle ${editFormData.active ? 'on' : ''}`}><div className="toggle-knob" /></button>
                   <span style={{ fontSize: 13, color: 'var(--text-main)' }}>{editFormData.active ? 'Active (Accessible via private link)' : 'Draft (Inactive)'}</span>

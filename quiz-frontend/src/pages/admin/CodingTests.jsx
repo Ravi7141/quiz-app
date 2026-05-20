@@ -96,21 +96,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
             </div>
           </div>
 
-          {/* Schedule info */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-sec)' }}>Start Date & Time</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>
-                <Calendar size={14} color="#a78bfa" /> {formatDate(test.scheduledFor)}
-              </div>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <span style={{ fontSize: 12, color: 'var(--text-sec)' }}>End Date & Time</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>
-                <Calendar size={14} color="#f87171" /> {formatDate(test.validUntil)}
-              </div>
-            </div>
-          </div>
+
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 12, marginTop: 8, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
@@ -131,7 +117,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
 }
 
 function CodingModal({ test, onClose, onSave }) {
-  const [form, setForm] = useState({ title: '', description: '', sampleInput: '', sampleOutput: '', difficulty: 'EASY', scheduledFor: '', validUntil: '', ...test })
+  const [form, setForm] = useState({ title: '', description: '', sampleInput: '', sampleOutput: '', difficulty: 'EASY', ...test })
   const [loading, setLoading] = useState(false)
   const [importQuery, setImportQuery] = useState('')
   const [importing, setImporting] = useState(false)
@@ -167,8 +153,6 @@ function CodingModal({ test, onClose, onSave }) {
     setLoading(true)
     try {
       const payload = { ...form }
-      if (!payload.scheduledFor) payload.scheduledFor = null
-      if (!payload.validUntil) payload.validUntil = null
 
       if (test?.id) { await codingApi.update(test.id, payload); toast.success('Problem updated!'); }
       else { await codingApi.create(payload); toast.success('Problem created!'); }
@@ -283,38 +267,7 @@ function CodingModal({ test, onClose, onSave }) {
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Expected Output</label>
             <textarea rows={2} value={form.sampleOutput || ''} onChange={e => setForm(f => ({ ...f, sampleOutput: e.target.value }))} className="input-field" style={{ resize: 'none', fontFamily: 'monospace' }} /></div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled Start (Optional)</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input type="date" value={form.scheduledFor ? form.scheduledFor.split('T')[0] : ''} onChange={e => {
-                  const date = e.target.value;
-                  const time = form.scheduledFor ? form.scheduledFor.split('T')[1].substring(0, 5) : '00:00';
-                  setForm(f => ({ ...f, scheduledFor: date ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-                <input type="time" value={form.scheduledFor ? form.scheduledFor.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                  const time = e.target.value;
-                  const date = form.scheduledFor ? form.scheduledFor.split('T')[0] : new Date().toISOString().split('T')[0];
-                  setForm(f => ({ ...f, scheduledFor: time ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-              </div>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled End (Optional)</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input type="date" value={form.validUntil ? form.validUntil.split('T')[0] : ''} onChange={e => {
-                  const date = e.target.value;
-                  const time = form.validUntil ? form.validUntil.split('T')[1].substring(0, 5) : '23:59';
-                  setForm(f => ({ ...f, validUntil: date ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-                <input type="time" value={form.validUntil ? form.validUntil.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                  const time = e.target.value;
-                  const date = form.validUntil ? form.validUntil.split('T')[0] : new Date().toISOString().split('T')[0];
-                  setForm(f => ({ ...f, validUntil: time ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-              </div>
-            </div>
-          </div>
+
           <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Difficulty</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {DIFFICULTIES.map(d => (

@@ -49,8 +49,6 @@ function QuizModal({ quiz, onClose, onSave }) {
     durationMinutes: '',
     totalMarks: '',
     active: true,
-    scheduledFor: '',
-    validUntil: '',
     ...quiz
   })
   const [loading, setLoading] = useState(false)
@@ -71,8 +69,6 @@ function QuizModal({ quiz, onClose, onSave }) {
         durationMinutes: Number(form.durationMinutes),
         totalMarks: Number(form.totalMarks),
         active: form.active,
-        scheduledFor: form.scheduledFor || null,
-        validUntil: form.validUntil || null,
       }
       if (quiz?.id) { await adminQuizApi.update(quiz.id, payload); toast.success('Quiz updated!'); }
       else { await adminQuizApi.create(payload); toast.success('Quiz created!'); }
@@ -98,38 +94,6 @@ function QuizModal({ quiz, onClose, onSave }) {
             <input required type="number" value={form.durationMinutes || ''} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} className="input-field" placeholder="e.g. 30" min="1" /></div>
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
             <input required type="number" value={form.totalMarks || ''} onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value }))} className="input-field" placeholder="e.g. 100" min="1" /></div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled Start (Optional)</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input type="date" value={form.scheduledFor ? form.scheduledFor.split('T')[0] : ''} onChange={e => {
-                  const date = e.target.value;
-                  const time = form.scheduledFor ? form.scheduledFor.split('T')[1].substring(0, 5) : '00:00';
-                  setForm(f => ({ ...f, scheduledFor: date ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-                <input type="time" value={form.scheduledFor ? form.scheduledFor.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                  const time = e.target.value;
-                  const date = form.scheduledFor ? form.scheduledFor.split('T')[0] : new Date().toISOString().split('T')[0];
-                  setForm(f => ({ ...f, scheduledFor: time ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-              </div>
-            </div>
-            <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled End (Optional)</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input type="date" value={form.validUntil ? form.validUntil.split('T')[0] : ''} onChange={e => {
-                  const date = e.target.value;
-                  const time = form.validUntil ? form.validUntil.split('T')[1].substring(0, 5) : '23:59';
-                  setForm(f => ({ ...f, validUntil: date ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-                <input type="time" value={form.validUntil ? form.validUntil.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                  const time = e.target.value;
-                  const date = form.validUntil ? form.validUntil.split('T')[0] : new Date().toISOString().split('T')[0];
-                  setForm(f => ({ ...f, validUntil: time ? `${date}T${time}` : '' }))
-                }} className="input-field" style={{ flex: 1 }} />
-              </div>
-            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
             <button type="button" onClick={() => setForm(f => ({ ...f, active: !f.active }))} className={`toggle ${form.active ? 'on' : ''}`}><div className="toggle-knob" /></button>
