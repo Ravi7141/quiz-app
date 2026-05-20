@@ -33,7 +33,7 @@ export default function CodingTests() {
         <div style={{ display: 'flex', gap: 8 }}>
           {['ALL', 'EASY', 'MEDIUM', 'HARD'].map(d => (
             <button key={d} onClick={() => setFilter(d)}
-              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, border: `1px solid ${filter === d ? '#7c3aed' : 'rgba(255,255,255,0.1)'}`, background: filter === d ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.03)', color: filter === d ? '#a78bfa' : '#94a3b8', cursor: 'pointer', transition: 'all 0.2s' }}>
+              style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, border: `1px solid ${filter === d ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`, background: filter === d ? 'rgba(37,99,235,0.15)' : 'rgba(255,255,255,0.03)', color: filter === d ? 'var(--primary-400)' : '#94a3b8', cursor: 'pointer', transition: 'all 0.2s' }}>
               {d}
             </button>
           ))}

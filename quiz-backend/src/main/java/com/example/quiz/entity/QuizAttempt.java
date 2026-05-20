@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 /**
  * Records a student's attempt at a particular quiz.
  *
- * Table: quiz_attempts
+ * Table: quiz_attempts  ← must match the FK in student_answers
  */
 @Entity
-@Table(name = "quiz_attempts")
+@Table(name = "exam_attempts")
 @Data
 @Builder
 @NoArgsConstructor
@@ -33,7 +33,7 @@ public class QuizAttempt {
 
     /** The quiz being attempted */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "quiz_id", nullable = false)
+    @JoinColumn(name = "exam_id", nullable = false)
     private Quiz quiz;
 
     /** Score calculated after submission */
@@ -43,6 +43,10 @@ public class QuizAttempt {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AttemptStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assessment_attempt_id")
+    private AssessmentAttempt assessmentAttempt;
 
     @Column(name = "started_at", updatable = false)
     private LocalDateTime startedAt;

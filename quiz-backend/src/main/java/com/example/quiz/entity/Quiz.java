@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Table: quizzes
  */
 @Entity
-@Table(name = "quizzes")
+@Table(name = "exams")
 @Data
 @Builder
 @NoArgsConstructor

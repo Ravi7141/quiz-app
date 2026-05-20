@@ -2,6 +2,7 @@ package com.example.quiz.controller;
 
 import com.example.quiz.dto.response.ApiResponse;
 import com.example.quiz.dto.response.QuizResponse;
+import com.example.quiz.dto.response.AssessmentResponse;
 import com.example.quiz.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +48,14 @@ public class StudentQuizController {
     public ResponseEntity<ApiResponse<QuizResponse>> getQuizById(@PathVariable Long id) {
         QuizResponse data = quizService.getQuizById(id);
         return ResponseEntity.ok(ApiResponse.success("Quiz fetched successfully", data));
+    }
+
+    /**
+     * GET /student/quizzes/{id}/assessment
+     */
+    @GetMapping("/{id}/assessment")
+    public ResponseEntity<ApiResponse<AssessmentResponse>> getAssessment(@PathVariable Long id) {
+        AssessmentResponse data = quizService.getAssessment(id);
+        return ResponseEntity.ok(ApiResponse.success("Assessment content fetched successfully", data));
     }
 }

@@ -5,6 +5,7 @@ import com.example.quiz.dto.response.AdminStatsResponse;
 import com.example.quiz.dto.response.ApiResponse;
 import com.example.quiz.dto.response.StudentResponse;
 import com.example.quiz.service.AdminService;
+import com.example.quiz.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +39,7 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final UserService userService;
 
     /**
      * GET /admin/stats
@@ -86,5 +88,25 @@ public class AdminController {
     ) {
         List<AdminResultResponse> data = adminService.getQuizResults(id);
         return ResponseEntity.ok(ApiResponse.success("Quiz results fetched", data));
+    }
+
+    /**
+     * DELETE /admin/students/{id} — remove a student account
+     */
+    @DeleteMapping("/students/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
+        userService.deleteStudent(id);
+        return ResponseEntity.ok(ApiResponse.success("Student deleted successfully"));
+    }
+
+    /**
+     * GET /admin/assessments/{id}/results — all student submissions for an assessment
+     */
+    @GetMapping("/assessments/{id}/results")
+    public ResponseEntity<ApiResponse<List<java.util.Map<String, Object>>>> getAssessmentResults(
+            @PathVariable Long id
+    ) {
+        List<java.util.Map<String, Object>> data = adminService.getAssessmentResults(id);
+        return ResponseEntity.ok(ApiResponse.success("Assessment results fetched", data));
     }
 }

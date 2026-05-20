@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion'
-import { Zap, BookOpen, Users, Target, Trophy, ArrowRight, Sun, Moon, ShieldCheck, Star, Brain, CheckCircle, BarChart3, Clock, GraduationCap, Sparkles, Layers, ChevronRight, Mail, MapPin, Phone, Globe, Camera, Play, MessageCircle, Share2 } from 'lucide-react'
+import { Zap, BookOpen, Users, Target, Trophy, ArrowRight, Sun, Moon, Star, BarChart3, GraduationCap, Sparkles, Layers, ChevronRight, Mail, MapPin, Globe, Camera, Play, MessageCircle, Share2, Menu, X } from 'lucide-react'
 import ParticleBackground from '../components/ParticleBackground'
+import AdminMock from '../components/AdminMock'
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 40 },
@@ -28,12 +29,12 @@ const scaleIn = (delay = 0) => ({
 
 const FEATURES = [
   {
-    icon: BookOpen, color: '#7c3aed',
+    icon: BookOpen, color: '#2563eb',
     title: 'Exam Builder',
     desc: 'Design secure, timed assessments with mixed question types, scoring rules, and review settings.',
   },
   {
-    icon: Users, color: '#38bdf8',
+    icon: Users, color: '#60a5fa',
     title: 'Student Management',
     desc: 'Group learners by class, send invites in bulk, and manage who can access each exam.',
   },
@@ -43,7 +44,7 @@ const FEATURES = [
     desc: 'Use tokenized links, timed windows, and exam passcodes to keep quiz sessions controlled.',
   },
   {
-    icon: Trophy, color: '#fbbf24',
+    icon: Trophy, color: '#2563eb',
     title: 'Analytics & Reports',
     desc: 'Visualize student performance across exams, classes, and questions with export-ready reports.',
   },
@@ -71,20 +72,20 @@ function FloatingIllustration({ theme }) {
   const barTrack = isLight ? 'rgba(148,163,184,0.2)' : 'rgba(255,255,255,0.08)'
   const statCardBg = isLight ? 'rgba(248,250,252,0.8)' : 'rgba(255,255,255,0.05)'
   const statCardBorder = isLight ? 'rgba(148,163,184,0.15)' : 'rgba(255,255,255,0.06)'
-  const dotColor = isLight ? 'rgba(124,58,237,0.3)' : 'rgba(124,58,237,0.4)'
-  const dotColor2 = isLight ? 'rgba(56,189,248,0.3)' : 'rgba(56,189,248,0.5)'
+  const dotColor = isLight ? 'rgba(37,99,235,0.3)' : 'rgba(37,99,235,0.4)'
+  const dotColor2 = isLight ? 'rgba(96,165,250,0.3)' : 'rgba(96,165,250,0.5)'
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <svg viewBox="0 0 500 420" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto max-w-[500px]">
         <defs>
           <linearGradient id="purpleGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.3" />
-            <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
+            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="#2f82e0" stopOpacity="0.1" />
           </linearGradient>
           <linearGradient id="blueGlow" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="#60a5fa" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#2f82e0" stopOpacity="0.08" />
           </linearGradient>
           <filter id="glow">
             <feGaussianBlur stdDeviation="6" result="blur" />
@@ -108,15 +109,15 @@ function FloatingIllustration({ theme }) {
 
         {/* Card header */}
         <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.4 }}>
-          <rect x="88" y="128" width="100" height="10" rx="5" fill="rgba(124,58,237,0.6)" />
+          <rect x="88" y="128" width="100" height="10" rx="5" fill="rgba(37,99,235,0.6)" />
           <rect x="88" y="148" width="60" height="8" rx="4" fill={textMuted} />
-          <rect x="370" y="128" width="42" height="24" rx="12" fill="rgba(56,189,248,0.2)" stroke="rgba(56,189,248,0.3)" strokeWidth="0.5" />
+          <rect x="370" y="128" width="42" height="24" rx="12" fill="rgba(96,165,250,0.12)" stroke="rgba(96,165,250,0.18)" strokeWidth="0.5" />
         </motion.g>
 
         {/* Bar chart */}
         <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.5 }}>
           <rect x="88" y="190" width="120" height="8" rx="4" fill={barTrack} />
-          <motion.rect x="88" y="190" width="90" height="8" rx="4" fill="#7c3aed" initial={{ width: 0 }} animate={{ width: 90 }} transition={{ duration: 1, delay: 0.8, ease: 'easeOut' }} />
+          <motion.rect x="88" y="190" width="90" height="8" rx="4" fill="#2563eb" initial={{ width: 0 }} animate={{ width: 90 }} transition={{ duration: 1, delay: 0.8, ease: 'easeOut' }} />
           <rect x="88" y="208" width="120" height="8" rx="4" fill={barTrack} />
           <motion.rect x="88" y="208" width="70" height="8" rx="4" fill="#38bdf8" initial={{ width: 0 }} animate={{ width: 70 }} transition={{ duration: 1, delay: 1, ease: 'easeOut' }} />
           <rect x="88" y="226" width="120" height="8" rx="4" fill={barTrack} />
@@ -128,7 +129,7 @@ function FloatingIllustration({ theme }) {
         {/* Pie chart on right side */}
         <motion.g initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.6, delay: 0.7 }}>
           <circle cx="350" cy="230" r="45" fill={isLight ? 'rgba(148,163,184,0.08)' : 'rgba(255,255,255,0.03)'} stroke={isLight ? 'rgba(148,163,184,0.15)' : 'rgba(255,255,255,0.08)'} strokeWidth="1" />
-          <motion.circle cx="350" cy="230" r="45" fill="none" stroke="#7c3aed" strokeWidth="10" strokeDasharray="160 123" strokeDashoffset="0" strokeLinecap="round" initial={{ strokeDashoffset: 283 }} animate={{ strokeDashoffset: 123 }} transition={{ duration: 1.2, delay: 1 }} transform="rotate(-90 350 230)" />
+          <motion.circle cx="350" cy="230" r="45" fill="none" stroke="#3aaeed" strokeWidth="10" strokeDasharray="160 123" strokeDashoffset="0" strokeLinecap="round" initial={{ strokeDashoffset: 283 }} animate={{ strokeDashoffset: 123 }} transition={{ duration: 1.2, delay: 1 }} transform="rotate(-90 350 230)" />
           <motion.circle cx="350" cy="230" r="45" fill="none" stroke="#38bdf8" strokeWidth="10" strokeDasharray="80 203" strokeDashoffset="0" strokeLinecap="round" initial={{ strokeDashoffset: 283 }} animate={{ strokeDashoffset: 203 }} transition={{ duration: 1.2, delay: 1.3 }} transform="rotate(100 350 230)" />
         </motion.g>
 
@@ -141,7 +142,7 @@ function FloatingIllustration({ theme }) {
         {/* Bottom stat cards */}
         <motion.g initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.9 }}>
           <rect x="88" y="280" width="90" height="50" rx="12" fill={statCardBg} stroke={statCardBorder} strokeWidth="0.5" />
-          <text x="133" y="302" textAnchor="middle" fill="#a78bfa" fontSize="16" fontWeight="bold">82%</text>
+          <text x="133" y="302" textAnchor="middle" fill="#429bf5" fontSize="16" fontWeight="bold">82%</text>
           <text x="133" y="318" textAnchor="middle" fill={textMuted} fontSize="10">Avg. Score</text>
         </motion.g>
         <motion.g initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 1.1 }}>
@@ -158,7 +159,7 @@ function FloatingIllustration({ theme }) {
         {/* Floating elements */}
         <motion.g animate={{ y: [0, -8, 0], rotate: [0, 3, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>
           <circle cx="72" cy="90" r="8" fill={dotColor} filter="url(#glow)" />
-          <rect x="66" y="84" width="12" height="12" rx="3" fill="rgba(124,58,237,0.6)" />
+          <rect x="66" y="84" width="12" height="12" rx="3" fill="rgba(28, 86, 244, 0.7)" />
         </motion.g>
         <motion.g animate={{ y: [0, -12, 0], x: [0, 6, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}>
           <circle cx="440" cy="80" r="6" fill={dotColor2} filter="url(#glow)" />
@@ -219,7 +220,9 @@ export default function Landing() {
   const [theme, setTheme] = useState(() => localStorage.getItem('quiz_theme') || 'dark')
   const [mounted, setMounted] = useState(false)
   const { scrollYProgress } = useScroll()
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.12], [1, 0])
+  // Reduce the fade intensity so the hero doesn't become fully invisible on small scrolls
+  // Keep at least 20% opacity when scrolled a bit.
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0.2])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -228,6 +231,8 @@ export default function Landing() {
   }, [theme])
 
   const toggleTheme = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'))
+
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   if (!mounted) return null
 
@@ -245,110 +250,115 @@ export default function Landing() {
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <motion.img
             src={logo}
-            alt="QuizVault Logo"
-            style={{ width: 36, height: 36, borderRadius: 10, objectFit: 'contain' }}
+            alt="AssessSphere Logo"
+            style={{ width: 38, height: 38, borderRadius: 10, objectFit: 'contain' }}
             whileHover={{ scale: 1.1, rotate: -5 }}
             whileTap={{ scale: 0.95 }}
           />
-          <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }} className="grad">QuizVault</span>
+          <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: '-0.02em' }} className="grad">AssessSphere</span>
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+        {/* Desktop links */}
+        <div className="nav-desktop-links" style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
           <motion.a href="#features" className="nav-link" whileHover={{ scale: 1.05 }}>Features</motion.a>
           <motion.a href="#how-it-works" className="nav-link" whileHover={{ scale: 1.05 }}>How It Works</motion.a>
-          <motion.button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'} className="theme-toggle" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+          <motion.button onClick={toggleTheme} className="theme-toggle" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <motion.div key={theme} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.3 }}>
-              {theme === 'dark' ? <Sun size={18} color="#fbbf24" /> : <Moon size={18} color="#7c3aed" />}
+              {theme === 'dark' ? <Sun size={18} color="#fbbf24" /> : <Moon size={18} color="#2563eb" />}
             </motion.div>
           </motion.button>
-          <Link to="/login" className="btn-ghost" style={{ padding: '10px 20px', fontSize: 14 }}>Login</Link>
-          <Link to="/register" className="btn-primary" style={{ padding: '10px 22px', fontSize: 14 }}>Sign Up</Link>
+          <Link to="/login" className="btn-ghost" style={{ padding: '9px 20px', fontSize: 14 }}>Login</Link>
+          <Link to="/register" className="btn-primary" style={{ padding: '9px 22px', fontSize: 14 }}>Sign Up</Link>
+        </div>
+
+        {/* Mobile controls: theme toggle + hamburger — hidden on desktop via CSS */}
+        <div className="nav-mobile-controls" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <motion.button onClick={toggleTheme} className="theme-toggle" style={{ width: 36, height: 36 }} whileTap={{ scale: 0.9 }}>
+            <motion.div key={theme} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.3 }}>
+              {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#2563eb" />}
+            </motion.div>
+          </motion.button>
+          <button className="hamburger-btn" onClick={() => setMobileNavOpen(o => !o)} aria-label="Toggle menu">
+            {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
       </motion.nav>
 
-      {/* Hero Section */}
+      {/* Mobile drawer */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <motion.div
+            className="nav-mobile-drawer open"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <a href="#features" className="nav-link" onClick={() => setMobileNavOpen(false)} style={{ color: '#0f172a', fontSize: 15, fontWeight: 600 }}>Features</a>
+            <a href="#how-it-works" className="nav-link" onClick={() => setMobileNavOpen(false)} style={{ color: '#0f172a', fontSize: 15, fontWeight: 600 }}>How It Works</a>
+            <div style={{ height: 1, background: 'rgba(148,163,184,0.2)' }} />
+            <Link to="/login" className="btn-ghost" style={{ width: '100%', textAlign: 'center', justifyContent: 'center', padding: '12px', fontSize: 15 }} onClick={() => setMobileNavOpen(false)}>Login</Link>
+            <Link to="/register" className="btn-primary" style={{ width: '100%', textAlign: 'center', justifyContent: 'center', padding: '12px', fontSize: 15 }} onClick={() => setMobileNavOpen(false)}>Sign Up</Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hero Section - Premium */}
       <motion.section className="hero-bg" style={{ opacity: heroOpacity }}>
+        <div className="dot-pattern" />
         <div className="hero-wrapper">
           <div className="hero-copy">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="hero-badge"
-            >
-              <Sparkles size={14} color="#a78bfa" />
-              <span>Secure exam delivery for modern classrooms</span>
+            <motion.div className="hero-badge" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+              <Sparkles size={14} /> Managed Assessments
             </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.35 }}
-            >
-              Create exams and{' '}
-              <span className="grad" style={{ display: 'inline-block' }}>
-                review results
-              </span>
-              <motion.span
-                className="inline-block ml-1"
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity, repeatType: 'reverse' }}
-              >
-                .
-              </motion.span>
+            <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.12 }}>
+              Create exams and track student performance <span className="grad">effortlessly</span>
             </motion.h1>
 
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              QuizVault gives educators a polished space to build secure assessments and track student performance with real-time analytics.
+            <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}>
+              Manage assessments, coding challenges, student access, and analytics from one powerful platform.
             </motion.p>
 
-            <motion.div
-              className="hero-actions"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.65 }}
-            >
-              <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
-                <Link to="/register" className="btn-primary" style={{ fontSize: 16, padding: '14px 32px' }}>
+            <motion.div className="hero-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.32 }}>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <Link to="/register" className="btn-primary glow hero-cta" style={{ fontSize: 16 }}>
                   Start Free
-                  <ArrowRight size={18} />
                 </Link>
               </motion.div>
-              <motion.a href="#features" className="btn-ghost" style={{ fontSize: 16 }} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}>
-                View Features
-              </motion.a>
+              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+                <Link to="#features" className="btn-ghost hero-ghost" style={{ fontSize: 16 }}>Explore Features</Link>
+              </motion.div>
             </motion.div>
 
-            {/* Trust indicators */}
-            <motion.div
-              className="hero-trust"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-            >
-              <div className="trust-avatars">
-                <div className="trust-avatar" style={{ background: '#7c3aed' }} />
-                <div className="trust-avatar" style={{ background: '#38bdf8', marginLeft: -8 }} />
-                <div className="trust-avatar" style={{ background: '#22c55e', marginLeft: -8 }} />
-                <div className="trust-avatar" style={{ background: '#fbbf24', marginLeft: -8 }} />
+            <motion.div className="hero-trust" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.44 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+                <div className="trust-avatars">
+                  <div className="trust-avatar" style={{ background: '#2563eb' }} />
+                  <div className="trust-avatar" style={{ background: '#60a5fa', marginLeft: -8 }} />
+                  <div className="trust-avatar" style={{ background: 'var(--primary-400)', marginLeft: -8 }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800 }}>2,400+ institutions</div>
+                  <div style={{ color: 'var(--text-sec)', fontSize: 13 }}>Rated 4.8/5 by educators</div>
+                </div>
+
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 16 }} className="trust-stats">
+                  {STATS.slice(0,3).map((s) => (
+                    <div key={s.label} className="stat-card-new stat-card-hero">
+                      <div className="stat-val">{s.value}</div>
+                      <div className="stat-label">{s.label}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <span className="trust-text">
-                <strong>2,400+</strong> educators trust QuizVault
-              </span>
             </motion.div>
           </div>
 
-          <motion.div
-            className="hero-visual-svg"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.4, ease: [0.25, 0.4, 0.25, 1] }}
-          >
-            <FloatingIllustration theme={theme} />
+          <motion.div className="hero-visual" initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
+            <div className="hero-visual-card hero-visual-card-large card-lift">
+              <AdminMock />
+            </div>
           </motion.div>
         </div>
       </motion.section>
@@ -386,18 +396,9 @@ export default function Landing() {
 
           <div className="feature-grid-new">
             {FEATURES.map(({ icon: Icon, color, title, desc }, i) => (
-              <motion.div
-                key={title}
-                className="feature-card-new"
-                {...stagger(0.1 + i * 0.1)}
-                whileHover={{ y: -8, transition: { duration: 0.3 } }}
-              >
-                <motion.div
-                  className="feature-icon-wrap"
-                  style={{ background: `${color}15`, borderColor: `${color}30` }}
-                  whileHover={{ scale: 1.1, rotate: -5 }}
-                >
-                  <Icon size={24} color={color} />
+              <motion.div key={title} className="feature-card-new" {...stagger(0.1 + i * 0.08)} whileHover={{ y: -10 }}>
+                <motion.div className="feature-icon-wrap" style={{ background: `${color}15`, borderColor: `${color}30` }} whileHover={{ scale: 1.06 }}>
+                  <Icon size={26} color={color} />
                 </motion.div>
                 <h3 className="feature-title">{title}</h3>
                 <p className="feature-desc">{desc}</p>
@@ -425,37 +426,19 @@ export default function Landing() {
             </motion.div>
             <h2 className="section-title">Get started in three simple steps</h2>
             <p className="section-desc">
-              From setup to results, QuizVault streamlines the entire exam lifecycle.
+              From setup to results, AssessSphere streamlines the entire exam lifecycle.
             </p>
           </motion.div>
 
           <div className="steps-grid">
             {STEPS.map(({ icon: Icon, title, desc, gradient }, i) => (
-              <motion.div
-                key={title}
-                className="step-card"
-                {...fadeUp(0.15 + i * 0.12)}
-              >
+              <motion.div key={title} className="step-card" {...fadeUp(0.15 + i * 0.1)} whileHover={{ y: -8 }}>
                 <div className="step-number">{`0${i + 1}`}</div>
-                <motion.div
-                  className={`step-icon-wrap bg-gradient-to-br ${gradient}`}
-                  whileHover={{ scale: 1.1, rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  <Icon size={24} color="#fff" />
+                <motion.div className={`step-icon-wrap bg-gradient-to-br ${gradient}`} whileHover={{ scale: 1.06 }}>
+                  <Icon size={22} color="#fff" />
                 </motion.div>
                 <h3 className="step-title">{title}</h3>
                 <p className="step-desc">{desc}</p>
-                {i < 2 && (
-                  <div className="step-connector">
-                    <motion.div
-                      animate={{ y: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                    >
-                      <ArrowRight size={20} color="#7c3aed" />
-                    </motion.div>
-                  </div>
-                )}
               </motion.div>
             ))}
           </div>
@@ -514,8 +497,8 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
               >
-                <img src={logo} alt="QuizVault Logo" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'contain' }} />
-                <span className="footer-logo-text grad">QuizVault</span>
+                <img src={logo} alt="AssessSphere Logo" style={{ width: 42, height: 42, borderRadius: 12, objectFit: 'contain' }} />
+                <span className="footer-logo-text grad">AssessSphere</span>
               </motion.div>
               <p className="footer-brand-desc">
                 Create, share, and track results easily with a secure online quiz and test maker platform.
@@ -523,7 +506,7 @@ export default function Landing() {
               <div className="footer-contact">
                 <div className="footer-contact-item">
                   <Mail size={14} />
-                  <span>support@quizvault.com</span>
+                  <span>support@assesssphere.com</span>
                 </div>
                 <div className="footer-contact-item">
                   <MapPin size={14} />
@@ -653,8 +636,8 @@ export default function Landing() {
                 <span className="footer-sep">|</span>
                 <a href="#">Terms & Conditions</a>
               </div>
-              <p className="footer-copy">
-                &copy; 2026 QuizVault. All rights reserved.
+                <p className="footer-copy">
+                &copy; 2026 AssessSphere. All rights reserved.
               </p>
             </div>
           </div>

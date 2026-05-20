@@ -227,10 +227,10 @@ export default function CodeEditor() {
       <div style={{ minHeight: '100vh', background: '#0d1117', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
         <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
           style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 20, padding: '40px 48px', maxWidth: 540, width: '100%', textAlign: 'center' }}>
-          <div style={{ width: 64, height: 64, borderRadius: 18, background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-            <Maximize2 size={28} color="#a78bfa" />
+          <div style={{ width: 64, height: 64, borderRadius: 18, background: 'rgba(37,99,235,0.15)', border: '1px solid rgba(37,99,235,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <Maximize2 size={28} color="var(--primary-400)" />
           </div>
-          <h2 style={{ fontSize: 26, fontWeight: 800, color: '#e2e8f0', marginBottom: 8 }}>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>
             {test?.title || 'Coding Challenge'}
           </h2>
           {test && <span className={`badge ${diffClass[test.difficulty] || ''}`} style={{ marginBottom: 20, display: 'inline-block' }}>{test.difficulty}</span>}
@@ -247,18 +247,18 @@ export default function CodeEditor() {
             ].map((r, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
                 <span style={{ color: '#4ade80', flexShrink: 0 }}>✓</span>
-                <span style={{ fontSize: 13, color: '#94a3b8' }}>{r}</span>
+                <span style={{ fontSize: 13, color: 'var(--text-sec)' }}>{r}</span>
               </div>
             ))}
           </div>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
             {/* Back button is no longer meaningful here without a dashboard, so removing it or mapping to home */}
             <button onClick={() => navigate('/')}
-              style={{ padding: '12px 24px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+              style={{ padding: '12px 24px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-sec)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
               <ArrowLeft size={15} style={{ marginRight: 6, verticalAlign: 'middle' }} />Exit
             </button>
             <button onClick={() => setVerifyingCamera(true)}
-              style={{ padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', border: 'none', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(124,58,237,0.4)' }}>
+              style={{ padding: '12px 28px', borderRadius: 10, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', border: 'none', color: '#fff', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 20px rgba(37,99,235,0.4)' }}>
               <Maximize2 size={15} style={{ marginRight: 8, verticalAlign: 'middle' }} />Start in Full Screen
             </button>
           </div>
@@ -280,10 +280,10 @@ export default function CodeEditor() {
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: violPopup.autoSubmit ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                 <ShieldAlert size={30} color={violPopup.autoSubmit ? '#f87171' : '#fbbf24'} />
               </div>
-              <h3 style={{ fontSize: 22, fontWeight: 800, color: '#e2e8f0', marginBottom: 8 }}>
+              <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>
                 {violPopup.autoSubmit ? 'Auto-Submitting…' : `Violation ${violPopup.count} / ${MAX_VIOLATIONS}`}
               </h3>
-              <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 24, lineHeight: 1.6 }}>{violPopup.reason}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-sec)', marginBottom: 24, lineHeight: 1.6 }}>{violPopup.reason}</p>
               <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginBottom: 24 }}>
                 {[1,2,3].map(n => (
                   <div key={n} style={{ width: 38, height: 38, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 800, background: n <= violPopup.count ? (violPopup.autoSubmit ? '#ef4444' : '#f59e0b') : 'rgba(255,255,255,0.07)', border: `2px solid ${n <= violPopup.count ? (violPopup.autoSubmit ? '#ef4444' : '#f59e0b') : 'rgba(255,255,255,0.12)'}`, color: n <= violPopup.count ? '#fff' : '#475569' }}>{n}</div>
@@ -316,13 +316,13 @@ export default function CodeEditor() {
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(251,191,36,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                 <AlertTriangle size={32} color="#fbbf24" />
               </div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, color: '#e2e8f0', marginBottom: 12 }}>Finish Exam?</h2>
-              <p style={{ fontSize: 14, color: '#94a3b8', lineHeight: 1.6, marginBottom: 24 }}>
+              <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-main)', marginBottom: 12 }}>Finish Exam?</h2>
+              <p style={{ fontSize: 14, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 24 }}>
                 Are you sure you want to finish the exam? This will submit your final code and close your assessment session.
               </p>
               <div style={{ display: 'flex', gap: 12 }}>
                 <button onClick={() => setShowConfirm(false)}
-                  style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-sec)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                   Cancel
                 </button>
                 <button onClick={handleFinishExam} disabled={submitting}
@@ -340,14 +340,14 @@ export default function CodeEditor() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {submitted && (
             <button onClick={() => { document.exitFullscreen?.(); navigate('/student/coding') }}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#94a3b8', background: 'none', border: 'none', cursor: 'pointer' }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-sec)', background: 'none', border: 'none', cursor: 'pointer' }}>
               <ArrowLeft size={14} /> Back
             </button>
           )}
           {!submitted && <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />}
           {test && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#e2e8f0' }}>{test.title}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>{test.title}</span>
               <span className={`badge ${diffClass[test.difficulty] || ''}`}>{test.difficulty}</span>
             </div>
           )}
@@ -369,8 +369,8 @@ export default function CodeEditor() {
           )}
 
           <select value={lang} onChange={e => { setLang(e.target.value); setCode(STARTERS[e.target.value]) }}
-            style={{ background: '#21262d', border: '1px solid rgba(255,255,255,0.12)', color: '#e2e8f0', padding: '6px 12px', borderRadius: 6, fontSize: 13, outline: 'none', cursor: 'pointer' }}>
-            {LANGUAGES.map(l => <option key={l.val} value={l.val} style={{ background: '#161b22', color: '#e2e8f0' }}>{l.label}</option>)}
+            style={{ background: '#21262d', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: 6, fontSize: 13, outline: 'none', cursor: 'pointer' }}>
+            {LANGUAGES.map(l => <option key={l.val} value={l.val} style={{ background: '#161b22', color: 'var(--text-main)' }}>{l.label}</option>)}
           </select>
 
           <button onClick={handleRun} disabled={running || submitted}
@@ -379,7 +379,7 @@ export default function CodeEditor() {
           </button>
 
           <button onClick={handleSubmitCode} disabled={submitting || submitted}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#21262d', border: '1px solid rgba(167,139,250,0.3)', color: '#a78bfa', fontSize: 13, fontWeight: 600, cursor: submitting || submitted ? 'not-allowed' : 'pointer', opacity: submitted ? 0.4 : 1 }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#21262d', border: '1px solid rgba(167,139,250,0.3)', color: 'var(--primary-400)', fontSize: 13, fontWeight: 600, cursor: submitting || submitted ? 'not-allowed' : 'pointer', opacity: submitted ? 0.4 : 1 }}>
             {submitting ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Send size={14} />} Submit Code
           </button>
 
@@ -397,31 +397,31 @@ export default function CodeEditor() {
           {error ? (
             <div style={{ padding: '40px 20px', textAlign: 'center', color: '#ef4444' }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Failed to Load Challenge</h3>
-              <p style={{ fontSize: 13, color: '#94a3b8' }}>{error}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-sec)' }}>{error}</p>
             </div>
           ) : test ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, color: '#e2e8f0', marginBottom: 8, lineHeight: 1.3 }}>{test.title}</h2>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8, lineHeight: 1.3 }}>{test.title}</h2>
                 <span className={`badge ${diffClass[test.difficulty] || ''}`}>{test.difficulty}</span>
               </div>
               <div>
-                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', marginBottom: 10 }}>Description</div>
+                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-sec)', marginBottom: 10 }}>Description</div>
                 <div 
                   className="leetcode-description"
-                  style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.7 }} 
+                  style={{ fontSize: 14, color: 'var(--text-main)', lineHeight: 1.7 }} 
                   dangerouslySetInnerHTML={{ __html: test.description }}
                 />
               </div>
               {test.sampleInput && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', marginBottom: 10 }}>Sample Input</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-sec)', marginBottom: 10 }}>Sample Input</div>
                   <pre style={{ background: '#0d1117', padding: '12px 14px', borderRadius: 8, fontSize: 13, color: '#38bdf8', overflowX: 'auto', border: '1px solid rgba(56,189,248,0.2)', fontFamily: "'Fira Code', monospace", lineHeight: 1.6 }}>{test.sampleInput}</pre>
                 </div>
               )}
               {test.sampleOutput && (
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748b', marginBottom: 10 }}>Expected Output</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-sec)', marginBottom: 10 }}>Expected Output</div>
                   <pre style={{ background: '#0d1117', padding: '12px 14px', borderRadius: 8, fontSize: 13, color: '#4ade80', overflowX: 'auto', border: '1px solid rgba(74,222,128,0.2)', fontFamily: "'Fira Code', monospace", lineHeight: 1.6 }}>{test.sampleOutput}</pre>
                 </div>
               )}
@@ -457,24 +457,24 @@ export default function CodeEditor() {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="output-panel">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <Terminal size={14} color="#64748b" />
-                  <span style={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', color: '#64748b' }}>Console Output</span>
+                  <span style={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-sec)' }}>Console Output</span>
                   {output.type === 'submit' && (() => {
                     const isPassed = output.data?.status === 'ACCEPTED' || output.data?.testCasesPassed === output.data?.totalTestCases
                     return isPassed
                       ? <CheckCircle2 size={16} color="#4ade80" style={{ marginLeft: 'auto' }} />
                       : <XCircle size={16} color="#f87171" style={{ marginLeft: 'auto' }} />
                   })()}
-                  {output.type === 'run' && <span style={{ marginLeft: 'auto', fontSize: 11, color: '#64748b' }}>{output.data?.language} • {output.data?.executionTimeMs}ms</span>}
+                  {output.type === 'run' && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-sec)' }}>{output.data?.language} • {output.data?.executionTimeMs}ms</span>}
                 </div>
                 {output.type === 'run' && (
                   <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>Output</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sec)', marginBottom: 6 }}>Output</div>
                     <pre style={{ fontSize: 13, fontFamily: "'Fira Code', monospace", color: '#38bdf8', whiteSpace: 'pre-wrap' }}>{output.data?.output}</pre>
                   </div>
                 )}
                 {output.type === 'submit' && (
                   <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#64748b', marginBottom: 6 }}>Result</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-sec)', marginBottom: 6 }}>Result</div>
                     <pre style={{ fontSize: 13, fontFamily: "'Fira Code', monospace", color: output.data?.status === 'ACCEPTED' ? '#4ade80' : '#f87171', whiteSpace: 'pre-wrap' }}>
 {output.data?.status} — {output.data?.testCasesPassed}/{output.data?.totalTestCases} test cases passed ({output.data?.executionTimeMs}ms)
 {output.data?.message || ''}

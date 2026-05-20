@@ -53,8 +53,8 @@ export default function StudentQuizList() {
               onClick={() => navigate(`/student/quizzes/${quiz.id}`)}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.2))', border: '1px solid rgba(124,58,237,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOpen size={22} color="#a78bfa" />
+                <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,rgba(37,99,235,0.2),rgba(79,70,229,0.2))', border: '1px solid rgba(37,99,235,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={22} color="var(--primary-400)" />
                 </div>
                 <span style={{ fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20, background: quiz.active ? 'rgba(74,222,128,0.12)' : 'rgba(100,116,139,0.15)', color: quiz.active ? '#4ade80' : '#64748b', border: `1px solid ${quiz.active ? 'rgba(74,222,128,0.3)' : 'rgba(100,116,139,0.2)'}` }}>
                   {quiz.active ? 'Active' : 'Inactive'}

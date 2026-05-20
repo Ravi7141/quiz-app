@@ -10,10 +10,8 @@ import Profile from './pages/Profile'
 
 // Student
 import ExamEntry from './pages/student/ExamEntry'
-import QuizAttempt from './pages/student/QuizAttempt'
+import UnifiedAssessment from './pages/student/UnifiedAssessment'
 import Result from './pages/student/Result'
-
-import CodeEditor from './pages/student/CodeEditor'
 
 // Admin
 import AdminDashboard from './pages/admin/Dashboard'
@@ -25,11 +23,13 @@ import AdminResults from './pages/admin/Results'
 import AdminCodingTests from './pages/admin/CodingTests'
 import AdminQuizDetail from './pages/admin/QuizDetail'
 import QuizShareRedirect from './pages/QuizShareRedirect'
+import ManageAssessments from './pages/admin/ManageAssessments'
+import AssessmentDetail from './pages/admin/AssessmentDetail'
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const { user, isAdmin } = useAuth()
   if (!user) return <Navigate to="/login" replace />
-  if (requireAdmin && !isAdmin) return <Navigate to="/student/dashboard" replace />
+  if (requireAdmin && !isAdmin) return <Navigate to="/login" replace />
   return children
 }
 
@@ -50,12 +50,14 @@ function AppRoutes() {
       <Route path="/exam/entry/:token" element={<ExamEntry />} />
 
       {/* Student (Token Secured) */}
-      <Route path="/student/quizzes/:id/attempt" element={<QuizAttempt />} />
+      <Route path="/assessment/:id" element={<UnifiedAssessment />} />
+      <Route path="/student/quizzes/:id/attempt" element={<UnifiedAssessment />} />
+      <Route path="/student/coding/:id" element={<UnifiedAssessment />} />
       <Route path="/student/success" element={<Result />} />
-      <Route path="/student/coding/:id" element={<CodeEditor />} />
 
       {/* Admin */}
       <Route path="/admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/assessments" element={<ProtectedRoute requireAdmin><ManageAssessments /></ProtectedRoute>} />
       <Route path="/admin/quizzes" element={<ProtectedRoute requireAdmin><ManageQuizzes /></ProtectedRoute>} />
       <Route path="/admin/quizzes/:id" element={<ProtectedRoute requireAdmin><AdminQuizDetail /></ProtectedRoute>} />
       <Route path="/admin/quizzes/:id/questions" element={<ProtectedRoute requireAdmin><ManageQuestions /></ProtectedRoute>} />
@@ -63,6 +65,7 @@ function AppRoutes() {
       <Route path="/admin/students/:id" element={<ProtectedRoute requireAdmin><AdminStudentDetail /></ProtectedRoute>} />
       <Route path="/admin/results" element={<ProtectedRoute requireAdmin><AdminResults /></ProtectedRoute>} />
       <Route path="/admin/coding" element={<ProtectedRoute requireAdmin><AdminCodingTests /></ProtectedRoute>} />
+      <Route path="/admin/assessments/:id" element={<ProtectedRoute requireAdmin><AssessmentDetail /></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
@@ -81,7 +84,7 @@ export default function App() {
             style: {
               background: '#1c2b3c',
               color: '#d4e4fa',
-              border: '1px solid rgba(124,58,237,0.3)',
+              border: '1px solid rgba(37,99,235,0.3)',
               borderRadius: '12px',
             },
             success: { iconTheme: { primary: '#4cd7f6', secondary: '#051424' } },

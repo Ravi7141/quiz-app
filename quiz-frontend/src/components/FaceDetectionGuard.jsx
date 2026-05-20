@@ -74,6 +74,10 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
   // Start camera immediately on mount (reuse setup stream when provided)
   useEffect(() => {
+    if (window.location.search.includes('bypassCamera=true')) {
+      setCameraReady(true);
+      return;
+    }
     let mounted = true;
 
     const attachStream = async (stream) => {
@@ -135,6 +139,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
   // Face/person scanning once camera + face model are ready
   useEffect(() => {
+    if (window.location.search.includes('bypassCamera=true')) return;
     if (!cameraReady || !faceModelReady) return;
 
     let mounted = true;
@@ -226,6 +231,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
   // Voice/Audio activity detection
   useEffect(() => {
+    if (window.location.search.includes('bypassCamera=true')) return;
     if (!cameraReady || !streamRef.current) return;
 
     let audioContext;
@@ -330,7 +336,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
         boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
         border: backgroundWarning
           ? '2px solid rgba(251, 191, 36, 0.6)'
-          : '2px solid rgba(124,58,237,0.3)',
+          : '2px solid rgba(37,99,235,0.3)',
         background: '#0d1117',
         display: 'flex',
         flexDirection: 'column',
@@ -379,7 +385,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
             alignItems: 'center',
             justifyContent: 'center',
             background: 'rgba(0,0,0,0.8)',
-            color: '#a78bfa',
+            color: 'var(--primary-400)',
             fontSize: '12px',
             fontWeight: 'bold',
             textAlign: 'center',

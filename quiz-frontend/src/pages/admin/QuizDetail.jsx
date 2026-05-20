@@ -69,8 +69,6 @@ export default function AdminQuizDetail() {
       passMark: quiz.passMark || 60,
       totalMarks: quiz.totalMarks || 100,
       active: quiz.active,
-      scheduledFor: quiz.scheduledFor ? new Date(quiz.scheduledFor).toISOString().slice(0, 16) : '',
-      validUntil: quiz.validUntil ? new Date(quiz.validUntil).toISOString().slice(0, 16) : ''
     })
     setShowEditModal(true)
   }
@@ -89,8 +87,6 @@ export default function AdminQuizDetail() {
     try {
       const payload = {
         ...editFormData,
-        scheduledFor: editFormData.scheduledFor ? new Date(editFormData.scheduledFor).toISOString() : null,
-        validUntil: editFormData.validUntil ? new Date(editFormData.validUntil).toISOString() : null
       }
       const res = await adminQuizApi.update(id, payload)
       toast.success('Quiz updated successfully')
@@ -126,9 +122,7 @@ export default function AdminQuizDetail() {
           <button onClick={handleEditClick} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Edit3 size={15} /> Edit
           </button>
-          <button onClick={openShareModal} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Share2 size={15} /> Share Links
-          </button>
+
           <Link to={`/admin/quizzes/${id}/questions`} className="btn-primary">
             <HelpCircle size={15} /> Manage Questions
           </Link>
@@ -143,7 +137,7 @@ export default function AdminQuizDetail() {
         {/* Quiz Info Card */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ padding: 28 }}>
           <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-            <div style={{ width: 68, height: 68, borderRadius: 18, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(124,58,237,0.4)', flexShrink: 0 }}>
+            <div style={{ width: 68, height: 68, borderRadius: 18, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(37,99,235,0.4)', flexShrink: 0 }}>
               <BookOpen size={30} color="#fff" />
             </div>
             <div style={{ flex: 1 }}>
@@ -157,13 +151,11 @@ export default function AdminQuizDetail() {
                   { icon: HelpCircle, label: 'Questions', val: questions.length },
                   ...(quiz.durationMinutes || quiz.duration ? [{ icon: Clock, label: 'Duration', val: `${quiz.durationMinutes || quiz.duration} min` }] : []),
                   { icon: Award, label: 'Total Marks', val: quiz.totalMarks || '—' },
-                  ...(quiz.scheduledFor ? [{ icon: Calendar, label: 'Starts', val: new Date(quiz.scheduledFor).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'}) }] : []),
-                  ...(quiz.validUntil ? [{ icon: Calendar, label: 'Ends', val: new Date(quiz.validUntil).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'}) }] : []),
                   ...(quiz.passMark ? [{ icon: CheckCircle, label: 'Pass Mark', val: `${quiz.passMark}%` }] : []),
                 ].map(({ icon: Icon, label, val }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon size={16} color="#a78bfa" />
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon size={16} color="var(--primary-400)" />
                     </div>
                     <div>
                       <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{val}</div>
@@ -179,7 +171,7 @@ export default function AdminQuizDetail() {
         {/* Stats Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
           {[
-            { label: 'Total Attempts', val: results.length, icon: BarChart2, color: '#7c3aed', bg: 'rgba(124,58,237,0.1)' },
+            { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)' },
             { label: 'Completed', val: submittedResults.length, icon: CheckCircle, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
             { label: 'Avg Score', val: avgScore !== '—' ? `${avgScore}%` : '—', icon: Award, color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
             { label: 'Pass Rate', val: passRate !== '—' ? `${passRate}%` : '—', icon: Users, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
@@ -198,7 +190,7 @@ export default function AdminQuizDetail() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card" style={{ padding: 28 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)' }}>Questions ({questions.length})</h3>
-            <Link to={`/admin/quizzes/${id}/questions`} style={{ fontSize: 13, color: '#a78bfa', textDecoration: 'none', fontWeight: 600 }}>Manage →</Link>
+            <Link to={`/admin/quizzes/${id}/questions`} style={{ fontSize: 13, color: 'var(--primary-400)', textDecoration: 'none', fontWeight: 600 }}>Manage →</Link>
           </div>
           {questions.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-sec)' }}>
@@ -209,13 +201,13 @@ export default function AdminQuizDetail() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {questions.map((q, i) => (
                 <div key={q.id} style={{ display: 'flex', gap: 16, padding: '14px 16px', background: 'var(--glass-bg)', borderRadius: 10, border: '1px solid var(--glass-border)' }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(124,58,237,0.12)', color: '#a78bfa', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</div>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(37,99,235,0.12)', color: 'var(--primary-400)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{i + 1}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)', marginBottom: 8, lineHeight: 1.4 }}>{q.questionText}</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {['A', 'B', 'C', 'D'].map(k => {
                         const val = q[`option${k}`]
-                        const isCorrect = q.correctAnswer === k
+                        const isCorrect = q.correctAnswer?.split(',').includes(k)
                         if (!val) return null
                         return (
                           <span key={k} style={{ fontSize: 12, padding: '3px 10px', borderRadius: 6, background: isCorrect ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.04)', color: isCorrect ? '#4ade80' : 'var(--text-sec)', border: `1px solid ${isCorrect ? 'rgba(74,222,128,0.3)' : 'var(--glass-border)'}`, fontWeight: isCorrect ? 700 : 400 }}>
@@ -240,7 +232,7 @@ export default function AdminQuizDetail() {
               <span style={{ fontSize: 12, color: 'var(--text-sec)', fontWeight: 500, background: 'var(--glass-bg)', padding: '3px 10px', borderRadius: 20, border: '1px solid var(--glass-border)' }}>
                 {results.length} total
               </span>
-              {refreshing && <span style={{ fontSize: 11, color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 4 }}><RefreshCw size={11} style={{ animation: 'spin 0.8s linear infinite' }} /> Refreshing…</span>}
+              {refreshing && <span style={{ fontSize: 11, color: 'var(--primary-400)', display: 'flex', alignItems: 'center', gap: 4 }}><RefreshCw size={11} style={{ animation: 'spin 0.8s linear infinite' }} /> Refreshing…</span>}
             </h3>
             <div className="table-wrap">
               <table className="data-table">
@@ -253,7 +245,7 @@ export default function AdminQuizDetail() {
                     return (
                       <tr key={r.attemptId}>
                         <td><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{r.studentName?.[0]?.toUpperCase()}</div>
+                          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{r.studentName?.[0]?.toUpperCase()}</div>
                           <span style={{ fontWeight: 500 }}>{r.studentName}</span>
                         </div></td>
                         <td style={{ color: 'var(--text-sec)', fontSize: 13 }}>{r.studentPhone || '—'}</td>
@@ -274,7 +266,8 @@ export default function AdminQuizDetail() {
         isOpen={showShareModal} 
         onClose={() => setShowShareModal(false)} 
         examId={id} 
-        examType="QUIZ" 
+        examType="QUIZ"
+        shareToken={quiz?.shareToken}
       />
 
       <AnimatePresence>
@@ -296,42 +289,7 @@ export default function AdminQuizDetail() {
                   <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
                   <input required type="number" name="totalMarks" value={editFormData.totalMarks} onChange={handleEditChange} className="input-field" placeholder="e.g. 100" min="1" /></div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled Start (Optional)</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input type="date" value={editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[0] : ''} onChange={e => {
-                        const date = e.target.value;
-                        const time = editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[1].substring(0, 5) : '00:00';
-                        setEditFormData(f => ({ ...f, scheduledFor: date ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                      <input type="time" value={editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                        const time = e.target.value;
-                        const date = editFormData.scheduledFor ? editFormData.scheduledFor.split('T')[0] : new Date().toISOString().split('T')[0];
-                        setEditFormData(f => ({ ...f, scheduledFor: time ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Scheduled End (Optional)</label>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <input type="date" value={editFormData.validUntil ? editFormData.validUntil.split('T')[0] : ''} onChange={e => {
-                        const date = e.target.value;
-                        const time = editFormData.validUntil ? editFormData.validUntil.split('T')[1].substring(0, 5) : '23:59';
-                        setEditFormData(f => ({ ...f, validUntil: date ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                      <input type="time" value={editFormData.validUntil ? editFormData.validUntil.split('T')[1].substring(0, 5) : ''} onChange={e => {
-                        const time = e.target.value;
-                        const date = editFormData.validUntil ? editFormData.validUntil.split('T')[0] : new Date().toISOString().split('T')[0];
-                        setEditFormData(f => ({ ...f, validUntil: time ? `${date}T${time}` : '' }))
-                      }} className="input-field" style={{ flex: 1 }} />
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-                  <button type="button" onClick={() => setEditFormData(f => ({ ...f, active: !f.active }))} className={`toggle ${editFormData.active ? 'on' : ''}`}><div className="toggle-knob" /></button>
-                  <span style={{ fontSize: 13, color: 'var(--text-main)' }}>{editFormData.active ? 'Active (Accessible via private link)' : 'Draft (Inactive)'}</span>
-                </div>
+
                 <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                   <button type="button" onClick={() => setShowEditModal(false)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={savingEdit}>Cancel</button>
                   <button type="submit" disabled={savingEdit} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{savingEdit ? <Loader2 size={16} className="spin" /> : <Check size={16} />} Update</button>

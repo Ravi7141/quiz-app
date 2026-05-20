@@ -1,6 +1,7 @@
 package com.example.quiz.service;
 
 import com.example.quiz.dto.request.SubmitAnswerRequest;
+import com.example.quiz.dto.request.CodingSubmissionRequest;
 import com.example.quiz.dto.response.AttemptResponse;
 import com.example.quiz.entity.*;
 import com.example.quiz.enums.AttemptStatus;
@@ -8,6 +9,7 @@ import com.example.quiz.exception.BadRequestException;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +25,7 @@ import java.util.Optional;
  *  - POST /student/quizzes/submit-answer               → submitAnswer()
  *  - POST /student/quizzes/submit/{attemptId}          → submitAttempt()
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AttemptService {
@@ -32,6 +35,8 @@ public class AttemptService {
     private final QuizRepository quizRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
+    private final CodingTestRepository codingTestRepository;
+    private final StudentCodingSubmissionRepository studentCodingSubmissionRepository;
 
     // ─── Start Attempt ────────────────────────────────────────────────────────
 
@@ -117,7 +122,28 @@ public class AttemptService {
         }
 
         // Step 3 & 4 — Upsert answer
-        boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase(request.getSelectedOption());
+        boolean isCorrect = false;
+        String selected = request.getSelectedOption();
+        log.info("submitAnswer: attemptId={}, questionId={}, selectedOption='{}', attemptStatus={}",
+            request.getAttemptId(), request.getQuestionId(), selected, attempt.getStatus());
+        if (question.getCorrectAnswer() != null && selected != null && !selected.trim().isEmpty()) {
+            String[] correctOptions = question.getCorrectAnswer().split(",");
+            String[] selectedOptions = selected.split(",");
+
+            java.util.Set<String> correctSet = new java.util.HashSet<>();
+            for (String c : correctOptions) correctSet.add(c.trim().toUpperCase());
+
+            java.util.Set<String> selectedSet = new java.util.HashSet<>();
+            for (String s : selectedOptions) {
+                if (!s.trim().isEmpty()) {
+                    selectedSet.add(s.trim().toUpperCase());
+                }
+            }
+
+            if (correctSet.equals(selectedSet) && !correctSet.isEmpty()) {
+                isCorrect = true;
+            }
+        }
 
         StudentAnswer answer = answerRepository
                 .findByAttemptIdAndQuestionId(request.getAttemptId(), request.getQuestionId())
@@ -161,10 +187,10 @@ public class AttemptService {
         // Step 3 — Calculate score (capped at quiz total marks)
         int rawScore = answers.stream()
                 .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
-                .mapToInt(a -> a.getQuestion().getMarks())
+                .mapToInt(a -> a.getQuestion().getMarks() != null ? a.getQuestion().getMarks() : 1)
                 .sum();
         int totalMarks = attempt.getQuiz().getTotalMarks() != null ? attempt.getQuiz().getTotalMarks() : rawScore;
-        int score = Math.min(rawScore, totalMarks);
+        int score = totalMarks > 0 ? Math.min(rawScore, totalMarks) : rawScore;
 
         // Step 4 — Finalize
         attempt.setStatus(AttemptStatus.SUBMITTED);
@@ -188,5 +214,32 @@ public class AttemptService {
                 .startedAt(attempt.getStartedAt())
                 .submittedAt(attempt.getSubmittedAt())
                 .build();
+    }
+
+    @Transactional
+    public void saveCodingSubmission(CodingSubmissionRequest request) {
+        QuizAttempt attempt = attemptRepository.findById(request.getAttemptId())
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt", request.getAttemptId()));
+
+        if (attempt.getStatus() != AttemptStatus.IN_PROGRESS) {
+            throw new BadRequestException("This attempt is already submitted. You cannot submit code.");
+        }
+
+        CodingTest codingTest = codingTestRepository.findById(request.getCodingTestId())
+                .orElseThrow(() -> new ResourceNotFoundException("CodingTest", request.getCodingTestId()));
+
+        StudentCodingSubmission submission = studentCodingSubmissionRepository
+                .findByAttemptIdAndCodingTestId(request.getAttemptId(), request.getCodingTestId())
+                .stream().findFirst()
+                .orElse(StudentCodingSubmission.builder()
+                        .attempt(attempt)
+                        .codingTest(codingTest)
+                        .build());
+
+        submission.setCode(request.getCode());
+        submission.setLanguage(request.getLanguage());
+        submission.setPassed(request.getPassed());
+
+        studentCodingSubmissionRepository.save(submission);
     }
 }

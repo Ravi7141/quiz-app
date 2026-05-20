@@ -16,7 +16,7 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.addAllowedOrigin("http://localhost:5173"); // React dev server
+        config.addAllowedOriginPattern("*"); // Allow any origin pattern (e.g. local IP)
         config.addAllowedMethod("*");                     // GET, POST, PUT, DELETE, etc.
         config.addAllowedHeader("*");                     // Content-Type, Authorization, etc.
         config.setAllowCredentials(true);

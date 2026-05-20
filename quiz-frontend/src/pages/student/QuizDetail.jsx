@@ -32,15 +32,15 @@ export default function QuizDetail() {
   }, [id])
 
   const handleStartQuiz = () => {
-    // Just navigate — QuizAttempt handles starting the attempt
-    navigate(`/student/quizzes/${id}/attempt`, { state: { requestFullscreen: true } })
+    // Just navigate — UnifiedAssessment handles starting the attempt
+    navigate(`/assessment/${id}`, { state: { requestFullscreen: true } })
   }
 
   if (loading) return <Layout title="Loading..."><div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div></Layout>
   if (!quiz) return <Layout title="Not Found"><div style={{ textAlign: 'center', padding: 80, color: 'var(--text-sec)' }}>Quiz not found.</div></Layout>
 
   const rules = [
-    { icon: Monitor, title: 'Full Screen Required', desc: 'The quiz runs in full-screen mode. Exiting full screen will be flagged.', color: '#7c3aed' },
+    { icon: Monitor, title: 'Full Screen Required', desc: 'The quiz runs in full-screen mode. Exiting full screen will be flagged.', color: 'var(--primary)' },
     { icon: Eye, title: 'Anti-Cheat Monitoring', desc: 'Switching tabs or windows is monitored. Three violations will auto-submit.', color: '#f87171' },
     { icon: ShieldCheck, title: 'No Going Back', desc: 'Once you start, you must complete the quiz in one sitting. You cannot pause.', color: '#38bdf8' },
     { icon: AlertTriangle, title: '3 Strike Rule', desc: 'Attempting to exit full screen or switch tabs 3 times will be treated as cheating and the quiz will be force-submitted.', color: '#fbbf24' },
@@ -78,7 +78,7 @@ export default function QuizDetail() {
               {/* Info Card */}
               <div className="card" style={{ padding: 32 }}>
                 <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
-                  <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(124,58,237,0.4)', flexShrink: 0 }}>
+                  <div style={{ width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 24px rgba(37,99,235,0.4)', flexShrink: 0 }}>
                     <BookOpen size={32} color="#fff" />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -95,8 +95,8 @@ export default function QuizDetail() {
                         ...(quiz.passMark ? [{ icon: CheckCircle, label: 'Pass Mark', val: `${quiz.passMark}%` }] : []),
                       ].map(({ icon: Icon, label, val }) => (
                         <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12, paddingRight: 24 }}>
-                          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Icon size={18} color="#a78bfa" />
+                          <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Icon size={18} color="var(--primary-400)" />
                           </div>
                           <div>
                             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)' }}>{val}</div>

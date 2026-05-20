@@ -38,6 +38,7 @@ export const authApi = {
 export const studentQuizApi = {
   getAll: () => api.get('/student/quizzes'),
   getById: (id) => api.get(`/student/quizzes/${id}`),
+  getAssessment: (id) => api.get(`/student/quizzes/${id}/assessment`),
 }
 
 // ─── Quiz Attempt ──────────────────────────────────────────────
@@ -45,6 +46,7 @@ export const attemptApi = {
   start: (quizId, studentId) =>
     api.post(`/student/quizzes/start/${quizId}?studentId=${studentId}`),
   submitAnswer: (data) => api.post('/student/quizzes/submit-answer', data),
+  submitCoding: (data) => api.post('/student/quizzes/submit-coding', data),
   submit: (attemptId) => api.post(`/student/quizzes/submit/${attemptId}`),
 }
 
@@ -76,6 +78,7 @@ export const adminQuizApi = {
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
   getStudents: () => api.get('/admin/students'),
+  deleteStudent: (id) => api.delete(`/admin/students/${id}`),
   getStudentResults: (id) => api.get(`/admin/students/${id}/results`),
   getResults: () => api.get('/admin/results'),
   getQuizResults: (quizId) => api.get(`/admin/quizzes/${quizId}/results`),
@@ -85,6 +88,7 @@ export const adminApi = {
 export const codingApi = {
   getAll: () => api.get('/student/coding-tests'),
   getById: (id) => api.get(`/student/coding-tests/${id}`),
+  adminGetById: (id) => api.get(`/admin/coding-tests/${id}`),
   run: (data) => api.post('/student/code/run', data),
   submit: (data) => api.post('/student/code/submit', data),
   create: (data) => api.post('/admin/coding-tests', data),
@@ -94,13 +98,34 @@ export const codingApi = {
 }
 
 // ─── Exam Tokens ───────────────────────────────────────────────
+// FIX: removed duplicate /api prefix — baseURL is already /api
 export const examTokenApi = {
   generate: (data) => api.post('/admin/tokens/generate', data),
   getForExam: (type, id) => api.get(`/admin/tokens/exam/${type}/${id}`),
-  verify: (token) => api.get(`/api/tokens/verify?token=${token}`),
-  consume: (token) => api.post(`/api/tokens/consume?token=${token}`),
+  verify: (token) => api.get(`/tokens/verify?token=${token}`),       // was /api/tokens/verify
+  consume: (token) => api.post(`/tokens/consume?token=${token}`),    // was /api/tokens/consume
   emailAll: (type, id, baseUrl) =>
     api.post(`/admin/tokens/exam/${type}/${id}/email-all?baseUrl=${encodeURIComponent(baseUrl)}`),
+}
+
+// ─── Unified Assessments ───────────────────────────────────────
+export const assessmentApi = {
+  create: (data) => api.post('/admin/assessments', data),
+  getAll: () => api.get('/admin/assessments'),
+  getById: (id) => api.get(`/admin/assessments/${id}`),
+  update: (id, data) => api.put(`/admin/assessments/${id}`, data),
+  delete: (id) => api.delete(`/admin/assessments/${id}`),
+  regenerateShareToken: (id) => api.post(`/admin/assessments/${id}/share`),
+  getByToken: (token) => api.get(`/assessment/${token}`),
+  startAttempt: (assessmentId, studentId) =>
+    api.post(`/assessment/start?assessmentId=${assessmentId}&studentId=${studentId}`),
+  submitAttempt: (attemptId, answers) =>
+    api.post('/assessment/submit', { attemptId, answers }),
+  // FIX: code now sent as JSON body — was query param (broke on long submissions)
+  submitCoding: (assessmentAttemptId, codingTestId, code, language, passed) =>
+    api.post('/assessment/submit-coding', { assessmentAttemptId, codingTestId, code, language, passed }),
+  enroll: (name, email, phone) =>
+    api.post(`/assessment/enroll?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&phone=${encodeURIComponent(phone || '')}`),
 }
 
 export default api

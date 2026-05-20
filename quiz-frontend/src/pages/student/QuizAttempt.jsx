@@ -174,14 +174,19 @@ export default function QuizAttempt() {
   const isUrgent = timeLeft !== null && timeLeft <= 60
 
   const selectAnswer = useCallback(async (questionId, option) => {
-    setAnswers(prev => ({ ...prev, [questionId]: option }))
-    const aId = attemptIdRef.current
-    if (!aId) return  // attempt not ready yet, just update local state
-    try {
-      await attemptApi.submitAnswer({ attemptId: aId, questionId, selectedOption: option })
-    } catch {
-      // Silent fail — answer is stored locally, will be counted on submit
-    }
+    setAnswers(prev => {
+      const current = prev[questionId] ? prev[questionId].split(',') : []
+      const next = new Set(current)
+      if (next.has(option)) next.delete(option)
+      else next.add(option)
+      const newValue = Array.from(next).sort().join(',')
+      
+      const aId = attemptIdRef.current
+      if (aId) {
+        attemptApi.submitAnswer({ attemptId: aId, questionId, selectedOption: newValue }).catch(() => {})
+      }
+      return { ...prev, [questionId]: newValue }
+    })
   }, [])
 
   const toggleReview = (questionId) => {
@@ -275,7 +280,7 @@ export default function QuizAttempt() {
                 {/* Question header */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(124,58,237,0.15)', color: '#a78bfa', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(37,99,235,0.15)', color: 'var(--primary-400)', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {current + 1}
                     </div>
                     <span style={{ fontSize: 14, color: 'var(--text-sec)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
@@ -307,14 +312,14 @@ export default function QuizAttempt() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 'auto' }}>
                   {options.map(({ key, val }) => {
-                    const sel = answers[q.id] === key
+                    const sel = answers[q.id]?.split(',').includes(key)
                     return (
                       <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 16 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 9, background: sel ? '#7c3aed' : 'rgba(255,255,255,0.06)', color: sel ? '#fff' : 'var(--text-sec)', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 9, background: sel ? 'var(--primary)' : 'rgba(255,255,255,0.06)', color: sel ? '#fff' : 'var(--text-sec)', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           {key}
                         </div>
                         <span style={{ flex: 1, fontSize: 16 }}>{val}</span>
-                        {sel && <CheckCircle2 size={20} color="#a78bfa" />}
+                        {sel && <CheckCircle2 size={20} color="var(--primary-400)" />}
                       </button>
                     )
                   })}
@@ -343,7 +348,7 @@ export default function QuizAttempt() {
                 const isCurr = i === current
                 const isRev = markedForReview.has(qs?.id)
                 let bg, color, border = 'transparent'
-                if (isCurr)       { bg = '#8b5cf6'; color = '#fff'; border = '#7c3aed'; }
+                if (isCurr)       { bg = 'var(--primary-400)'; color = '#fff'; border = 'var(--primary)'; }
                 else if (isRev && ans) { bg = '#f59e0b'; color = '#fff'; border = '#d97706'; }
                 else if (isRev)   { bg = 'rgba(245,158,11,0.15)'; color = '#d97706'; border = 'rgba(245,158,11,0.4)'; }
                 else if (ans)     { bg = '#3b0764'; color = '#fff'; border = '#2e054e'; } // Answered -> Dark Purple
@@ -358,7 +363,7 @@ export default function QuizAttempt() {
             </div>
             {/* Legend */}
             <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: '#8b5cf6', border: '1px solid #7c3aed' }} /> Current</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--primary-400)', border: '1px solid var(--primary)' }} /> Current</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: '#3b0764', border: '1px solid #2e054e' }} /> Answered</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)' }} /> Marked for Review</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }} /> Unanswered</div>
@@ -427,7 +432,7 @@ export default function QuizAttempt() {
               </div>
               <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-main)', marginBottom: 12 }}>Ready to submit?</h2>
               <p style={{ fontSize: 14, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 8 }}>
-                You have answered <strong style={{ color: '#38bdf8' }}>{answered}</strong> out of <strong style={{ color: '#a78bfa' }}>{questions.length}</strong> questions.
+                You have answered <strong style={{ color: '#38bdf8' }}>{answered}</strong> out of <strong style={{ color: 'var(--primary-400)' }}>{questions.length}</strong> questions.
               </p>
               {markedForReview.size > 0 && (
                 <p style={{ fontSize: 13, color: '#f59e0b', marginBottom: 24 }}>

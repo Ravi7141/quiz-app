@@ -45,17 +45,17 @@ export default function Profile() {
 
         {/* Hero Profile Card */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card"
-          style={{ padding: '36px 32px', background: 'linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(56,189,248,0.06) 100%)', border: '1px solid rgba(124,58,237,0.2)', position: 'relative', overflow: 'hidden' }}>
+          style={{ padding: '36px 32px', background: 'linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(56,189,248,0.06) 100%)', border: '1px solid rgba(37,99,235,0.2)', position: 'relative', overflow: 'hidden' }}>
           {/* BG decoration */}
-          <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle,rgba(124,58,237,0.15),transparent)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle,rgba(37,99,235,0.15),transparent)', pointerEvents: 'none' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 28 }}>
             {/* Avatar */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
-              <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 34, fontWeight: 800, boxShadow: '0 0 30px rgba(124,58,237,0.4)' }}>
+              <div style={{ width: 88, height: 88, borderRadius: '50%', background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 34, fontWeight: 800, boxShadow: '0 0 30px rgba(37,99,235,0.4)' }}>
                 {user?.name?.[0]?.toUpperCase() || 'U'}
               </div>
-              <div style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: isAdmin ? '#7c3aed' : '#4ade80', border: '2px solid var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', bottom: 2, right: 2, width: 22, height: 22, borderRadius: '50%', background: isAdmin ? 'var(--primary)' : '#4ade80', border: '2px solid var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {isAdmin ? <Shield size={10} color="#fff" /> : <User size={10} color="#fff" />}
               </div>
             </div>
@@ -82,11 +82,11 @@ export default function Profile() {
         {!isAdmin && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(160px,1fr))', gap: 16 }}>
             {[
-              { label: 'Total Attempts', val: results.length, icon: BarChart2, color: '#7c3aed', bg: 'rgba(124,58,237,0.12)' },
+              { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)', bg: 'rgba(37,99,235,0.12)' },
               { label: 'Completed', val: submitted.length, icon: CheckCircle2, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
               { label: 'Avg Score', val: `${avgScore}%`, icon: Trophy, color: '#f59e0b', bg: 'rgba(245,158,11,0.12)' },
               { label: 'Quizzes Passed', val: passed, icon: Award, color: '#38bdf8', bg: 'rgba(56,189,248,0.12)' },
-              { label: 'Best Score', val: `${bestScore}%`, icon: BookOpen, color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+              { label: 'Best Score', val: `${bestScore}%`, icon: BookOpen, color: 'var(--primary-400)', bg: 'rgba(167,139,250,0.12)' },
             ].map(({ label, val, icon: Icon, color, bg }, i) => (
               <motion.div key={label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                 className="card" style={{ padding: '20px 18px', textAlign: 'center' }}>
@@ -103,7 +103,7 @@ export default function Profile() {
         {/* Admin info card */}
         {isAdmin && (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ padding: 28, textAlign: 'center' }}>
-            <Shield size={40} color="#7c3aed" style={{ margin: '0 auto 12px' }} />
+            <Shield size={40} color="var(--primary)" style={{ margin: '0 auto 12px' }} />
             <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', marginBottom: 8 }}>Administrator Account</div>
             <p style={{ fontSize: 14, color: 'var(--text-sec)', lineHeight: 1.6 }}>
               You have full access to manage quizzes, students, and view all results.

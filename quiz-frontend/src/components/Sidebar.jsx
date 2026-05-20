@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, Code2, Users, BarChart2,
-  LogOut, Zap, ChevronRight, User
+  LogOut, Zap, ChevronRight, User, Sparkles
 } from 'lucide-react'
 
 import logo from '../assets/logo.png'
@@ -10,6 +10,7 @@ import logo from '../assets/logo.png'
 const studentLinks = []
 const adminLinks = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/assessments', label: 'Assessments', icon: Sparkles },
   { to: '/admin/quizzes', label: 'Manage Quizzes', icon: BookOpen },
   { to: '/admin/coding', label: 'Coding Tests', icon: Code2 },
   { to: '/admin/students', label: 'Students', icon: Users },
@@ -22,12 +23,12 @@ export default function Sidebar({ isOpen, toggle }) {
   const links = isAdmin ? adminLinks : studentLinks
 
   return (
-    <div className="sidebar" style={{ transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}>
+    <div className="sidebar blue" style={{ transform: isOpen ? 'translateX(0)' : 'translateX(-100%)' }}>
       {/* Logo */}
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <img src={logo} alt="QuizVault Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
-          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em' }} className="grad">QuizVault</span>
+          <img src={logo} alt="AssessSphere Logo" style={{ width: 32, height: 32, borderRadius: 8, objectFit: 'contain' }} />
+          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em' }} className="grad">AssessSphere</span>
         </Link>
         {/* Close Button */}
         <button onClick={toggle} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}>
@@ -43,18 +44,16 @@ export default function Sidebar({ isOpen, toggle }) {
             <Link key={to} to={to} className={`nav-link ${active ? 'active' : ''}`}>
               <Icon size={17} />
               <span style={{ flex: 1, fontSize: 15, fontWeight: 600 }}>{label}</span>
-              {active && <ChevronRight size={13} color="#7c3aed" />}
+              {active && <ChevronRight size={13} color="var(--primary)" />}
             </Link>
           )
         })}
       </nav>
 
       {/* User chip — clickable → profile */}
-      <Link to="/profile" style={{ textDecoration: 'none', margin: '10px 12px', padding: '8px 10px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 10, display: 'block', transition: 'background 0.2s' }}
-        onMouseOver={e => e.currentTarget.style.background = 'rgba(124,58,237,0.35)'}
-        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
+      <Link to="/profile" className="user-chip" style={{ textDecoration: 'none', margin: '10px 12px', display: 'block' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
             {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
