@@ -4,11 +4,14 @@ import com.example.quiz.dto.response.AuthResponse;
 import com.example.quiz.entity.User;
 import com.example.quiz.enums.Role;
 import com.example.quiz.exception.ResourceNotFoundException;
-import com.example.quiz.repository.UserRepository;
+import com.example.quiz.repository.*;
+import com.example.quiz.entity.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -23,6 +26,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final AssessmentAttemptRepository assessmentAttemptRepository;
+    private final StudentAnswerRepository studentAnswerRepository;
+    private final StudentCodingSubmissionRepository studentCodingSubmissionRepository;
+    private final ExamTokenRepository examTokenRepository;
 
     /**
      * Find a student by email. If not found, create a new STUDENT account
@@ -70,9 +78,29 @@ public class UserService {
     /**
      * Delete a student by ID. Throws ResourceNotFoundException if not found.
      */
+    @Transactional
     public void deleteStudent(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Student", id));
+                
+        // 1. ExamTokens
+        List<ExamToken> tokens = examTokenRepository.findByStudentEmail(user.getEmail());
+        examTokenRepository.deleteAll(tokens);
+        
+        // 2. StudentAnswers (via QuizAttempts)
+        List<QuizAttempt> quizAttempts = quizAttemptRepository.findByStudentId(id);
+        for (QuizAttempt qa : quizAttempts) {
+            studentAnswerRepository.deleteByAttemptId(qa.getId());
+        }
+        quizAttemptRepository.deleteAll(quizAttempts);
+
+        // 3. StudentCodingSubmissions (via AssessmentAttempts)
+        List<AssessmentAttempt> assessmentAttempts = assessmentAttemptRepository.findByStudentId(id);
+        for (AssessmentAttempt aa : assessmentAttempts) {
+            studentCodingSubmissionRepository.deleteByAssessmentAttemptId(aa.getId());
+        }
+        assessmentAttemptRepository.deleteAll(assessmentAttempts);
+
         userRepository.delete(user);
     }
 

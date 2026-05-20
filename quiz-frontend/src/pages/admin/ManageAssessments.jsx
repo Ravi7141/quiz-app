@@ -131,14 +131,14 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>Assessment Flow / Sections</label>
-              <button type="button" onClick={addSection} className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px', color: '#c084fc', border: '1px solid rgba(124,58,237,0.2)' }}>
+              <button type="button" onClick={addSection} className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px', color: '#c084fc', border: '1px solid rgba(37,99,235,0.2)' }}>
                 <Plus size={14} /> Add Section
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {form.sections.map((sec, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: 12 }}>
-                  <div style={{ background: '#7c3aed', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
+                  <div style={{ background: 'var(--primary)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
                   <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '8px 12px' }}>
                     <option value="QUIZ">MCQ Quiz</option>
                     <option value="CODING">Coding Test</option>
@@ -223,12 +223,12 @@ export default function ManageAssessments() {
               className="card"
               style={{ padding: 24, display: 'flex', flexDirection: 'column', minHeight: 220, cursor: 'pointer' }}
               onClick={() => navigate(`/admin/assessments/${assess.id}`)}
-              onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'}
+              onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(37,99,235,0.4)'}
               onMouseOut={e => e.currentTarget.style.borderColor = ''}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Sparkles size={20} color="#a78bfa" />
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={20} color="var(--primary-400)" />
                 </div>
                 <span className={`badge ${assess.active ? 'badge-active' : 'badge-off'}`}>
                   {assess.active ? 'Active' : 'Inactive'}
@@ -257,7 +257,7 @@ export default function ManageAssessments() {
                 <button
                   onClick={() => setPrivateShareTarget(assess)}
                   className="btn-ghost"
-                  style={{ flex: 1, justifyContent: 'center', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(124,58,237,0.05)', fontSize: 13 }}
+                  style={{ flex: 1, justifyContent: 'center', color: 'var(--primary-400)', border: '1px solid rgba(37,99,235,0.2)', background: 'rgba(37,99,235,0.05)', fontSize: 13 }}
                 >
                   <Mail size={13} /> Private Links
                 </button>
@@ -298,6 +298,7 @@ export default function ManageAssessments() {
         onClose={() => setPrivateShareTarget(null)}
         examId={privateShareTarget?.id}
         examType="ASSESSMENT"
+        shareToken={privateShareTarget?.shareToken}
       />
     </Layout>
   )

@@ -84,7 +84,7 @@ export default function App() {
             style: {
               background: '#1c2b3c',
               color: '#d4e4fa',
-              border: '1px solid rgba(124,58,237,0.3)',
+              border: '1px solid rgba(37,99,235,0.3)',
               borderRadius: '12px',
             },
             success: { iconTheme: { primary: '#4cd7f6', secondary: '#051424' } },

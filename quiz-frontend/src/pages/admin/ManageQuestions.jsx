@@ -9,21 +9,40 @@ import { Plus, Pencil, Trash2, HelpCircle, X, Loader2, Check, ArrowLeft, UploadC
 const OPTIONS = ['A', 'B', 'C', 'D']
 
 function QuestionModal({ question, quizId, onClose, onSave }) {
+  const isTF = question?.optionC === '' && question?.optionD === ''
+  const [qType, setQType] = useState(isTF ? 'TF' : 'MCQ')
   const [form, setForm] = useState({ quizId: Number(quizId), questionText: '', optionA: '', optionB: '', optionC: '', optionD: '', correctAnswer: 'A', marks: 1, ...question })
   const [loading, setLoading] = useState(false)
+
+  const handleTypeChange = (type) => {
+    setQType(type)
+    if (type === 'TF') {
+      setForm(f => ({ ...f, optionA: 'True', optionB: 'False', optionC: '', optionD: '', correctAnswer: 'A' }))
+    } else {
+      setForm(f => ({ ...f, optionC: 'Option C', optionD: 'Option D' }))
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.correctAnswer) { toast.error('Please select at least one correct answer'); return }
     setLoading(true)
     try {
+      // For True/False, ensure C and D are sent as empty strings
       const payload = { ...form, marks: Number(form.marks), quizId: Number(quizId) }
+      if (qType === 'TF') {
+        payload.optionC = ''
+        payload.optionD = ''
+      }
+      
       if (question?.id) { await questionApi.update(question.id, payload); toast.success('Updated!'); }
       else { await questionApi.add(payload); toast.success('Added!'); }
       onSave()
     } catch (err) { toast.error(err.response?.data?.message || 'Error saving question') }
     finally { setLoading(false) }
   }
+
+  const currentOptions = qType === 'TF' ? ['A', 'B'] : OPTIONS
 
   return (
     <div className="modal-overlay" onClick={onClose} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
@@ -32,23 +51,33 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
           <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>{question?.id ? 'Edit Question' : 'Add Question'}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}><X size={20} /></button>
         </div>
+
+        <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
+          <button onClick={() => handleTypeChange('MCQ')} style={{ flex: 1, padding: 10, borderRadius: 8, background: qType === 'MCQ' ? 'rgba(56,189,248,0.1)' : 'rgba(255,255,255,0.05)', border: `1px solid ${qType === 'MCQ' ? 'var(--primary)' : 'transparent'}`, color: qType === 'MCQ' ? 'var(--primary-400)' : 'var(--text-sec)', fontWeight: 600, cursor: 'pointer' }}>Multiple Choice</button>
+          <button onClick={() => handleTypeChange('TF')} style={{ flex: 1, padding: 10, borderRadius: 8, background: qType === 'TF' ? 'rgba(56,189,248,0.1)' : 'rgba(255,255,255,0.05)', border: `1px solid ${qType === 'TF' ? 'var(--primary)' : 'transparent'}`, color: qType === 'TF' ? 'var(--primary-400)' : 'var(--text-sec)', fontWeight: 600, cursor: 'pointer' }}>True / False</button>
+        </div>
+
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Question Text *</label>
           <textarea required rows={3} value={form.questionText} onChange={e => setForm(f => ({ ...f, questionText: e.target.value }))} className="input-field" style={{ resize: 'none' }} /></div>
-          {OPTIONS.map(opt => (
+          {currentOptions.map(opt => (
             <div key={opt}><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Option {opt} *</label>
             <input required value={form[`option${opt}`]} onChange={e => setForm(f => ({ ...f, [`option${opt}`]: e.target.value }))} className="input-field" /></div>
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Correct Answer(s) *</label>
             <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-              {OPTIONS.map(o => (
+              {currentOptions.map(o => (
                 <label key={o} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-main)' }}>
-                  <input type="checkbox" checked={form.correctAnswer?.split(',').includes(o)} onChange={e => {
-                    const current = new Set(form.correctAnswer ? form.correctAnswer.split(',') : [])
-                    if (e.target.checked) current.add(o)
-                    else current.delete(o)
-                    setForm(f => ({ ...f, correctAnswer: Array.from(current).sort().join(',') }))
+                  <input type={qType === 'TF' ? 'radio' : 'checkbox'} name="correctAnswer" checked={form.correctAnswer?.split(',').includes(o)} onChange={e => {
+                    if (qType === 'TF') {
+                      setForm(f => ({ ...f, correctAnswer: o }))
+                    } else {
+                      const current = new Set(form.correctAnswer ? form.correctAnswer.split(',') : [])
+                      if (e.target.checked) current.add(o)
+                      else current.delete(o)
+                      setForm(f => ({ ...f, correctAnswer: Array.from(current).sort().join(',') }))
+                    }
                   }} /> Option {o}
                 </label>
               ))}
@@ -65,6 +94,7 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
     </div>
   )
 }
+
 
 export default function ManageQuestions() {
   const { id: quizId } = useParams()
@@ -104,16 +134,16 @@ export default function ManageQuestions() {
           {questions.map((q, i) => (
             <motion.div key={q.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(124,58,237,0.1)', color: '#a78bfa', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(37,99,235,0.1)', color: 'var(--primary-400)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   Q{i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: 20 }}>{q.questionText}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
-                    {OPTIONS.map(opt => (
-                      <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, background: q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.3)' : 'transparent'}` }}>
-                        <div style={{ width: 20, height: 20, borderRadius: 6, background: q.correctAnswer?.split(',').includes(opt) ? '#38bdf8' : 'rgba(255,255,255,0.1)', color: q.correctAnswer?.split(',').includes(opt) ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{opt}</div>
-                        <span style={{ fontSize: 13, color: q.correctAnswer?.split(',').includes(opt) ? '#e0f2fe' : '#cbd5e1' }}>{q[`option${opt}`]}</span>
+                    {OPTIONS.filter(opt => q[`option${opt}`] && q[`option${opt}`].trim() !== '').map(opt => (
+                      <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, background: q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.1)' : 'var(--glass-bg)', border: `1px solid ${q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.3)' : 'var(--glass-border)'}` }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 6, background: q.correctAnswer?.split(',').includes(opt) ? 'var(--primary)' : 'var(--glass-bg)', color: q.correctAnswer?.split(',').includes(opt) ? '#fff' : 'var(--text-sec)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{opt}</div>
+                        <span style={{ fontSize: 13, color: q.correctAnswer?.split(',').includes(opt) ? 'var(--primary)' : 'var(--text-main)' }}>{q[`option${opt}`]}</span>
                       </div>
                     ))}
                   </div>
@@ -221,42 +251,76 @@ function ImportModal({ quizId, onClose, onImported }) {
       const parsedRows = parseCSVRows(content)
       rawQuestions = parsedRows.map((rowObj) => {
         const { fields, startLine } = rowObj
-        if (fields.length < 6) {
-          throw new Error(`Line ${startLine} requires at least 6 values: questionText, optionA, optionB, optionC, optionD, correctAnswer [, marks]`)
+        if (fields.length < 4) {
+          throw new Error(`Line ${startLine} requires at least 4 values (for True/False) or 6 values (for Multiple Choice)`)
         }
 
         let marks = 1
         let lastIndex = fields.length - 1
 
-        if (fields.length >= 7 && !isNaN(fields[lastIndex]) && fields[lastIndex] !== '') {
-          marks = Number(fields[lastIndex])
+        // Check for trailing marks (strip brackets if user typed them like [5])
+        let rawMarks = fields[lastIndex].trim().replace(/^\[|\]$/g, '')
+        if (fields.length >= 5 && !isNaN(rawMarks) && rawMarks !== '') {
+          marks = Number(rawMarks)
           lastIndex--
         }
 
         const correctAnswers = []
+        let rawAnswer = fields[lastIndex].trim()
+
+        // Check if True/False or MCQ based on remaining fields
+        // If remaining is 3, it's True/False (ques, optA, optB) -> lastIndex = 3 (0,1,2,3)
+        // If remaining is 5, it's MCQ (ques, optA, optB, optC, optD) -> lastIndex = 5 (0,1,2,3,4,5)
+
+        let isTF = false;
+        if (lastIndex === 3) {
+          isTF = true;
+        } else if (lastIndex < 5) {
+           throw new Error(`Line ${startLine} has an invalid structure. Expected 4 fields for True/False, or 6 fields for Multiple Choice.`)
+        }
+
         const validOptionsSet = new Set(['A', 'B', 'C', 'D'])
 
-        while (lastIndex >= 5 && validOptionsSet.has(fields[lastIndex].toUpperCase())) {
-          correctAnswers.unshift(fields[lastIndex].toUpperCase())
-          lastIndex--
+        // Parse Multiple Choice Answers
+        if (!isTF) {
+           while (lastIndex >= 5 && validOptionsSet.has(fields[lastIndex].toUpperCase())) {
+             correctAnswers.unshift(fields[lastIndex].toUpperCase())
+             lastIndex--
+           }
+           if (correctAnswers.length === 0 && lastIndex >= 4) {
+             const potentialAns = fields[lastIndex].toUpperCase().replace(/\s+/g, '')
+             if (/^[A-D](,[A-D])*$/.test(potentialAns)) {
+               correctAnswers.push(potentialAns)
+               lastIndex--
+             }
+           }
+           if (lastIndex < 3 || correctAnswers.length === 0) {
+             throw new Error(`Line ${startLine} has an invalid structure for Multiple Choice. Option A, B, C, D and a valid Correct Answer (A, B, C, or D) are required.`)
+           }
+        } else {
+           // Parse True/False Answers
+           rawAnswer = fields[lastIndex].trim().toLowerCase()
+           const optA = fields[lastIndex - 1].trim().toLowerCase()
+           const optB = fields[lastIndex - 2].trim().toLowerCase()
+
+           if (rawAnswer === optA || rawAnswer === 'a' || rawAnswer === 'true' && optA === 'true') {
+              correctAnswers.push('A')
+           } else if (rawAnswer === optB || rawAnswer === 'b' || rawAnswer === 'false' && optB === 'false') {
+              correctAnswers.push('B')
+           } else if (rawAnswer === 'true') {
+              correctAnswers.push('A')
+           } else if (rawAnswer === 'false') {
+              correctAnswers.push('B')
+           } else {
+              throw new Error(`Line ${startLine} True/False answer "${rawAnswer}" could not be matched to A or B.`)
+           }
+           lastIndex--
         }
 
-        if (correctAnswers.length === 0 && lastIndex >= 4) {
-          const potentialAns = fields[lastIndex].toUpperCase().replace(/\s+/g, '')
-          if (/^[A-D](,[A-D])*$/.test(potentialAns)) {
-            correctAnswers.push(potentialAns)
-            lastIndex--
-          }
-        }
-
-        if (lastIndex < 3 || correctAnswers.length === 0) {
-          throw new Error(`Line ${startLine} has an invalid structure. Option A, B, C, D and a valid Correct Answer (A, B, C, or D) are required.`)
-        }
-
-        const optionD = fields[lastIndex--]
-        const optionC = fields[lastIndex--]
-        const optionB = fields[lastIndex--]
-        const optionA = fields[lastIndex--]
+        let optionD = isTF ? '' : fields[lastIndex--]
+        let optionC = isTF ? '' : fields[lastIndex--]
+        let optionB = fields[lastIndex--]
+        let optionA = fields[lastIndex--]
 
         const questionText = fields.slice(0, lastIndex + 1).join(',')
 
@@ -324,7 +388,8 @@ questionText,optionA,optionB,optionC,optionD,correctAnswer,marks`} />
           <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)' }}>
             <p style={{ marginBottom: 8, fontWeight: 700 }}>CSV format</p>
             <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.7 }}>
-              Each row should contain: questionText, optionA, optionB, optionC, optionD, correctAnswer, marks.
+              <strong>Multiple Choice:</strong> questionText, optionA, optionB, optionC, optionD, correctAnswer, marks.<br/>
+              <strong>True / False:</strong> questionText, optionA, optionB, correctAnswer, marks.
             </p>
           </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>

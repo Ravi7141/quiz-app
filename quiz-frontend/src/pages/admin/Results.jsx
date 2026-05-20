@@ -37,7 +37,7 @@ export default function Results() {
       {/* Summary Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Total Attempts', val: results.length, icon: BarChart2, color: '#7c3aed', bg: 'rgba(124,58,237,0.1)' },
+          { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)' },
           { label: 'Avg Score', val: avg !== '—' ? `${avg}%` : '—', icon: Trophy, color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
           { label: 'Pass Rate', val: passRate !== '—' ? `${passRate}%` : '—', icon: CheckCircle2, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
         ].map(({ label, val, icon: Icon, color, bg }, i) => (
@@ -59,7 +59,7 @@ export default function Results() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {['ALL', 'PASSED', 'FAILED'].map(f => (
-            <button key={f} onClick={() => setFilter(f)} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, border: `1px solid ${filter === f ? '#7c3aed' : 'rgba(255,255,255,0.1)'}`, background: filter === f ? 'rgba(124,58,237,0.15)' : 'rgba(255,255,255,0.03)', color: filter === f ? '#a78bfa' : '#94a3b8', cursor: 'pointer', transition: 'all 0.2s' }}>{f}</button>
+            <button key={f} onClick={() => setFilter(f)} style={{ padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600, border: `1px solid ${filter === f ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}`, background: filter === f ? 'rgba(37,99,235,0.15)' : 'rgba(255,255,255,0.03)', color: filter === f ? 'var(--primary-400)' : '#94a3b8', cursor: 'pointer', transition: 'all 0.2s' }}>{f}</button>
           ))}
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function Results() {
               {filtered.map((r, i) => (
                 <motion.tr key={r.attemptId} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}>
                   <td><div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{r.studentName?.[0]?.toUpperCase()}</div>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{r.studentName?.[0]?.toUpperCase()}</div>
                     <span style={{ fontWeight: 500 }}>{r.studentName}</span>
                   </div></td>
                   <td style={{ color: 'var(--text-sec)', fontSize: 13 }}>{r.studentEmail}</td>

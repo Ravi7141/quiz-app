@@ -5,9 +5,9 @@ import Layout from '../../components/Layout'
 import { adminApi } from '../../api/axios'
 import { BookOpen, Users, HelpCircle, Activity, TrendingUp, Trophy, CheckCircle2, XCircle, RefreshCw } from 'lucide-react'
 
-const CHART_STYLE = { background: 'var(--bg-main)', border: '1px solid rgba(124,58,237,0.25)', borderRadius: 10, color: 'var(--text-main)', fontSize: 12, padding: '8px 12px' }
+const CHART_STYLE = { background: 'var(--bg-main)', border: '1px solid rgba(37,99,235,0.25)', borderRadius: 10, color: 'var(--text-main)', fontSize: 12, padding: '8px 12px' }
 const BAR_COLORS = [
-  { base: '#7c3aed', light: '#a78bfa' },
+  { base: 'var(--primary)', light: 'var(--primary-400)' },
   { base: '#06b6d4', light: '#67e8f9' },
   { base: '#f59e0b', light: '#fcd34d' },
   { base: '#ef4444', light: '#fca5a5' },
@@ -53,7 +53,7 @@ export default function AdminDashboard() {
   }, [fetchData])
 
   const statCards = stats ? [
-    { label: 'Total Quizzes',   val: stats.totalQuizzes,   icon: BookOpen,    color: '#7c3aed', bg: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' },
+    { label: 'Total Assessments',   val: stats.totalQuizzes,   icon: BookOpen,    color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)', border: 'rgba(37,99,235,0.2)' },
     { label: 'Students',        val: stats.totalStudents,  icon: Users,       color: '#38bdf8', bg: 'rgba(56,189,248,0.1)',  border: 'rgba(56,189,248,0.2)'  },
     { label: 'Questions',       val: stats.totalQuestions, icon: HelpCircle,  color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)'  },
     { label: 'Attempts',        val: stats.totalAttempts,  icon: Activity,    color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.2)'  },
@@ -102,8 +102,8 @@ export default function AdminDashboard() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
           style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 20, padding: '24px 28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(124,58,237,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <TrendingUp size={16} color="#a78bfa" />
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'rgba(37,99,235,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={16} color="var(--primary-400)" />
             </div>
             <div>
               <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-main)' }}>Average Score by Quiz</div>
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
               {results.length} total
             </span>
             {refreshing && (
-              <span style={{ fontSize: 11, color: '#a78bfa', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{ fontSize: 11, color: 'var(--primary-400)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <RefreshCw size={11} style={{ animation: 'spin 0.8s linear infinite' }} /> Updating…
               </span>
             )}
@@ -216,7 +216,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => fetchData(true)}
               disabled={refreshing}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.25)', color: '#a78bfa', fontSize: 12, fontWeight: 600, cursor: refreshing ? 'not-allowed' : 'pointer', transition: 'all 0.2s', opacity: refreshing ? 0.6 : 1 }}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, background: 'rgba(37,99,235,0.1)', border: '1px solid rgba(37,99,235,0.25)', color: 'var(--primary-400)', fontSize: 12, fontWeight: 600, cursor: refreshing ? 'not-allowed' : 'pointer', transition: 'all 0.2s', opacity: refreshing ? 0.6 : 1 }}
             >
               <RefreshCw size={13} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
               Refresh
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
             {processedResults.slice(0, 8).map(r => (
               <tr key={r.attemptId}>
                 <td><div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
                     {r.studentName?.[0]?.toUpperCase()}
                   </div>
                   <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{r.studentName}</span>

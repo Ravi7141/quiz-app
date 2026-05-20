@@ -95,10 +95,6 @@ function QuizModal({ quiz, onClose, onSave }) {
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
             <input required type="number" value={form.totalMarks || ''} onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value }))} className="input-field" placeholder="e.g. 100" min="1" /></div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 4 }}>
-            <button type="button" onClick={() => setForm(f => ({ ...f, active: !f.active }))} className={`toggle ${form.active ? 'on' : ''}`}><div className="toggle-knob" /></button>
-            <span style={{ fontSize: 13, color: 'var(--text-main)' }}>{form.active ? 'Active (Accessible via private link)' : 'Draft (Inactive)'}</span>
-          </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button type="button" onClick={onClose} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
             <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{loading ? <Loader2 size={16} className="spin" /> : <Check size={16} />} {quiz?.id ? 'Update' : 'Create'}</button>
@@ -143,14 +139,14 @@ export default function ManageQuizzes() {
           {quizzes.map((quiz, i) => (
             <motion.div key={quiz.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BookOpen size={24} color="#a78bfa" />
+                <div style={{ width: 52, height: 52, borderRadius: 14, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BookOpen size={24} color="var(--primary-400)" />
                 </div>
                 <span className={`badge ${quiz.active ? 'badge-active' : 'badge-off'}`}>{quiz.active ? 'Active' : 'Draft'}</span>
               </div>
               <Link to={`/admin/quizzes/${quiz.id}`} style={{ textDecoration: 'none' }}>
                 <h3 style={{ fontSize: 25, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8, cursor: 'pointer', transition: 'color 0.15s' }}
-                  onMouseOver={e => e.currentTarget.style.color = '#a78bfa'}
+                  onMouseOver={e => e.currentTarget.style.color = 'var(--primary-400)'}
                   onMouseOut={e => e.currentTarget.style.color = 'var(--text-main)'}>{quiz.title}</h3>
               </Link>
               {quiz.description && <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{quiz.description}</p>}

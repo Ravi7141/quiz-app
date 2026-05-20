@@ -1,10 +1,8 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { Sun, Moon } from 'lucide-react'
 import Sidebar from './Sidebar'
 
 export default function Layout({ children, title, subtitle, action }) {
-  const [theme, setTheme] = useState(localStorage.getItem('quiz_theme') || 'dark')
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('quiz_sidebar')
     return saved === null ? true : saved === 'true'
@@ -17,16 +15,16 @@ export default function Layout({ children, title, subtitle, action }) {
   })
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    localStorage.setItem('quiz_theme', theme)
-  }, [theme])
-
-  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark')
+    if (window.innerWidth <= 768) {
+      setIsSidebarOpen(false)
+    }
+  }, [])
 
   return (
     <div className="page-bg" style={{ minHeight: '100vh' }}>
       <Sidebar isOpen={isSidebarOpen} toggle={toggleSidebar} />
-      <div className="main-content" style={{ marginLeft: isSidebarOpen ? 240 : 0 }}>
+      {isSidebarOpen && <div className="sidebar-overlay md:hidden" onClick={toggleSidebar}></div>}
+      <div className={`main-content ${isSidebarOpen ? '' : 'sidebar-closed'}`}>
         {/* Header */}
         <div className="page-header">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -43,14 +41,7 @@ export default function Layout({ children, title, subtitle, action }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               {action && <div>{action}</div>}
-              <button 
-                onClick={toggleTheme} 
-                className="btn-ghost" 
-                style={{ padding: '8px', borderRadius: '50%', minWidth: '40px', minHeight: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                title="Toggle Theme"
-              >
-                {theme === 'dark' ? <Sun size={18} color="#fbbf24" /> : <Moon size={18} color="#7c3aed" />}
-              </button>
+              {/* theme toggle removed per request */}
             </div>
           </div>
         </div>

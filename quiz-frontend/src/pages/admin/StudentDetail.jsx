@@ -57,7 +57,7 @@ export default function AdminStudentDetail() {
 
         {/* Profile Card */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ padding: 28, display: 'flex', alignItems: 'center', gap: 24 }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 28, fontWeight: 800, flexShrink: 0 }}>
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 28, fontWeight: 800, flexShrink: 0 }}>
             {student.name?.[0]?.toUpperCase()}
           </div>
           <div style={{ flex: 1 }}>
@@ -77,7 +77,7 @@ export default function AdminStudentDetail() {
         {/* Stats Row */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
           {[
-            { label: 'Total Attempts', val: results.length, icon: BarChart2, color: '#7c3aed' },
+            { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)' },
             { label: 'Completed', val: submitted.length, icon: CheckCircle2, color: '#4ade80' },
             { label: 'Avg Score', val: `${avgScore}%`, icon: Trophy, color: '#f59e0b' },
             { label: 'Passed', val: passed, icon: Award, color: '#38bdf8' },
@@ -117,7 +117,7 @@ export default function AdminStudentDetail() {
                         <td style={{ color: 'var(--text-sec)' }}>{i + 1}</td>
                         <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{r.quizTitle}</td>
                         <td>
-                          <span style={{ fontWeight: 700, color: '#a78bfa' }}>{r.score ?? '—'}</span>
+                          <span style={{ fontWeight: 700, color: 'var(--primary-400)' }}>{r.score ?? '—'}</span>
                           <span style={{ color: 'var(--text-sec)', fontSize: 12 }}> / {r.totalMarks}</span>
                         </td>
                         <td>

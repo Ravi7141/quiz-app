@@ -8,12 +8,12 @@ export default function ParticleBackground() {
         <motion.div
           key={i}
           className="absolute rounded-full"
-          style={{
+            style={{
             width: Math.random() * 4 + 2 + 'px',
             height: Math.random() * 4 + 2 + 'px',
             background: i % 2 === 0
-              ? 'rgba(124,58,237,0.6)'
-              : 'rgba(76,215,246,0.5)',
+              ? 'rgba(37,99,235,0.6)'
+              : 'rgba(96,165,250,0.5)',
             left: Math.random() * 100 + '%',
             top: Math.random() * 100 + '%',
           }}

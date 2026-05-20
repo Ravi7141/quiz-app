@@ -15,15 +15,15 @@ export default function Result() {
           Submitted Successfully!
         </h1>
 
-        <p style={{ fontSize: 15, color: '#94a3b8', lineHeight: 1.7, marginBottom: 32 }}>
+        <p style={{ fontSize: 15, color: 'var(--text-sec)', lineHeight: 1.7, marginBottom: 32 }}>
           Your exam has been recorded. Thank you for completing the assessment.
         </p>
 
         <div style={{ padding: '20px 24px', background: 'rgba(167,139,250,0.07)', borderRadius: 12, border: '1px solid rgba(167,139,250,0.2)' }}>
-          <p style={{ fontSize: 15, color: '#a78bfa', fontWeight: 700, marginBottom: 6 }}>
+          <p style={{ fontSize: 15, color: 'var(--primary-400)', fontWeight: 700, marginBottom: 6 }}>
             🕐 Results will be declared soon
           </p>
-          <p style={{ fontSize: 13, color: '#64748b' }}>
+          <p style={{ fontSize: 13, color: 'var(--text-sec)' }}>
             You may now safely close this window.
           </p>
         </div>

@@ -33,10 +33,8 @@ public class QuestionRequest {
     @NotBlank(message = "Option B is required")
     private String optionB;
 
-    @NotBlank(message = "Option C is required")
     private String optionC;
 
-    @NotBlank(message = "Option D is required")
     private String optionD;
 
     @NotBlank(message = "Correct answer is required")

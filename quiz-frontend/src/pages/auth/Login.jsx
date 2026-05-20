@@ -5,7 +5,7 @@ import { authApi } from '../../api/axios'
 import logo from '../../assets/logo.png'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
+import { Zap, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, ShieldCheck, GraduationCap } from 'lucide-react'
 
 export default function Login() {
   const { login } = useAuth()
@@ -83,124 +83,93 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex' }}>
+    <div className="auth-shell auth-layout" style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="auth-card" style={{ display: 'flex', borderRadius: 28, overflow: 'hidden', boxShadow: '0 30px 80px rgba(13,20,48,0.12)', width: 'calc(100% - 48px)', maxWidth: 1120 }}>
+        <div className="auth-panel" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 56, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '6%', left: '8%', width: 320, height: 320, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', filter: 'blur(36px)' }} />
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} style={{ maxWidth: 520, zIndex: 2 }}>
+          <img src={logo} alt="AssessSphere" style={{ width: 96, height: 96, borderRadius: 20, boxShadow: '0 30px 70px rgba(37,99,235,0.12)', marginBottom: 18 }} />
+          <h2 style={{ fontSize: 36, fontWeight: 900, color: '#fff', marginBottom: 12 }}>Manage assessments with confidence</h2>
+          <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 16, lineHeight: 1.8, marginBottom: 20 }}>Organize exams, monitor student progress, and review results from one modern platform.</p>
 
-      {/* ── Left: Branding Panel ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 56px', background: 'radial-gradient(ellipse 90% 80% at 40% 50%, rgba(124,58,237,0.13) 0%, transparent 65%)', borderRight: '1px solid var(--glass-border)', position: 'relative', overflow: 'hidden' }}>
-        {/* bg orbs */}
-        <div style={{ position: 'absolute', top: '10%', left: '10%', width: 340, height: 340, borderRadius: '50%', background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.1)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '15%', right: '10%', width: 200, height: 200, borderRadius: '50%', background: 'rgba(56,189,248,0.06)', border: '1px solid rgba(56,189,248,0.1)', pointerEvents: 'none' }} />
-
-        <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }} style={{ position: 'relative', zIndex: 1, maxWidth: 400, textAlign: 'center' }}>
-          {/* Logo */}
-          <div className="float-anim" style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 28px' }}>
-            <img src={logo} alt="QuizVault Logo" style={{ width: 88, height: 88, borderRadius: 24, boxShadow: '0 0 48px rgba(124,58,237,0.5)', objectFit: 'contain' }} />
-          </div>
-          <h2 style={{ fontSize: 42, fontWeight: 900, letterSpacing: '-0.03em', marginBottom: 16, lineHeight: 1.1 }} className="grad">QuizVault</h2>
-
-          {/* Divider */}
-          <div style={{ width: 60, height: 3, borderRadius: 99, background: 'linear-gradient(90deg, #7c3aed, #38bdf8)', margin: '0 auto 20px' }} />
-
-          <p style={{ color: 'var(--text-sec)', fontSize: 16, lineHeight: 1.7, marginBottom: 36 }}>
-            The modern quiz &amp; coding platform.<br />Test your skills and track your progress.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, textAlign: 'left' }}>
-            {[
-              { icon: '🎯', text: '10,000+ Quizzes available' },
-              { icon: '👥', text: '500K+ Active learners' },
-              { icon: '⚡', text: 'Instant grading & analytics' },
-            ].map(({ icon, text }) => (
-              <div key={text} style={{ display: 'flex', alignItems: 'center', gap: 14, fontSize: 15, color: 'var(--text-sec)', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: '12px 16px' }}>
-                <span style={{ fontSize: 20 }}>{icon}</span>
-                <span>{text}</span>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 14, marginTop: 8 }}>
+            <div className="auth-feature-card" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <ShieldCheck size={20} color="#fff" />
+              <div>
+                <div style={{ fontWeight: 800, color: '#fff' }}>Secure access control</div>
+                <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>Role-based access and protected exam links.</div>
               </div>
-            ))}
+            </div>
+            <div className="auth-feature-card" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <Zap size={20} color="#fff" />
+              <div>
+                <div style={{ fontWeight: 800, color: '#fff' }}>Real-time monitoring</div>
+                <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>Live analytics & fast grading pipelines.</div>
+              </div>
+            </div>
+            <div className="auth-feature-card" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <GraduationCap size={20} color="#fff" />
+              <div>
+                <div style={{ fontWeight: 800, color: '#fff' }}>Advanced reporting</div>
+                <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 13 }}>Exportable reports and performance trends.</div>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
 
-      {/* ── Right: Login Form ── */}
-      <div style={{ width: 520, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 56px', background: 'var(--bg-main)' }}>
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} style={{ width: '100%' }}>
-          {/* Form header */}
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(124,58,237,0.1)', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 20, padding: '5px 14px', marginBottom: 20 }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#7c3aed' }} />
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#a78bfa', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Secure Login</span>
-            </div>
-            <h1 style={{ fontSize: 36, fontWeight: 900, letterSpacing: '-0.025em', color: 'var(--text-main)', marginBottom: 10, lineHeight: 1.1 }}>Welcome back</h1>
-            <p style={{ color: 'var(--text-sec)', fontSize: 15.5 }}>Sign in to your QuizVault account</p>
+        <div className="auth-form-panel" style={{ width: 540, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48 }}>
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ width: '100%', maxWidth: 420 }}>
+          {/* Mobile brand header — hidden on desktop via CSS */}
+          <div className="auth-mobile-brand">
+            <img src={logo} alt="AssessSphere" style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'contain' }} />
+            <span style={{ fontWeight: 800, fontSize: 17, background: 'linear-gradient(135deg,#2563eb,#60a5fa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AssessSphere</span>
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <Link to="/" className="auth-back-link">← Back to homepage</Link>
+            <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text-main)', marginTop: 10 }}>Welcome back</h1>
+            <p style={{ color: 'var(--text-sec)', marginTop: 6 }}>Sign in to your AssessSphere account</p>
           </div>
 
-
-
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-            {/* Email */}
-            <div>
-              <label style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--text-main)', marginBottom: 10 }}>Email address</label>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18, marginTop: 18 }}>
+            <div className="auth-input-wrap">
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 700, marginBottom: 8 }}>Email address</label>
               <div style={{ position: 'relative' }}>
-                <Mail size={16} color="#6b7280" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                <input
-                  type="email" required value={form.email}
-                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="you@example.com"
-                  className="input-field"
-                  style={{ paddingLeft: 46, fontSize: 15, height: 52 }}
-                />
+                <Mail size={16} color="#64748b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+                <input className="input-field auth-input" type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="you@school.edu" style={{ paddingLeft: 46 }} />
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <label style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>Password</label>
-                <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep(1); }}
-                  style={{ background: 'none', border: 'none', color: '#a78bfa', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
-                  Forgot password?
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <label style={{ fontSize: 13, fontWeight: 700 }}>Password</label>
+                <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep(1); }} className="auth-secondary-link">Forgot password?</button>
               </div>
               <div style={{ position: 'relative' }}>
-                <Lock size={16} color="#6b7280" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                <input
-                  type={showPw ? 'text' : 'password'} required value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  placeholder="Enter your password"
-                  className="input-field"
-                  style={{ paddingLeft: 46, paddingRight: 52, fontSize: 15, height: 52 }}
-                />
-                <button type="button" onClick={() => setShowPw(s => !s)}
-                  style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-sec)', display: 'flex', padding: 0 }}>
-                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+                <Lock size={16} color="#64748b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+                <input className="input-field auth-input" type={showPw ? 'text' : 'password'} required value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} placeholder="Enter your password" style={{ paddingLeft: 46, paddingRight: 48 }} />
+                <button type="button" onClick={() => setShowPw(s => !s)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer' }}>{showPw ? <EyeOff size={16} /> : <Eye size={16} />}</button>
               </div>
             </div>
 
-            {/* Submit */}
-            <motion.button
-              type="submit" disabled={loading}
-              whileHover={!loading ? { scale: 1.01, y: -1 } : {}}
-              whileTap={!loading ? { scale: 0.98 } : {}}
-              className="btn-primary"
-              style={{ justifyContent: 'center', fontSize: 16, padding: '15px', marginTop: 4, height: 54, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
-            >
-              {loading ? <><Loader2 size={18} className="spin" /> Signing in…</> : <>Sign In <ArrowRight size={18} /></>}
-            </motion.button>
+            <div className="auth-remember-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}><input type="checkbox" /> Remember me</label>
+              <div style={{ color: 'var(--text-sec)', fontSize: 12 }}>Protected with enterprise-grade encryption</div>
+            </div>
+
+            <button type="submit" className="auth-primary-btn" disabled={loading} style={{ padding: '14px', fontWeight: 800 }}>
+              {loading ? <><Loader2 size={16} className="spin" /> Signing in…</> : <>Sign In</>}
+            </button>
           </form>
 
-          <div style={{ marginTop: 28, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, color: 'var(--text-sec)' }}>
-              Don't have an account?{' '}
-              <Link to="/register" style={{ color: '#a78bfa', fontWeight: 700, textDecoration: 'none' }}>Create one free →</Link>
-            </p>
-            <Link to="/" style={{ display: 'block', marginTop: 14, fontSize: 13, color: 'var(--text-sec)', textDecoration: 'none', opacity: 0.7 }}>
-              ← Back to homepage
-            </Link>
+          <div style={{ marginTop: 20, textAlign: 'center' }}>
+            <p style={{ color: 'var(--text-sec)' }}>Don't have an account? <Link to="/register" className="auth-secondary-link">Create one free →</Link></p>
           </div>
         </motion.div>
+        </div>
       </div>
 
-      {/* ── Forgot Password Modal ── */}
+      {/* ── Forgot Password Modal (unchanged) ── */}
       <AnimatePresence>
         {showForgotModal && (
           <div className="modal-overlay" style={{
@@ -217,13 +186,13 @@ export default function Login() {
             >
               {/* Modal Header */}
               <div style={{ marginBottom: 28, textAlign: 'center' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid rgba(124,58,237,0.2)' }}>
-                  <Lock size={24} color="#a78bfa" />
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid rgba(37,99,235,0.2)' }}>
+                  <Lock size={24} color="var(--primary-400)" />
                 </div>
                 <h2 style={{ fontSize: 24, fontWeight: 800, color: '#fff', marginBottom: 8 }}>
                   {forgotStep === 1 ? 'Reset Password' : 'Verify Code'}
                 </h2>
-                <p style={{ fontSize: 13.5, color: '#94a3b8', lineHeight: 1.5 }}>
+                <p style={{ fontSize: 13.5, color: 'var(--text-sec)', lineHeight: 1.5 }}>
                   {forgotStep === 1 
                     ? 'Enter your email address and we will send you a 6-digit OTP code to verify your identity.' 
                     : `Enter the 6-digit code sent to ${forgotEmail} and choose your new password.`}
@@ -233,7 +202,7 @@ export default function Login() {
               {forgotStep === 1 ? (
                 <form onSubmit={handleRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#e2e8f0', marginBottom: 8 }}>Email address</label>
+                    <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--text-main)', marginBottom: 8 }}>Email address</label>
                     <div style={{ position: 'relative' }}>
                       <Mail size={15} color="#6b7280" style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                       <input
@@ -248,11 +217,11 @@ export default function Login() {
 
                   <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                     <button type="button" onClick={() => setShowForgotModal(false)}
-                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-sec)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                       Cancel
                     </button>
                     <button type="submit" disabled={forgotLoading}
-                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: forgotLoading ? 'not-allowed' : 'pointer', opacity: forgotLoading ? 0.7 : 1 }}>
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: forgotLoading ? 'not-allowed' : 'pointer', opacity: forgotLoading ? 0.7 : 1 }}>
                       {forgotLoading ? 'Sending...' : 'Send OTP'}
                     </button>
                   </div>
@@ -261,7 +230,7 @@ export default function Login() {
                 <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   {/* OTP Code */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#e2e8f0', marginBottom: 8 }}>Verification Code</label>
+                    <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--text-main)', marginBottom: 8 }}>Verification Code</label>
                     <input
                       type="text" required maxLength={6} pattern="\d{6}" value={otpCode}
                       onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
@@ -273,7 +242,7 @@ export default function Login() {
 
                   {/* New Password */}
                   <div>
-                    <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#e2e8f0', marginBottom: 8 }}>New Password</label>
+                    <label style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--text-main)', marginBottom: 8 }}>New Password</label>
                     <input
                       type="password" required value={newPassword}
                       onChange={e => setNewPassword(e.target.value)}
@@ -285,11 +254,11 @@ export default function Login() {
 
                   <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
                     <button type="button" onClick={() => setForgotStep(1)}
-                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-sec)', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                       Back
                     </button>
                     <button type="submit" disabled={forgotLoading}
-                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: forgotLoading ? 'not-allowed' : 'pointer', opacity: forgotLoading ? 0.7 : 1 }}>
+                      style={{ flex: 1, padding: '12px', borderRadius: 10, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', border: 'none', color: '#fff', fontSize: 14, fontWeight: 700, cursor: forgotLoading ? 'not-allowed' : 'pointer', opacity: forgotLoading ? 0.7 : 1 }}>
                       {forgotLoading ? 'Resetting...' : 'Reset Password'}
                     </button>
                   </div>

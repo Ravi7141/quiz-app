@@ -7,8 +7,9 @@ import api from '../../api/axios'
 import toast from 'react-hot-toast'
 import {
   ArrowLeft, Sparkles, Clock, Calendar, BookOpen, Terminal,
-  Pencil, Check, X, Loader2, Plus, Trash2, ChevronRight, Users, Trophy, CheckCircle2, XCircle
+  Pencil, Check, X, Loader2, Plus, Trash2, ChevronRight, Users, Trophy, CheckCircle2, XCircle, Share2
 } from 'lucide-react'
+import ShareLinkModal from '../../components/ShareLinkModal'
 
 function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -122,14 +123,14 @@ function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>Assessment Flow / Sections</label>
-              <button type="button" onClick={addSection} className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px', color: '#c084fc', border: '1px solid rgba(124,58,237,0.2)' }}>
+              <button type="button" onClick={addSection} className="btn-ghost" style={{ fontSize: 12, padding: '6px 12px', color: '#c084fc', border: '1px solid rgba(37,99,235,0.2)' }}>
                 <Plus size={14} /> Add Section
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {form.sections.map((sec, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: 12 }}>
-                  <div style={{ background: '#7c3aed', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
+                  <div style={{ background: 'var(--primary)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
                   <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '8px 12px' }}>
                     <option value="QUIZ">MCQ Quiz</option>
                     <option value="CODING">Coding Test</option>
@@ -176,6 +177,7 @@ export default function AssessmentDetail() {
   const [codingTests, setCodingTests] = useState([])
   const [sectionDetails, setSectionDetails] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [showShareModal, setShowShareModal] = useState(false)
 
   const handleDelete = async () => {
     if (!window.confirm(`Delete "${assessment?.title}"? This will permanently remove all attempts and answers. This cannot be undone.`)) return
@@ -250,6 +252,9 @@ export default function AssessmentDetail() {
           <Link to="/admin/assessments" className="btn-ghost" style={{ padding: '8px 16px', fontSize: 13, textDecoration: 'none' }}>
             <ArrowLeft size={14} /> Back
           </Link>
+          <button onClick={() => setShowShareModal(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
+            <Share2 size={14} /> Share Links
+          </button>
           <button onClick={() => setShowEdit(true)} className="btn-primary" style={{ padding: '8px 16px', fontSize: 13 }}>
             <Pencil size={14} /> Edit
           </button>
@@ -272,7 +277,7 @@ export default function AssessmentDetail() {
       {/* Meta cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         {[
-          { icon: <Clock size={18} color="#a78bfa" />, label: 'Duration', value: `${assessment.durationMinutes} minutes` },
+          { icon: <Clock size={18} color="var(--primary-400)" />, label: 'Duration', value: `${assessment.durationMinutes} minutes` },
           { icon: <BookOpen size={18} color="#f472b6" />, label: 'Passing Cutoff', value: assessment.passingPercentage ? `${assessment.passingPercentage}%` : 'None' },
           { icon: <Calendar size={18} color="#38bdf8" />, label: 'Start', value: formatDate(assessment.scheduledFor) },
           { icon: <Calendar size={18} color="#f87171" />, label: 'End', value: formatDate(assessment.validUntil) },
@@ -347,7 +352,7 @@ export default function AssessmentDetail() {
       {/* Submissions Table */}
       <div className="card" style={{ padding: 24, marginTop: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-          <Users size={18} color="#a78bfa" />
+          <Users size={18} color="var(--primary-400)" />
           <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>Student Submissions</h3>
           <span style={{ marginLeft: 'auto', fontSize: 12, color: 'var(--text-sec)', background: 'rgba(255,255,255,0.06)', padding: '3px 10px', borderRadius: 20 }}>
             {submissions.length} submitted
@@ -371,7 +376,7 @@ export default function AssessmentDetail() {
                   <motion.tr key={s.id || i} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#7c3aed,#38bdf8)', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', color: '#fff', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {s.studentName?.[0]?.toUpperCase()}
                         </div>
                         <span style={{ fontWeight: 500 }}>{s.studentName}</span>
@@ -417,6 +422,14 @@ export default function AssessmentDetail() {
           />
         )}
       </AnimatePresence>
+
+      <ShareLinkModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        examId={assessment.id}
+        examType="ASSESSMENT"
+        shareToken={assessment.shareToken}
+      />
     </Layout>
   )
 }

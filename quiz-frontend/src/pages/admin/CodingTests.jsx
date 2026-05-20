@@ -82,7 +82,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
               <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Terminal size={14} color="#38bdf8" /> Sample Input
               </h4>
-              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: '#f1f5f9', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
+              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: 'var(--text-main)', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
                 {test.sampleInput || '—'}
               </pre>
             </div>
@@ -90,7 +90,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
               <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Terminal size={14} color="#4ade80" /> Expected Output
               </h4>
-              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: '#f1f5f9', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
+              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: 'var(--text-main)', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
                 {test.sampleOutput || '—'}
               </pre>
             </div>
@@ -208,7 +208,7 @@ function CodingModal({ test, onClose, onSave }) {
                     fontWeight: 600,
                     borderRadius: 4,
                     border: 'none',
-                    background: descTab === 'edit' ? '#7c3aed' : 'transparent',
+                    background: descTab === 'edit' ? 'var(--primary)' : 'transparent',
                     color: descTab === 'edit' ? '#fff' : 'var(--text-sec)',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
@@ -225,7 +225,7 @@ function CodingModal({ test, onClose, onSave }) {
                     fontWeight: 600,
                     borderRadius: 4,
                     border: 'none',
-                    background: descTab === 'preview' ? '#7c3aed' : 'transparent',
+                    background: descTab === 'preview' ? 'var(--primary)' : 'transparent',
                     color: descTab === 'preview' ? '#fff' : 'var(--text-sec)',
                     cursor: 'pointer',
                     transition: 'all 0.2s'
@@ -394,6 +394,7 @@ export default function AdminCodingTests() {
         onClose={() => setShareExam(null)}
         examId={shareExam?.id}
         examType="CODING"
+        shareToken={shareExam?.shareToken}
       />
     </Layout>
   )

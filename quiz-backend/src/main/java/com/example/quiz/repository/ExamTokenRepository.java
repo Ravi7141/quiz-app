@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface ExamTokenRepository extends JpaRepository<ExamToken, Long> {
     Optional<ExamToken> findByToken(String token);
     List<ExamToken> findByExamIdAndExamType(Long examId, String examType);
+    List<ExamToken> findByStudentEmail(String studentEmail);
 }

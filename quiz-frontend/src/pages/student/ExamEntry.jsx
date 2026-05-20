@@ -57,7 +57,7 @@ export default function ExamEntry() {
           style={{ background: '#161b22', border: '1px solid #ef4444', borderRadius: 20, padding: 40, maxWidth: 460, width: '100%', textAlign: 'center' }}>
           <XCircle size={48} color="#ef4444" style={{ margin: '0 auto 20px' }} />
           <h2 style={{ color: '#fff', fontSize: 24, fontWeight: 700, marginBottom: 12 }}>Access Denied</h2>
-          <p style={{ color: '#94a3b8', fontSize: 15 }}>{error}</p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>{error}</p>
         </motion.div>
       </div>
     )
@@ -68,18 +68,18 @@ export default function ExamEntry() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
         style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: '48px', maxWidth: 540, width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(124,58,237,0.15)', color: '#a78bfa', borderRadius: 20, fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', marginBottom: 16 }}>
+          <div style={{ display: 'inline-block', padding: '8px 16px', background: 'rgba(37,99,235,0.15)', color: 'var(--primary-400)', borderRadius: 20, fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', marginBottom: 16 }}>
             {examData.examType === 'ASSESSMENT' ? 'FULL ASSESSMENT' : examData.examType === 'QUIZ' ? 'ASSESSMENT QUIZ' : 'CODING CHALLENGE'}
           </div>
           <h1 style={{ fontSize: 28, color: '#fff', fontWeight: 800, marginBottom: 8 }}>{examData.examTitle}</h1>
-          <p style={{ color: '#94a3b8', fontSize: 15 }}>Welcome, <strong style={{ color: '#e2e8f0' }}>{examData.studentName || examData.studentEmail}</strong></p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>Welcome, <strong style={{ color: '#fff' }}>{examData.studentName || examData.studentEmail}</strong></p>
         </div>
 
         <div style={{ background: '#0d1117', borderRadius: 16, padding: 24, marginBottom: 32 }}>
           {(examData.examType === 'CODING' || examData.examType === 'ASSESSMENT') ? (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ color: '#64748b', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
-              <div style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
+              <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div>• Please ensure you have a stable internet connection and your camera is working.</div>
                 <div>• The assessment requires you to stay in fullscreen mode.</div>
                 <div>• Switching tabs or exiting fullscreen may flag a violation.</div>
@@ -88,17 +88,17 @@ export default function ExamEntry() {
             </div>
           ) : examData.description ? (
             <div style={{ marginBottom: 20 }}>
-              <div style={{ color: '#64748b', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
-              <p style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: examData.description }}></p>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Instructions</div>
+              <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: 14, lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: examData.description }}></p>
             </div>
           ) : null}
           
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             {examData.durationMinutes && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Clock size={18} color="#7c3aed" />
+                <Clock size={18} color="var(--primary)" />
                 <div>
-                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Duration</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase' }}>Duration</div>
                   <div style={{ color: '#fff', fontWeight: 600 }}>{examData.durationMinutes} minutes</div>
                 </div>
               </div>
@@ -107,7 +107,7 @@ export default function ExamEntry() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <AlertTriangle size={18} color="#fbbf24" />
                 <div>
-                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Difficulty</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase' }}>Difficulty</div>
                   <div style={{ color: '#fff', fontWeight: 600 }}>{examData.difficulty}</div>
                 </div>
               </div>
@@ -146,7 +146,7 @@ export default function ExamEntry() {
           }
 
           return (
-            <button onClick={handleEnterExamClick} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', color: '#fff', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 10px 25px rgba(124,58,237,0.3)' }}>
+            <button onClick={handleEnterExamClick} style={{ width: '100%', padding: 16, borderRadius: 12, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', color: '#fff', fontSize: 16, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, boxShadow: '0 10px 25px rgba(37,99,235,0.3)' }}>
               Enter Exam <ArrowRight size={18} />
             </button>
           )
@@ -211,7 +211,7 @@ export default function ExamEntry() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#64748b',
+                  color: 'var(--text-sec)',
                   borderRadius: '50%',
                   transition: 'background-color 0.2s'
                 }}
@@ -234,12 +234,12 @@ export default function ExamEntry() {
             }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'left' }}>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <span style={{ fontWeight: 600, color: '#64748b', minWidth: '20px' }}>1.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sec)', minWidth: '20px' }}>1.</span>
                   <span>Use recommended browser such as Chrome, Edge, Brave, Opera, or Safari when opening the Test link. Avoid using instant-click browsers as they may impair your usability.</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <span style={{ fontWeight: 600, color: '#64748b', minWidth: '20px' }}>2.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sec)', minWidth: '20px' }}>2.</span>
                   <span>Fill in your attendee details accurately, i.e, your Name, Email ID, etc. Any obscured or incomplete details entered leads to disqualification.</span>
                 </div>
 
@@ -249,22 +249,22 @@ export default function ExamEntry() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <span style={{ fontWeight: 600, color: '#64748b', minWidth: '20px' }}>4.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sec)', minWidth: '20px' }}>4.</span>
                   <span>If you do not complete the test within the given time, it will automatically submit with the number of answers you attempted.</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <span style={{ fontWeight: 600, color: '#64748b', minWidth: '20px' }}>5.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sec)', minWidth: '20px' }}>5.</span>
                   <span>Do not exit fullscreen mode, leave the test page, or switch tabs, as it may lead to disqualification.</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <span style={{ fontWeight: 600, color: '#64748b', minWidth: '20px' }}>6.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sec)', minWidth: '20px' }}>6.</span>
                   <span>Some questions may contain images. If you find them difficult to read, simply click on the image to zoom in for a better view.</span>
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <span style={{ fontWeight: 600, color: '#64748b', minWidth: '20px' }}>7.</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sec)', minWidth: '20px' }}>7.</span>
                   <span>If you experience any technical issues during the test, please use the live chat option for assistance.</span>
                 </div>
 

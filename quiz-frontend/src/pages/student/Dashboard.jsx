@@ -25,7 +25,7 @@ export default function StudentDashboard() {
       {/* Top stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 32 }}>
         {[
-          { label: 'Available Quizzes', val: quizzes.length, icon: BookOpen, color: '#7c3aed', bg: 'rgba(124,58,237,0.1)', border: 'rgba(124,58,237,0.2)' },
+          { label: 'Available Assessments', val: quizzes.length, icon: BookOpen, color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)', border: 'rgba(37,99,235,0.2)' },
           { label: 'Coding Challenges', val: 'Open', icon: Code2, color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', border: 'rgba(56,189,248,0.2)' },
           { label: 'Achievements', val: '—', icon: Trophy, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
         ].map(({ label, val, icon: Icon, color, bg, border }, i) => (
@@ -47,7 +47,7 @@ export default function StudentDashboard() {
         {/* Header row */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>Available Quizzes</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>Available Assessments</h2>
             <p style={{ fontSize: 13, color: 'var(--text-sec)', marginTop: 4 }}>{filtered.length} quiz{filtered.length !== 1 ? 'zes' : ''} found</p>
           </div>
           <div style={{ position: 'relative' }}>
@@ -73,7 +73,7 @@ export default function StudentDashboard() {
                   <Link to={`/student/quizzes/${quiz.id}`} style={{ textDecoration: 'none', display: 'block' }}>
                     <div className="card card-lift" style={{ padding: '20px', height: '100%' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(124,58,237,0.3)' }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 12px rgba(37,99,235,0.3)' }}>
                           <Zap size={18} color="#fff" />
                         </div>
                         <span className={`badge ${quiz.active ? 'badge-active' : 'badge-off'}`}>
@@ -86,7 +86,7 @@ export default function StudentDashboard() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-sec)' }}>
                           <Clock size={13} /> {quiz.durationMinutes ? `${quiz.durationMinutes} min` : 'Open'}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: '#7c3aed', fontWeight: 700 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--primary)', fontWeight: 700 }}>
                           Start <ChevronRight size={13} />
                         </div>
                       </div>
@@ -101,7 +101,7 @@ export default function StudentDashboard() {
 
       {/* Coding shortcut */}
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-        style={{ marginTop: 20, background: 'linear-gradient(135deg,rgba(56,189,248,0.08),rgba(124,58,237,0.08))', border: '1px solid rgba(56,189,248,0.15)', borderRadius: 16, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        style={{ marginTop: 20, background: 'linear-gradient(135deg,rgba(56,189,248,0.08),rgba(37,99,235,0.08))', border: '1px solid rgba(56,189,248,0.15)', borderRadius: 16, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(56,189,248,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Code2 size={20} color="#38bdf8" />
