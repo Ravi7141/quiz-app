@@ -47,7 +47,7 @@ public class ExamTokenController {
 
     // ─── Public / Student Endpoints ──────────────────────────────────────────
 
-    @GetMapping("/api/tokens/verify")
+    @GetMapping("/tokens/verify")
     public ResponseEntity<ApiResponse<TokenVerifyResponse>> verifyToken(@RequestParam String token) {
         try {
             TokenVerifyResponse data = examTokenService.verifyToken(token);
@@ -57,7 +57,7 @@ public class ExamTokenController {
         }
     }
 
-    @PostMapping("/api/tokens/consume")
+    @PostMapping("/tokens/consume")
     public ResponseEntity<ApiResponse<Void>> consumeToken(@RequestParam String token) {
         try {
             examTokenService.consumeToken(token);

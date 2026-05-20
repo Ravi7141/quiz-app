@@ -34,6 +34,15 @@ public class Assessment {
     @Column(nullable = false)
     private Boolean active;
 
+    @Column(name = "scheduled_for")
+    private LocalDateTime scheduledFor;
+
+    @Column(name = "valid_until")
+    private LocalDateTime validUntil;
+
+    @Column(name = "passing_percentage")
+    private Integer passingPercentage;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

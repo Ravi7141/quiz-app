@@ -3,8 +3,10 @@ package com.example.quiz.service;
 import com.example.quiz.dto.response.AdminResultResponse;
 import com.example.quiz.dto.response.AdminStatsResponse;
 import com.example.quiz.dto.response.StudentResponse;
+import com.example.quiz.entity.AssessmentAttempt;
 import com.example.quiz.entity.QuizAttempt;
 import com.example.quiz.entity.User;
+import com.example.quiz.enums.AttemptStatus;
 import com.example.quiz.enums.Role;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.*;
@@ -28,6 +30,8 @@ public class AdminService {
     private final QuizAttemptRepository attemptRepository;
     private final StudentAnswerRepository answerRepository;
     private final AuthService authService;
+    private final AssessmentAttemptRepository assessmentAttemptRepository;
+    private final AssessmentSectionRepository assessmentSectionRepository;
 
     // ─── Dashboard Stats ──────────────────────────────────────────────────────
 
@@ -126,6 +130,51 @@ public class AdminService {
         return attempts.stream()
                 .map(this::mapToResultResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * GET /admin/assessments/{id}/results
+     * Returns all SUBMITTED assessment attempts for a given assessment.
+     */
+    public List<java.util.Map<String, Object>> getAssessmentResults(Long assessmentId) {
+        List<AssessmentAttempt> attempts = assessmentAttemptRepository.findByAssessmentId(assessmentId)
+                .stream()
+                .filter(a -> a.getStatus() == AttemptStatus.SUBMITTED)
+                .collect(Collectors.toList());
+
+        // Calculate total marks for this assessment
+        List<com.example.quiz.entity.AssessmentSection> sections = assessmentSectionRepository
+                .findByAssessmentIdOrderBySectionOrderAsc(assessmentId);
+        int totalMarks = 0;
+        for (com.example.quiz.entity.AssessmentSection section : sections) {
+            if (section.getSectionType() == com.example.quiz.enums.SectionType.QUIZ && section.getReferenceId() != null) {
+                com.example.quiz.entity.Quiz quiz = quizRepository.findById(section.getReferenceId()).orElse(null);
+                if (quiz != null) {
+                    int qMax = (quiz.getTotalMarks() != null && quiz.getTotalMarks() > 0)
+                            ? quiz.getTotalMarks()
+                            : questionRepository.findByQuizId(quiz.getId()).stream()
+                              .mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
+                    totalMarks += qMax;
+                }
+            } else if (section.getSectionType() == com.example.quiz.enums.SectionType.CODING) {
+                totalMarks += 20;
+            }
+        }
+        final int finalTotalMarks = totalMarks;
+
+        return attempts.stream().map(a -> {
+            java.util.Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("id", a.getId());
+            m.put("studentName", a.getStudent().getName());
+            m.put("studentEmail", a.getStudent().getEmail());
+            m.put("score", a.getScore() != null ? a.getScore() : 0);
+            m.put("totalMarks", finalTotalMarks);
+            m.put("percentage", a.getPercentage() != null ? a.getPercentage() : 0.0);
+            m.put("passed", Boolean.TRUE.equals(a.getPassed()));
+            m.put("submittedAt", a.getSubmittedAt());
+            m.put("status", a.getStatus());
+            return m;
+        }).collect(Collectors.toList());
     }
 
     // ─── Mappers ──────────────────────────────────────────────────────────────

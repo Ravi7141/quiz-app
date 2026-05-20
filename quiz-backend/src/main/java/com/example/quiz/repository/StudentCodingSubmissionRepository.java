@@ -12,4 +12,5 @@ public interface StudentCodingSubmissionRepository extends JpaRepository<Student
     List<StudentCodingSubmission> findByAttemptIdAndCodingTestId(Long attemptId, Long codingTestId);
     List<StudentCodingSubmission> findByAssessmentAttemptId(Long assessmentAttemptId);
     List<StudentCodingSubmission> findByAssessmentAttemptIdAndCodingTestId(Long assessmentAttemptId, Long codingTestId);
+    void deleteByAssessmentAttemptId(Long assessmentAttemptId);
 }

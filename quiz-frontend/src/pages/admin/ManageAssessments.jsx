@@ -1,62 +1,20 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout'
 import ShareLinkModal from '../../components/ShareLinkModal'
 import { assessmentApi, adminQuizApi, codingApi } from '../../api/axios'
 import toast from 'react-hot-toast'
-import { Plus, Trash2, Check, X, Loader2, Link2, Calendar, Clock, BookOpen, Terminal, Sparkles, Copy, Mail } from 'lucide-react'
-
-function ShareModal({ assessment, onClose }) {
-  const shareUrl = `${window.location.origin}/assessment/${assessment?.shareToken}`
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareUrl)
-    toast.success('Link copied to clipboard!')
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="modal-box"
-        onClick={e => e.stopPropagation()}
-        style={{ maxWidth: 500, width: '100%' }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Sparkles size={20} color="#a78bfa" />
-            Share Assessment Link
-          </h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}>
-            <X size={20} />
-          </button>
-        </div>
-        <p style={{ fontSize: 14, color: 'var(--text-sec)', marginBottom: 16 }}>
-          Students can use the link below to attempt the entire assessment (both Quiz and Coding sections in one flow):
-        </p>
-        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, padding: 12, alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 24 }}>
-          <span style={{ fontSize: 13, color: 'var(--text-main)', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-            {shareUrl}
-          </span>
-          <button onClick={copyToClipboard} className="btn-ghost" style={{ padding: '8px 12px', background: 'rgba(124,58,237,0.1)', color: '#c084fc', border: '1px solid rgba(124,58,237,0.2)' }}>
-            <Copy size={14} /> Copy
-          </button>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} className="btn-primary" style={{ minWidth: 100, justifyContent: 'center' }}>Done</button>
-        </div>
-      </motion.div>
-    </div>
-  )
-}
+import { Plus, Trash2, Check, X, Loader2, Clock, BookOpen, Terminal, Sparkles, Mail, Calendar, ChevronRight } from 'lucide-react'
 
 function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
   const [form, setForm] = useState({
     title: '',
     description: '',
     durationMinutes: '',
+    scheduledFor: '',
+    validUntil: '',
+    passingPercentage: '',
     sections: []
   })
   const [loading, setLoading] = useState(false)
@@ -71,11 +29,7 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
   const removeSection = (index) => {
     setForm(f => {
       const updated = f.sections.filter((_, idx) => idx !== index)
-      // re-order them
-      return {
-        ...f,
-        sections: updated.map((s, idx) => ({ ...s, order: idx + 1 }))
-      }
+      return { ...f, sections: updated.map((s, idx) => ({ ...s, order: idx + 1 })) }
     })
   }
 
@@ -83,29 +37,16 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
     setForm(f => {
       const updated = [...f.sections]
       updated[index] = { ...updated[index], [field]: value }
-      if (field === 'type') {
-        // clear reference ID when switching types
-        updated[index].referenceId = ''
-      }
+      if (field === 'type') updated[index].referenceId = ''
       return { ...f, sections: updated }
     })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.durationMinutes || Number(form.durationMinutes) < 1) {
-      toast.error('Duration must be at least 1 minute')
-      return
-    }
-    if (form.sections.length === 0) {
-      toast.error('Please add at least one section')
-      return
-    }
-    const invalidSec = form.sections.find(s => !s.referenceId)
-    if (invalidSec) {
-      toast.error('Please select a valid quiz or coding test for all sections')
-      return
-    }
+    if (!form.durationMinutes || Number(form.durationMinutes) < 1) { toast.error('Duration must be at least 1 minute'); return }
+    if (form.sections.length === 0) { toast.error('Please add at least one section'); return }
+    if (form.sections.find(s => !s.referenceId)) { toast.error('Please select a valid quiz or coding test for all sections'); return }
 
     setLoading(true)
     try {
@@ -113,11 +54,10 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
         title: form.title,
         description: form.description,
         durationMinutes: Number(form.durationMinutes),
-        sections: form.sections.map(s => ({
-          type: s.type,
-          referenceId: Number(s.referenceId),
-          order: s.order
-        }))
+        scheduledFor: form.scheduledFor ? form.scheduledFor + ':00' : null,
+        validUntil: form.validUntil ? form.validUntil + ':00' : null,
+        passingPercentage: form.passingPercentage ? Number(form.passingPercentage) : null,
+        sections: form.sections.map(s => ({ type: s.type, referenceId: Number(s.referenceId), order: s.order }))
       }
       await assessmentApi.create(payload)
       toast.success('Assessment created successfully!')
@@ -132,12 +72,8 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
   return (
     <div className="modal-overlay" onClick={onClose} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
-        className="modal-box"
-        style={{ margin: '40px auto', maxWidth: 600, width: '100%' }}
-        onClick={e => e.stopPropagation()}
+        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        className="modal-box" style={{ margin: '40px auto', maxWidth: 620, width: '100%' }} onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>Create Unified Assessment</h2>
@@ -154,11 +90,44 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description</label>
             <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} className="input-field" style={{ resize: 'none' }} placeholder="Optional description or candidate instructions" />
           </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (minutes) *</label>
-            <input required type="number" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} className="input-field" placeholder="e.g. 60" min="1" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (minutes) *</label>
+              <input required type="number" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} className="input-field" placeholder="e.g. 60" min="1" />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Passing Percentage (%)</label>
+              <input type="number" value={form.passingPercentage} onChange={e => setForm(f => ({ ...f, passingPercentage: e.target.value }))} className="input-field" placeholder="e.g. 70" min="0" max="100" />
+            </div>
           </div>
 
+          {/* Scheduling */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>
+                <Calendar size={13} style={{ display: 'inline', marginRight: 4 }} />Start Date &amp; Time
+              </label>
+              <input
+                type="datetime-local"
+                value={form.scheduledFor}
+                onChange={e => setForm(f => ({ ...f, scheduledFor: e.target.value }))}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>
+                <Calendar size={13} style={{ display: 'inline', marginRight: 4 }} />End Date &amp; Time
+              </label>
+              <input
+                type="datetime-local"
+                value={form.validUntil}
+                onChange={e => setForm(f => ({ ...f, validUntil: e.target.value }))}
+                className="input-field"
+              />
+            </div>
+          </div>
+
+          {/* Sections */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <label style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>Assessment Flow / Sections</label>
@@ -166,42 +135,25 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
                 <Plus size={14} /> Add Section
               </button>
             </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {form.sections.map((sec, idx) => (
                 <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: 12 }}>
-                  <div style={{ background: '#7c3aed', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
-                    {idx + 1}
-                  </div>
-                  <select
-                    value={sec.type}
-                    onChange={e => updateSection(idx, 'type', e.target.value)}
-                    className="input-field"
-                    style={{ width: 110, padding: '8px 12px' }}
-                  >
+                  <div style={{ background: '#7c3aed', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
+                  <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '8px 12px' }}>
                     <option value="QUIZ">MCQ Quiz</option>
                     <option value="CODING">Coding Test</option>
                   </select>
-
-                  <select
-                    value={sec.referenceId}
-                    onChange={e => updateSection(idx, 'referenceId', e.target.value)}
-                    className="input-field"
-                    style={{ flex: 1, padding: '8px 12px' }}
-                    required
-                  >
+                  <select value={sec.referenceId} onChange={e => updateSection(idx, 'referenceId', e.target.value)} className="input-field" style={{ flex: 1, padding: '8px 12px' }} required>
                     <option value="">-- Select Target --</option>
                     {sec.type === 'QUIZ'
                       ? quizzes.map(q => <option key={q.id} value={q.id}>{q.title}</option>)
                       : codingTests.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
                   </select>
-
                   <button type="button" onClick={() => removeSection(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 4 }}>
                     <Trash2 size={16} />
                   </button>
                 </div>
               ))}
-
               {form.sections.length === 0 && (
                 <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-sec)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 10 }}>
                   No sections added. Click "Add Section" to configure the exam flow.
@@ -228,8 +180,8 @@ export default function ManageAssessments() {
   const [codingTests, setCodingTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [shareTarget, setShareTarget] = useState(null)
   const [privateShareTarget, setPrivateShareTarget] = useState(null)
+  const navigate = useNavigate()
 
   const fetchData = async () => {
     try {
@@ -248,14 +200,14 @@ export default function ManageAssessments() {
     }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  useEffect(() => { fetchData() }, [])
+
+  const formatDate = (dt) => dt ? new Date(dt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null
 
   return (
     <Layout
       title="Manage Assessments"
-      subtitle="Combine Quiz & Coding tests into a single assessment link"
+      subtitle="Combine Quiz & Coding tests into a single assessment"
       action={<button onClick={() => setShowCreateModal(true)} className="btn-primary"><Plus size={16} /> New Assessment</button>}
     >
       {loading ? (
@@ -269,7 +221,10 @@ export default function ManageAssessments() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.05 }}
               className="card"
-              style={{ padding: 24, display: 'flex', flexDirection: 'column', minHeight: 220 }}
+              style={{ padding: 24, display: 'flex', flexDirection: 'column', minHeight: 220, cursor: 'pointer' }}
+              onClick={() => navigate(`/admin/assessments/${assess.id}`)}
+              onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(124,58,237,0.4)'}
+              onMouseOut={e => e.currentTarget.style.borderColor = ''}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -280,38 +235,38 @@ export default function ManageAssessments() {
                 </span>
               </div>
 
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>
-                {assess.title}
-              </h3>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 8 }}>{assess.title}</h3>
               {assess.description && (
-                <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.5, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.5, marginBottom: 12, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                   {assess.description}
                 </p>
               )}
 
-              <div style={{ display: 'flex', gap: 16, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 13, color: 'var(--text-sec)' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Clock size={14} /> {assess.durationMinutes} mins
+              <div style={{ display: 'flex', gap: 16, marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 12, color: 'var(--text-sec)', flexWrap: 'wrap' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <Clock size={13} /> {assess.durationMinutes} mins
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Link2 size={14} /> Shared Flow
-                </span>
+                {formatDate(assess.scheduledFor) && (
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <Calendar size={13} /> {formatDate(assess.scheduledFor)}
+                  </span>
+                )}
               </div>
 
-              <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-                <button
-                  onClick={() => setShareTarget(assess)}
-                  className="btn-ghost"
-                  style={{ flex: 1, justifyContent: 'center', color: '#c084fc', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(124,58,237,0.05)', fontSize: 13 }}
-                >
-                  <Link2 size={13} /> Public Link
-                </button>
+              <div style={{ display: 'flex', gap: 10, marginTop: 14 }} onClick={e => e.stopPropagation()}>
                 <button
                   onClick={() => setPrivateShareTarget(assess)}
                   className="btn-ghost"
                   style={{ flex: 1, justifyContent: 'center', color: '#a78bfa', border: '1px solid rgba(124,58,237,0.2)', background: 'rgba(124,58,237,0.05)', fontSize: 13 }}
                 >
                   <Mail size={13} /> Private Links
+                </button>
+                <button
+                  onClick={() => navigate(`/admin/assessments/${assess.id}`)}
+                  className="btn-primary"
+                  style={{ flex: 1, justifyContent: 'center', fontSize: 13 }}
+                >
+                  View Detail <ChevronRight size={13} />
                 </button>
               </div>
             </motion.div>
@@ -333,19 +288,7 @@ export default function ManageAssessments() {
             quizzes={quizzes}
             codingTests={codingTests}
             onClose={() => setShowCreateModal(false)}
-            onSave={() => {
-              setShowCreateModal(false)
-              fetchData()
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {shareTarget && (
-          <ShareModal
-            assessment={shareTarget}
-            onClose={() => setShareTarget(null)}
+            onSave={() => { setShowCreateModal(false); fetchData() }}
           />
         )}
       </AnimatePresence>

@@ -1,19 +1,15 @@
 package com.example.quiz.dto.request;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 /**
  * Request body for POST /student/quizzes/submit-answer
  *
- * Sample JSON:
- * {
- *   "attemptId": 1,
- *   "questionId": 3,
- *   "selectedOption": "B"
- * }
+ * selectedOption can be:
+ *  - single: "A"
+ *  - multi:  "A,C"  (comma-separated, for multi-answer questions)
+ *  - empty:  ""     (student deselected)
  */
 @Data
 public class SubmitAnswerRequest {
@@ -24,7 +20,6 @@ public class SubmitAnswerRequest {
     @NotNull(message = "Question ID is required")
     private Long questionId;
 
-    @NotBlank(message = "Selected option is required")
-    @Pattern(regexp = "^[ABCD]$", message = "Selected option must be A, B, C, or D")
+    // No @NotBlank / @Pattern — allows multi-answer "A,C" and empty deselect ""
     private String selectedOption;
 }

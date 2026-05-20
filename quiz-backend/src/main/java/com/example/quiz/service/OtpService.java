@@ -8,10 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -22,11 +23,13 @@ public class OtpService {
 
     private final UserRepository userRepository;
     private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
     // Stores OTP details in memory, mapped by email
     private final ConcurrentMap<String, OtpDetails> otpCache = new ConcurrentHashMap<>();
 
     private static final int OTP_EXPIRY_MINUTES = 5;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     @Data
     @AllArgsConstructor
@@ -44,7 +47,7 @@ public class OtpService {
                 .orElseThrow(() -> new ResourceNotFoundException("No account found with email: " + email));
 
         // Generate a 6-digit random number
-        String otp = String.format("%06d", new Random().nextInt(1000000));
+        String otp = String.format("%06d", SECURE_RANDOM.nextInt(1000000));
 
         // Store OTP with expiration
         LocalDateTime expiry = LocalDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES);
@@ -94,8 +97,8 @@ public class OtpService {
             throw new BadRequestException("Invalid verification code. Please try again.");
         }
 
-        // Success: Reset password (stored in plain text as per current system design)
-        user.setPassword(newPassword);
+        // Success: Reset password with BCrypt hash
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
         // Remove OTP from cache

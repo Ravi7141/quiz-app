@@ -17,6 +17,8 @@ public class AssessmentAttemptResponse {
     private Long assessmentId;
     private AttemptStatus status;
     private Integer score;
+    private Boolean passed;
+    private Double percentage;
     private LocalDateTime startedAt;
     private LocalDateTime submittedAt;
     private Map<Long, Long> quizAttemptMap;

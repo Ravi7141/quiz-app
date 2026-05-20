@@ -14,6 +14,7 @@ public class TokenVerifyResponse {
     private String studentEmail;
     private Long studentId;
     private String studentName;
+    private String shareToken; // Added for unified assessment redirection
     
     // Exam Details to show on the entry screen
     private String examTitle;

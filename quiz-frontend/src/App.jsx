@@ -24,11 +24,12 @@ import AdminCodingTests from './pages/admin/CodingTests'
 import AdminQuizDetail from './pages/admin/QuizDetail'
 import QuizShareRedirect from './pages/QuizShareRedirect'
 import ManageAssessments from './pages/admin/ManageAssessments'
+import AssessmentDetail from './pages/admin/AssessmentDetail'
 
 function ProtectedRoute({ children, requireAdmin = false }) {
   const { user, isAdmin } = useAuth()
   if (!user) return <Navigate to="/login" replace />
-  if (requireAdmin && !isAdmin) return <Navigate to="/student/dashboard" replace />
+  if (requireAdmin && !isAdmin) return <Navigate to="/login" replace />
   return children
 }
 
@@ -64,6 +65,7 @@ function AppRoutes() {
       <Route path="/admin/students/:id" element={<ProtectedRoute requireAdmin><AdminStudentDetail /></ProtectedRoute>} />
       <Route path="/admin/results" element={<ProtectedRoute requireAdmin><AdminResults /></ProtectedRoute>} />
       <Route path="/admin/coding" element={<ProtectedRoute requireAdmin><AdminCodingTests /></ProtectedRoute>} />
+      <Route path="/admin/assessments/:id" element={<ProtectedRoute requireAdmin><AssessmentDetail /></ProtectedRoute>} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

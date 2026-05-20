@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 /**
  * Records a student's attempt at a particular quiz.
  *
- * Table: quiz_attempts
+ * Table: quiz_attempts  ← must match the FK in student_answers
  */
 @Entity
 @Table(name = "exam_attempts")

@@ -39,7 +39,7 @@ export default function ExamEntry() {
 
   const handleConfirmStart = () => {
     setShowInstructions(false)
-    navigate(`/assessment/${examData.examId}?token=${token}&studentId=${examData.studentId}`, { state: { requestFullscreen: true } })
+    navigate(`/assessment/${examData.shareToken || examData.examId}?token=${token}&studentId=${examData.studentId}`, { state: { requestFullscreen: true } })
   }
 
   if (loading) {

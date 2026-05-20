@@ -60,6 +60,17 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles ConstraintViolationException → 400.
+     */
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(jakarta.validation.ConstraintViolationException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Validation failed: " + ex.getMessage()));
+    }
+
+
+    /**
      * Handles BadRequestException → 400.
      */
     @ExceptionHandler(BadRequestException.class)
@@ -68,6 +79,27 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
     }
+
+    /**
+     * Handles UnauthorizedException → 401.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(UnauthorizedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles ForbiddenException → 403.
+     */
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleForbidden(ForbiddenException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
 
     /**
      * Catch-all handler → 500.

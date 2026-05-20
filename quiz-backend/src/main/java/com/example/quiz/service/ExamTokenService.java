@@ -6,16 +6,15 @@ import com.example.quiz.dto.response.TokenVerifyResponse;
 import com.example.quiz.entity.CodingTest;
 import com.example.quiz.entity.ExamToken;
 import com.example.quiz.entity.Quiz;
+import com.example.quiz.exception.BadRequestException;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.CodingTestRepository;
 import com.example.quiz.repository.ExamTokenRepository;
 import com.example.quiz.entity.Assessment;
 import com.example.quiz.repository.AssessmentRepository;
 import com.example.quiz.repository.QuizRepository;
-import com.example.quiz.repository.UserRepository;
 import com.example.quiz.repository.QuestionRepository;
 import com.example.quiz.entity.User;
-import com.example.quiz.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,10 +34,10 @@ public class ExamTokenService {
     private final QuizRepository quizRepository;
     private final CodingTestRepository codingTestRepository;
     private final AssessmentRepository assessmentRepository;
-    private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
     private final AuthService authService;
     private final EmailService emailService;
+    private final UserService userService; // ← replaces duplicate user-create logic
 
     @Transactional
     public List<TokenResponse> generateTokens(TokenGenerateRequest request) {
@@ -52,22 +51,23 @@ public class ExamTokenService {
             Quiz quiz = quizRepository.findById(request.getExamId())
                     .orElseThrow(() -> new ResourceNotFoundException("Quiz", request.getExamId()));
             examTitle = quiz.getTitle();
-            if (expiresAt == null) expiresAt = validFrom.plusDays(7); // Default 7 days
+            if (expiresAt == null) expiresAt = validFrom.plusDays(7);
         } else if ("CODING".equalsIgnoreCase(request.getExamType())) {
             CodingTest test = codingTestRepository.findById(request.getExamId())
                     .orElseThrow(() -> new ResourceNotFoundException("CodingTest", request.getExamId()));
             examTitle = test.getTitle();
-            if (expiresAt == null) expiresAt = validFrom.plusDays(7); // Default 7 days
+            if (expiresAt == null) expiresAt = validFrom.plusDays(7);
         } else if ("ASSESSMENT".equalsIgnoreCase(request.getExamType())) {
             Assessment assessment = assessmentRepository.findById(request.getExamId())
                     .orElseThrow(() -> new ResourceNotFoundException("Assessment", request.getExamId()));
             examTitle = assessment.getTitle();
-            if (expiresAt == null) expiresAt = validFrom.plusDays(7); // Default 7 days
+            if (expiresAt == null) expiresAt = validFrom.plusDays(7);
         } else {
-            throw new IllegalArgumentException("Invalid exam type. Must be QUIZ, CODING or ASSESSMENT.");
+            throw new BadRequestException("Invalid exam type. Must be QUIZ, CODING or ASSESSMENT.");
         }
 
         List<TokenResponse> responses = new ArrayList<>();
+        User currentAdmin = authService.getCurrentUser();
 
         for (String raw : request.getEmails()) {
             if (raw == null || raw.trim().isEmpty()) continue;
@@ -76,62 +76,27 @@ public class ExamTokenService {
             String name = null;
             String phone = null;
 
-            // Simple parser for "Name <email> phone" or "Name, email, phone"
-            // We use regex to find the email first
-            java.util.regex.Matcher m = java.util.regex.Pattern.compile("([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6})").matcher(raw);
+            java.util.regex.Matcher m = java.util.regex.Pattern
+                    .compile("([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6})")
+                    .matcher(raw);
             if (m.find()) {
                 email = m.group(1);
                 String remaining = raw.replace(email, " ").trim();
-                
-                // Try to find a phone number (digits, at least 10)
-                java.util.regex.Matcher pm = java.util.regex.Pattern.compile("(\\+?\\d[\\d\\s-]{8,14}\\d)").matcher(remaining);
+                java.util.regex.Matcher pm = java.util.regex.Pattern
+                        .compile("(\\+?\\d[\\d\\s-]{8,14}\\d)")
+                        .matcher(remaining);
                 if (pm.find()) {
                     phone = pm.group(1).replaceAll("\\s+", "");
                     remaining = remaining.replace(pm.group(1), " ").trim();
                 }
-                
-                // Whatever is left is the name
                 name = remaining.replaceAll("[,<>]", " ").replaceAll("\\s+", " ").trim();
                 if (name.isEmpty()) name = null;
             } else {
-                // If no email found, treat the whole string as email (legacy fallback)
                 email = raw.trim();
             }
 
-            // Ensure User exists for the student immediately on import/generation so they show up in Student list
-            final String finalEmail = email;
-            final String finalName = name;
-            final String finalPhone = phone;
-            final User currentAdmin = authService.getCurrentUser();
-            userRepository.findByEmail(email).map(u -> {
-                boolean changed = false;
-                if ((u.getPhone() == null || u.getPhone().isEmpty()) && finalPhone != null) {
-                    u.setPhone(finalPhone);
-                    changed = true;
-                }
-                if ((u.getName() == null || u.getName().isEmpty() || u.getName().equals(finalEmail.split("@")[0])) && finalName != null) {
-                    u.setName(finalName);
-                    changed = true;
-                }
-                if (u.getCreatedBy() == null && currentAdmin != null) {
-                    u.setCreatedBy(currentAdmin);
-                    changed = true;
-                }
-                if (changed) {
-                    userRepository.save(u);
-                }
-                return u;
-            }).orElseGet(() -> {
-                User newUser = User.builder()
-                        .name(finalName != null ? finalName : finalEmail.split("@")[0])
-                        .email(finalEmail)
-                        .phone(finalPhone)
-                        .password(UUID.randomUUID().toString())
-                        .role(Role.STUDENT)
-                        .createdBy(currentAdmin)
-                        .build();
-                return userRepository.save(newUser);
-            });
+            // Use centralised UserService instead of inline duplication
+            userService.findOrCreateStudent(email, name, phone, currentAdmin);
 
             ExamToken token = ExamToken.builder()
                     .token(UUID.randomUUID().toString())
@@ -185,34 +150,18 @@ public class ExamTokenService {
 
     public TokenVerifyResponse verifyToken(String tokenStr) {
         ExamToken token = examTokenRepository.findByToken(tokenStr)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token."));
+                .orElseThrow(() -> new BadRequestException("Invalid token."));
 
         if (token.isUsed()) {
-            throw new IllegalArgumentException("This token has already been used.");
+            throw new BadRequestException("This token has already been used.");
         }
-        // Token expiry is still checked, but start time is handled by Frontend
         if (token.getExpiresAt() != null && LocalDateTime.now().isAfter(token.getExpiresAt())) {
-            throw new IllegalArgumentException("This token has expired.");
+            throw new BadRequestException("This token has expired.");
         }
 
-        // Ensure user exists
-        User student = userRepository.findByEmail(token.getStudentEmail()).map(u -> {
-            // Update phone if it was missing but is now in token
-            if ((u.getPhone() == null || u.getPhone().isEmpty()) && token.getStudentPhone() != null) {
-                u.setPhone(token.getStudentPhone());
-                userRepository.save(u);
-            }
-            return u;
-        }).orElseGet(() -> {
-            User newUser = User.builder()
-                    .name(token.getStudentName() != null ? token.getStudentName() : token.getStudentEmail().split("@")[0])
-                    .email(token.getStudentEmail())
-                    .phone(token.getStudentPhone())
-                    .password(UUID.randomUUID().toString())
-                    .role(Role.STUDENT)
-                    .build();
-            return userRepository.save(newUser);
-        });
+        // Use centralised UserService for find-or-create
+        User student = userService.findOrCreateStudent(
+                token.getStudentEmail(), token.getStudentName(), token.getStudentPhone(), null);
 
         TokenVerifyResponse.TokenVerifyResponseBuilder builder = TokenVerifyResponse.builder()
                 .token(token.getToken())
@@ -244,6 +193,7 @@ public class ExamTokenService {
             builder.examTitle(assessment.getTitle())
                    .description(assessment.getDescription())
                    .durationMinutes(assessment.getDurationMinutes())
+                   .shareToken(assessment.getShareToken())
                    .scheduledFor(null)
                    .validUntil(null);
         }
@@ -254,9 +204,9 @@ public class ExamTokenService {
     @Transactional
     public void consumeToken(String tokenStr) {
         ExamToken token = examTokenRepository.findByToken(tokenStr)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid token."));
+                .orElseThrow(() -> new BadRequestException("Invalid token."));
         if (token.isUsed()) {
-            throw new IllegalArgumentException("Token already used.");
+            throw new BadRequestException("Token already used.");
         }
         token.setUsed(true);
         examTokenRepository.save(token);
@@ -282,7 +232,7 @@ public class ExamTokenService {
                 .collect(Collectors.toList());
 
         if (activeTokens.isEmpty()) {
-            throw new IllegalArgumentException("No available tokens to email.");
+            throw new BadRequestException("No available tokens to email.");
         }
 
         String examTitle = "";
@@ -316,8 +266,6 @@ public class ExamTokenService {
                 if (assessment.getDurationMinutes() != null) {
                     duration = assessment.getDurationMinutes() + " Minutes";
                 }
-                scheduledFor = null;
-                creator = null;
             }
         }
 
@@ -325,36 +273,26 @@ public class ExamTokenService {
         String examTime = "Flexible / Anytime";
         if (scheduledFor != null) {
             try {
-                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-                examDate = scheduledFor.format(dateFormatter);
-                examTime = scheduledFor.format(timeFormatter);
+                examDate = scheduledFor.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                examTime = scheduledFor.format(DateTimeFormatter.ofPattern("HH:mm"));
             } catch (Exception e) {
-                // Ignore formatting exception
+                // ignore
             }
         }
 
         String company = "QuizVault Portal";
         String supportEmail = "support@example.com";
         if (creator != null) {
-            if (creator.getName() != null && !creator.getName().isEmpty()) {
-                company = creator.getName();
-            }
-            if (creator.getEmail() != null && !creator.getEmail().isEmpty()) {
-                supportEmail = creator.getEmail();
-            }
+            if (creator.getName() != null && !creator.getName().isEmpty()) company = creator.getName();
+            if (creator.getEmail() != null && !creator.getEmail().isEmpty()) supportEmail = creator.getEmail();
         }
 
         StringBuilder examDetails = new StringBuilder();
         examDetails.append("Exam Name: ").append(examTitle);
         examDetails.append("\nDate: ").append(examDate);
         examDetails.append("\nTime: ").append(examTime);
-        if (duration != null) {
-            examDetails.append("\nDuration: ").append(duration);
-        }
-        if (totalQuestions != null) {
-            examDetails.append("\nTotal Questions: ").append(totalQuestions);
-        }
+        if (duration != null) examDetails.append("\nDuration: ").append(duration);
+        if (totalQuestions != null) examDetails.append("\nTotal Questions: ").append(totalQuestions);
         String examDetailsStr = examDetails.toString();
 
         List<String> failedEmails = new ArrayList<>();
@@ -364,32 +302,17 @@ public class ExamTokenService {
             try {
                 String link = baseUrl + "/exam/entry/" + t.getToken();
                 String name = t.getStudentName() != null ? t.getStudentName() : t.getStudentEmail().split("@")[0];
-                
                 String body = String.format(
-                        "Hello %s,\n\n" +
-                        "You have been invited to attend the online examination.\n\n" +
-                        "📘 Exam Details\n" +
-                        "━━━━━━━━━━━━━━━━━━\n" +
-                        "%s\n\n" +
-                        "📝 Instructions\n" +
-                        "━━━━━━━━━━━━━━━━━━\n" +
+                        "Hello %s,\n\nYou have been invited to attend the online examination.\n\n" +
+                        "📘 Exam Details\n━━━━━━━━━━━━━━━━━━\n%s\n\n" +
+                        "📝 Instructions\n━━━━━━━━━━━━━━━━━━\n" +
                         "• Ensure you have a stable internet connection.\n" +
                         "• Do not refresh or close the browser during the exam.\n" +
                         "• The exam will automatically submit once the timer ends.\n" +
-                        "• Full-screen mode is required during the test.\n" +
-                        "• Multiple attempts to exit full-screen may be marked as cheating.\n\n" +
-                        "🔗 Start Exam\n" +
-                        "━━━━━━━━━━━━━━━━━━\n" +
-                        "Click the link below to begin your exam:\n\n" +
-                        "%s\n\n" +
-                        "If the button/link does not work, copy and paste the URL into your browser.\n\n" +
-                        "Best of luck!\n\n" +
-                        "Regards,\n" +
-                        "%s\n" +
-                        "%s",
-                        name, examDetailsStr, link, company, supportEmail
-                );
-                
+                        "• Full-screen mode is required during the test.\n\n" +
+                        "🔗 Start Exam\n━━━━━━━━━━━━━━━━━━\n%s\n\n" +
+                        "Best of luck!\n\nRegards,\n%s\n%s",
+                        name, examDetailsStr, link, company, supportEmail);
                 emailService.sendEmail(t.getStudentEmail(), subject, body);
             } catch (Exception e) {
                 failedEmails.add(t.getStudentEmail() + " (" + e.getMessage() + ")");

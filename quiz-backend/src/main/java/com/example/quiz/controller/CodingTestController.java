@@ -53,6 +53,14 @@ public class CodingTestController {
         return ResponseEntity.ok(ApiResponse.success("Coding test fetched successfully", data));
     }
 
+    /**
+     * GET /admin/coding-tests/{id} — admin detail view
+     */
+    @GetMapping("/admin/coding-tests/{id}")
+    public ResponseEntity<ApiResponse<CodingTestResponse>> getCodingTestByIdAdmin(@PathVariable Long id) {
+        CodingTestResponse data = codingTestService.getCodingTestById(id);
+        return ResponseEntity.ok(ApiResponse.success("Coding test fetched successfully", data));
+    }
 
     /**
      * POST /student/code/run

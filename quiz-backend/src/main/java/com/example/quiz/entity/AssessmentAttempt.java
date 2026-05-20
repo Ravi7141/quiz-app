@@ -43,6 +43,10 @@ public class AssessmentAttempt {
     @Column(nullable = false)
     private Integer violations;
 
+    private Boolean passed;
+
+    private Double percentage;
+
     @PrePersist
     public void prePersist() {
         this.startedAt = LocalDateTime.now();

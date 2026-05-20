@@ -36,4 +36,6 @@ public class QuestionResponse {
     private String correctAnswer; // set to null for student responses
     private Integer marks;
     private Long quizId;
+    /** True if the question has multiple correct answers (comma-separated correctAnswer) */
+    private Boolean multiAnswer;
 }

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout'
-import { adminApi, codingApi } from '../../api/axios'
+import { codingApi } from '../../api/axios'
 import toast from 'react-hot-toast'
-import { Plus, Pencil, Trash2, Code2, X, Loader2, Check, Share2 } from 'lucide-react'
+import {
+  Plus, Pencil, Trash2, Code2, X, Loader2, Check,
+  Share2, Eye, Calendar, Clock, Terminal, ChevronRight
+} from 'lucide-react'
 import ShareLinkModal from '../../components/ShareLinkModal'
 
 const DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD']
@@ -33,6 +35,95 @@ function DeleteConfirmModal({ test, onClose, onConfirm, loading }) {
             {loading ? <Loader2 size={15} className="spin" /> : <Trash2 size={15} />}
             {loading ? 'Deleting…' : 'Yes, Delete'}
           </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
+  const formatDate = (dt) => dt ? new Date(dt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'
+
+  return (
+    <div className="modal-overlay" onClick={onClose} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        className="modal-box" style={{ margin: '40px auto', maxWidth: 640, width: '95%' }} onClick={e => e.stopPropagation()}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: 'linear-gradient(135deg,#38bdf8,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Code2 size={18} color="#fff" />
+            </div>
+            <div>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)' }}>{test.title}</h2>
+              <span className={`badge ${diffClass[test.difficulty] || ''}`} style={{ marginTop: 4, display: 'inline-block' }}>{test.difficulty}</span>
+            </div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer', padding: 4 }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Description */}
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)', marginBottom: 8 }}>Problem Description</h3>
+            <div
+              className="leetcode-description"
+              style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6, overflowY: 'auto', maxHeight: 200 }}
+              dangerouslySetInnerHTML={{ __html: test.description || '<span style="font-style:italic;">No description provided.</span>' }}
+            />
+          </div>
+
+          {/* Code Sample Inputs/Outputs */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Terminal size={14} color="#38bdf8" /> Sample Input
+              </h4>
+              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: '#f1f5f9', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
+                {test.sampleInput || '—'}
+              </pre>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Terminal size={14} color="#4ade80" /> Expected Output
+              </h4>
+              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: '#f1f5f9', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
+                {test.sampleOutput || '—'}
+              </pre>
+            </div>
+          </div>
+
+          {/* Schedule info */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-sec)' }}>Start Date & Time</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>
+                <Calendar size={14} color="#a78bfa" /> {formatDate(test.scheduledFor)}
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <span style={{ fontSize: 12, color: 'var(--text-sec)' }}>End Date & Time</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>
+                <Calendar size={14} color="#f87171" /> {formatDate(test.validUntil)}
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 12, marginTop: 8, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <button onClick={onShare} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
+              <Share2 size={14} /> Share Links
+            </button>
+            <button onClick={onDelete} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', marginLeft: 'auto' }}>
+              <Trash2 size={14} /> Delete
+            </button>
+            <button onClick={onEdit} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Pencil size={14} /> Edit Problem
+            </button>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -78,7 +169,7 @@ function CodingModal({ test, onClose, onSave }) {
       const payload = { ...form }
       if (!payload.scheduledFor) payload.scheduledFor = null
       if (!payload.validUntil) payload.validUntil = null
-      
+
       if (test?.id) { await codingApi.update(test.id, payload); toast.success('Problem updated!'); }
       else { await codingApi.create(payload); toast.success('Problem created!'); }
       onSave()
@@ -98,18 +189,18 @@ function CodingModal({ test, onClose, onSave }) {
             <div style={{ background: 'rgba(56,189,248,0.04)', border: '1px dashed rgba(56,189,248,0.25)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 700, color: '#38bdf8' }}>Import from LeetCode</label>
               <div style={{ display: 'flex', gap: 10 }}>
-                <input 
-                  placeholder="e.g., https://leetcode.com/problems/two-sum/ or two-sum" 
-                  value={importQuery} 
-                  onChange={e => setImportQuery(e.target.value)} 
-                  className="input-field" 
+                <input
+                  placeholder="e.g., https://leetcode.com/problems/two-sum/ or two-sum"
+                  value={importQuery}
+                  onChange={e => setImportQuery(e.target.value)}
+                  className="input-field"
                   style={{ flex: 1, height: 40 }}
                 />
-                <button 
-                  type="button" 
-                  onClick={handleImport} 
+                <button
+                  type="button"
+                  onClick={handleImport}
                   disabled={importing}
-                  className="btn-primary" 
+                  className="btn-primary"
                   style={{ height: 40, padding: '0 16px', background: 'linear-gradient(135deg, #38bdf8, #3b82f6)', border: 'none', minWidth: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
                   {importing ? <Loader2 size={16} className="spin" /> : 'Import'}
@@ -250,6 +341,7 @@ export default function AdminCodingTests() {
   const [tests, setTests] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(null)
+  const [detailModal, setDetailModal] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [shareExam, setShareExam] = useState(null)
@@ -264,6 +356,7 @@ export default function AdminCodingTests() {
       await codingApi.delete(deleteTarget.id)
       toast.success('Problem deleted')
       setDeleteTarget(null)
+      setDetailModal(null)
       fetchTests()
     } catch {
       toast.error('Delete failed')
@@ -279,7 +372,13 @@ export default function AdminCodingTests() {
       : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 20 }}>
           {tests.map((test, i) => (
-            <motion.div key={test.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column' }}>
+            <motion.div key={test.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+              className="card"
+              style={{ padding: 24, display: 'flex', flexDirection: 'column', cursor: 'pointer' }}
+              onClick={() => setDetailModal(test)}
+              onMouseOver={e => e.currentTarget.style.borderColor = 'rgba(56,189,248,0.4)'}
+              onMouseOut={e => e.currentTarget.style.borderColor = ''}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#38bdf8,#3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(56,189,248,0.3)' }}>
                   <Code2 size={20} color="#fff" />
@@ -290,7 +389,7 @@ export default function AdminCodingTests() {
               <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {test.description ? test.description.replace(/<[^>]*>/g, '') : ''}
               </p>
-              <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }} onClick={e => e.stopPropagation()}>
                 <button onClick={() => setShareExam(test)} style={{ padding: '0 12px', height: 32, borderRadius: 8, background: 'rgba(56,189,248,0.1)', color: '#38bdf8', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', marginRight: 'auto' }}>
                   <Share2 size={14} /> Share Links
                 </button>
@@ -304,6 +403,28 @@ export default function AdminCodingTests() {
           {tests.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 80, color: 'var(--text-sec)' }}><Code2 size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} /><p>No problems yet</p></div>}
         </div>
       )}
+
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {detailModal && (
+          <CodingTestDetailModal
+            test={detailModal}
+            onClose={() => setDetailModal(null)}
+            onEdit={() => {
+              const target = detailModal;
+              setDetailModal(null);
+              setModal(target);
+            }}
+            onDelete={() => {
+              setDeleteTarget(detailModal);
+            }}
+            onShare={() => {
+              setShareExam(detailModal);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
       <AnimatePresence>{modal !== null && <CodingModal test={modal?.id ? modal : null} onClose={() => setModal(null)} onSave={() => { setModal(null); fetchTests() }} />}</AnimatePresence>
       <AnimatePresence>
         {deleteTarget && (
@@ -315,11 +436,11 @@ export default function AdminCodingTests() {
           />
         )}
       </AnimatePresence>
-      <ShareLinkModal 
-        isOpen={!!shareExam} 
-        onClose={() => setShareExam(null)} 
-        examId={shareExam?.id} 
-        examType="CODING" 
+      <ShareLinkModal
+        isOpen={!!shareExam}
+        onClose={() => setShareExam(null)}
+        examId={shareExam?.id}
+        examType="CODING"
       />
     </Layout>
   )

@@ -44,6 +44,12 @@ export default function UnifiedAssessment() {
   const antiCheatActiveRef = useRef(false)
   const violRef = useRef(0)
   const cameraStreamRef = useRef(null)
+  const locationStateRef = useRef(location.state) // capture once — don't add location.state to effect deps
+  
+  const handleFinishRef = useRef(null)
+  useEffect(() => {
+    handleFinishRef.current = handleFinish
+  })
 
   // Candidate enrollment details (if accessing via shared link without active session)
   const [candidateForm, setCandidateForm] = useState({ name: '', email: '', phone: '' })
@@ -135,15 +141,23 @@ export default function UnifiedAssessment() {
         const sortedSections = assessment.sections || []
 
         sortedSections.forEach(section => {
-          if (section.type === 'QUIZ' && section.questions) {
-            // Tag each question with its quizId/referenceId to look up the correct QuizAttempt ID
+          // ── DEBUG: print raw section data
+          console.log('[Init] Section:', JSON.stringify({ type: section.type, sectionType: section.sectionType, referenceId: section.referenceId, questionsCount: section.questions?.length ?? 'NULL', hasCodingTest: !!section.codingTest }))
+
+          // Handle both 'type' and 'sectionType' field names, case-insensitive
+          const sType = (section.type || section.sectionType || '').toString().toUpperCase()
+          if (sType === 'QUIZ' && section.questions && section.questions.length > 0) {
             const tagged = section.questions.map(q => ({
               ...q,
-              quizAttemptId: qAttemptMap[section.referenceId]
+              quizAttemptId: qAttemptMap[String(section.referenceId)] ?? qAttemptMap[section.referenceId]
             }))
             allQuestions.push(...tagged)
-          } else if (section.type === 'CODING' && section.codingTest) {
+            console.log('[Init] ✅ Added', tagged.length, 'questions from quiz section')
+          } else if (sType === 'CODING' && section.codingTest) {
             allCodingTests.push(section.codingTest)
+            console.log('[Init] ✅ Added coding test', section.codingTest.id)
+          } else {
+            console.warn('[Init] ⚠️ Skipped section | type:', section.type, '| questions:', section.questions?.length ?? 'null', '| codingTest:', !!section.codingTest)
           }
         })
 
@@ -172,9 +186,11 @@ export default function UnifiedAssessment() {
         // Set initial section: if no MCQ questions, start with coding
         if (allQuestions.length === 0 && allCodingTests.length > 0) {
           setCurrentSection('coding')
+          console.warn('[Init] ⚠️ No MCQ questions loaded! Auto-routing to coding section. Check sections above.')
         }
+        console.log('[Init] FINAL: questions=', allQuestions.length, 'codingTests=', allCodingTests.length)
 
-        if (location.state?.requestFullscreen) {
+        if (locationStateRef.current?.requestFullscreen) {
           try { await document.documentElement.requestFullscreen() } catch {}
         }
       } catch (err) {
@@ -196,7 +212,7 @@ export default function UnifiedAssessment() {
 
     init()
     return () => { cancelled = true }
-  }, [cameraVerified, id, activeStudentId, navigate, location.state])
+  }, [cameraVerified, id, activeStudentId]) // ← location.state removed: it's an object ref that changes every render causing init() re-runs
 
   // ── Timer countdown ────────────────────────────────────────────
   useEffect(() => {
@@ -205,7 +221,11 @@ export default function UnifiedAssessment() {
       if (!autoSubmittedRef.current) {
         autoSubmittedRef.current = true
         toast('⏱️ Time is up! Submitting exam…', { duration: 3000, icon: '⏱️' })
-        setTimeout(() => handleFinish(true), 1500)
+        setTimeout(() => {
+          if (handleFinishRef.current) {
+            handleFinishRef.current(true)
+          }
+        }, 1500)
       }
       return
     }
@@ -225,7 +245,11 @@ export default function UnifiedAssessment() {
 
     if (isAutoSubmit) {
       autoSubmittedRef.current = true
-      setTimeout(() => handleFinish(true), 2500)
+      setTimeout(() => {
+        if (handleFinishRef.current) {
+          handleFinishRef.current(true)
+        }
+      }, 2500)
     }
   }, [])
 
@@ -258,14 +282,23 @@ export default function UnifiedAssessment() {
   }, [cameraVerified, loading, handleViolation])
 
   // ── MCQ option selection ─────────────────────────────────────────
-  const selectAnswer = useCallback(async (questionId, option, quizAttemptId) => {
-    setAnswers(prev => ({ ...prev, [questionId]: option }))
-    if (!quizAttemptId) return
-    try {
-      await attemptApi.submitAnswer({ attemptId: quizAttemptId, questionId, selectedOption: option })
-    } catch {
-      // Silent fail - stored locally
-    }
+  const selectAnswer = useCallback((questionId, option, quizAttemptId, isMulti) => {
+    console.log('[Answer] Selecting questionId:', questionId, 'option:', option, 'isMulti:', isMulti)
+    setAnswers(prev => {
+      let newValue
+      if (isMulti) {
+        const current = prev[questionId] ? prev[questionId].split(',') : []
+        const next = new Set(current)
+        if (next.has(option)) next.delete(option)
+        else next.add(option)
+        newValue = Array.from(next).sort().join(',')
+      } else {
+        // Single-answer: radio style - replace entirely, toggle off if same
+        newValue = prev[questionId] === option ? '' : option
+      }
+      console.log('[Answer] New answers state for q', questionId, ':', newValue)
+      return { ...prev, [questionId]: newValue }
+    })
   }, [])
 
   const toggleReview = (questionId) => {
@@ -416,7 +449,18 @@ export default function UnifiedAssessment() {
     setLoading(true)
 
     try {
-      await assessmentApi.submitAttempt(attemptIdRef.current)
+      // Filter out empty-string answers (toggled off) before submitting
+      const cleanAnswers = Object.fromEntries(
+        Object.entries(answers).filter(([, v]) => v && v.trim() !== '')
+      )
+      console.log('[Submit] attemptId:', attemptIdRef.current)
+      console.log('[Submit] answers map:', cleanAnswers)
+      console.log('[Submit] total answered:', Object.keys(cleanAnswers).length, 'of', questions.length)
+
+      const res = await assessmentApi.submitAttempt(attemptIdRef.current, cleanAnswers)
+      const result = res.data?.data || {}
+      console.log('[Submit] backend result:', result)
+
       if (token) {
         try { await examTokenApi.consume(token) } catch {}
       }
@@ -424,9 +468,17 @@ export default function UnifiedAssessment() {
       if (document.fullscreenElement) {
         try { await document.exitFullscreen() } catch {}
       }
-      navigate('/student/success', { replace: true })
+      navigate('/student/success', {
+        replace: true,
+        state: {
+          score: result.score,
+          percentage: result.percentage,
+          passed: result.passed
+        }
+      })
     } catch (err) {
-      toast.error('Submission failed. Please try again.')
+      console.error('Submit failed:', err?.response?.data || err)
+      toast.error(err?.response?.data?.message || 'Submission failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -630,21 +682,29 @@ export default function UnifiedAssessment() {
                           { key: 'C', val: questions[currentQuestion]?.optionC },
                           { key: 'D', val: questions[currentQuestion]?.optionD }
                         ].filter(o => o.val).map(opt => {
-                          const isSelected = answers[questions[currentQuestion]?.id] === opt.key
+                          const q = questions[currentQuestion]
+                          const isMulti = q?.multiAnswer === true
+                          const isSelected = answers[q?.id]?.split(',').filter(Boolean).includes(opt.key)
                           return (
-                            <div key={opt.key} onClick={() => selectAnswer(questions[currentQuestion]?.id, opt.key, questions[currentQuestion]?.quizAttemptId)}
+                            <div key={opt.key} onClick={() => selectAnswer(q?.id, opt.key, q?.quizAttemptId, isMulti)}
                               className={`option-card ${isSelected ? 'active' : ''}`}
                               style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 24px', borderRadius: 14, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.05)', background: isSelected ? 'rgba(124,58,237,0.12)' : 'rgba(255,255,255,0.02)', transition: 'all 0.15s' }}>
                               <div style={{
-                                width: 22, height: 22, borderRadius: '50%', border: isSelected ? '2px solid #a78bfa' : '2px solid rgba(255,255,255,0.2)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                width: 22, height: 22,
+                                borderRadius: isMulti ? 4 : '50%',
+                                border: isSelected ? '2px solid #a78bfa' : '2px solid rgba(255,255,255,0.2)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: isSelected ? 'rgba(167,139,250,0.2)' : 'transparent'
                               }}>
-                                {isSelected && <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#a78bfa' }} />}
+                                {isSelected && <div style={{ width: isMulti ? 12 : 10, height: isMulti ? 12 : 10, borderRadius: isMulti ? 2 : '50%', background: '#a78bfa' }} />}
                               </div>
                               <span style={{ fontSize: 15, fontWeight: 500, color: isSelected ? '#fff' : 'var(--text-sec)' }}>{opt.val}</span>
                             </div>
                           )
                         })}
+                        {questions[currentQuestion]?.multiAnswer && (
+                          <div style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic', marginTop: 4 }}>✦ Select all that apply</div>
+                        )}
                       </div>
 
                       {/* Nav Buttons */}
@@ -839,7 +899,7 @@ export default function UnifiedAssessment() {
                   ) : consoleOutput.type === 'run' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        {consoleOutput.data.success ? (
+                        {consoleOutput.data.status === 'EXECUTED' || consoleOutput.data.output != null ? (
                           <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#4ade80', fontWeight: 700 }}><CheckCircle2 size={15} /> RUN SUCCESS</span>
                         ) : (
                           <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#ef4444', fontWeight: 700 }}><XCircle size={15} /> RUN FAIL</span>
@@ -851,7 +911,7 @@ export default function UnifiedAssessment() {
                       )}
                       <div>
                         <div style={{ color: '#94a3b8', fontSize: 11, textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Standard Output:</div>
-                        <pre style={{ color: '#e2e8f0', whiteSpace: 'pre-wrap' }}>{consoleOutput.data.stdout || '(no stdout output)'}</pre>
+                        <pre style={{ color: '#e2e8f0', whiteSpace: 'pre-wrap' }}>{consoleOutput.data.output || consoleOutput.data.stdout || '(no stdout output)'}</pre>
                       </div>
                     </div>
                   ) : (

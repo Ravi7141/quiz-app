@@ -7,6 +7,8 @@ import com.example.quiz.dto.response.AssessmentDetailsResponse;
 import com.example.quiz.dto.response.AssessmentAttemptResponse;
 import com.example.quiz.dto.response.AuthResponse;
 import com.example.quiz.service.AssessmentService;
+import com.example.quiz.dto.request.SubmitAttemptRequest;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AssessmentController {
 
     private final AssessmentService assessmentService;
@@ -32,6 +33,26 @@ public class AssessmentController {
     public ResponseEntity<ApiResponse<List<AssessmentResponse>>> getAllAssessments() {
         List<AssessmentResponse> response = assessmentService.getAllAssessments();
         return ResponseEntity.ok(ApiResponse.success("Assessments retrieved successfully", response));
+    }
+
+    @GetMapping("/admin/assessments/{id}")
+    public ResponseEntity<ApiResponse<AssessmentResponse>> getAssessmentById(@PathVariable Long id) {
+        AssessmentResponse response = assessmentService.getAssessmentById(id);
+        return ResponseEntity.ok(ApiResponse.success("Assessment retrieved successfully", response));
+    }
+
+    @PutMapping("/admin/assessments/{id}")
+    public ResponseEntity<ApiResponse<AssessmentResponse>> updateAssessment(
+            @PathVariable Long id,
+            @RequestBody AssessmentRequest request) {
+        AssessmentResponse response = assessmentService.updateAssessment(id, request);
+        return ResponseEntity.ok(ApiResponse.success("Assessment updated successfully", response));
+    }
+
+    @DeleteMapping("/admin/assessments/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteAssessment(@PathVariable Long id) {
+        assessmentService.deleteAssessment(id);
+        return ResponseEntity.ok(ApiResponse.success("Assessment deleted successfully", null));
     }
 
     @PostMapping("/admin/assessments/{id}/share")
@@ -57,20 +78,36 @@ public class AssessmentController {
     }
 
     @PostMapping("/assessment/submit")
-    public ResponseEntity<ApiResponse<AssessmentAttemptResponse>> submitAttempt(
-            @RequestParam Long attemptId) {
-        AssessmentAttemptResponse response = assessmentService.submitAttempt(attemptId);
+    public ResponseEntity<ApiResponse<AssessmentAttemptResponse>> submitAttempt(@RequestBody SubmitAttemptRequest body) {
+        AssessmentAttemptResponse response = assessmentService.submitAttempt(body.getAttemptId(), body.getAnswers());
         return ResponseEntity.ok(ApiResponse.success("Assessment attempt submitted successfully", response));
     }
 
+    /** DEBUG endpoint — call GET /assessment/debug/{attemptId} to see quiz attempts and answers */
+    @GetMapping("/assessment/debug/{attemptId}")
+    public ResponseEntity<?> debugAttempt(@PathVariable Long attemptId) {
+        return ResponseEntity.ok(assessmentService.debugAttempt(attemptId));
+    }
+
+    /** DEBUG endpoint — GET /assessment/debug/student/{studentId}/latest — finds latest attempt */
+    @GetMapping("/assessment/debug/student/{studentId}/latest")
+    public ResponseEntity<?> debugLatestAttempt(@PathVariable Long studentId) {
+        return ResponseEntity.ok(assessmentService.debugLatestAttemptForStudent(studentId));
+    }
+
+    /**
+     * Save coding submission — uses JSON body to avoid URL length limits for code.
+     * Body: { assessmentAttemptId, codingTestId, code, language, passed }
+     */
     @PostMapping("/assessment/submit-coding")
     public ResponseEntity<ApiResponse<Void>> saveCodingSubmission(
-            @RequestParam Long assessmentAttemptId,
-            @RequestParam Long codingTestId,
-            @RequestParam String code,
-            @RequestParam String language,
-            @RequestParam Boolean passed) {
-        assessmentService.saveCodingSubmission(assessmentAttemptId, codingTestId, code, language, passed);
+            @RequestBody CodingSubmissionBody body) {
+        assessmentService.saveCodingSubmission(
+                body.getAssessmentAttemptId(),
+                body.getCodingTestId(),
+                body.getCode(),
+                body.getLanguage(),
+                body.getPassed());
         return ResponseEntity.ok(ApiResponse.success("Coding submission saved successfully", null));
     }
 
@@ -81,5 +118,15 @@ public class AssessmentController {
             @RequestParam(required = false) String phone) {
         AuthResponse response = assessmentService.enrollStudent(name, email, phone);
         return ResponseEntity.ok(ApiResponse.success("Student enrolled successfully", response));
+    }
+
+    /** Inner DTO for coding submission body */
+    @Data
+    public static class CodingSubmissionBody {
+        private Long assessmentAttemptId;
+        private Long codingTestId;
+        private String code;
+        private String language;
+        private Boolean passed;
     }
 }

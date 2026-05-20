@@ -14,6 +14,7 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!form.correctAnswer) { toast.error('Please select at least one correct answer'); return }
     setLoading(true)
     try {
       const payload = { ...form, marks: Number(form.marks), quizId: Number(quizId) }
@@ -39,10 +40,19 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
             <input required value={form[`option${opt}`]} onChange={e => setForm(f => ({ ...f, [`option${opt}`]: e.target.value }))} className="input-field" /></div>
           ))}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Correct Answer *</label>
-            <select value={form.correctAnswer} onChange={e => setForm(f => ({ ...f, correctAnswer: e.target.value }))} className="input-field" style={{ cursor: 'pointer' }}>
-              {OPTIONS.map(o => <option key={o} value={o}>Option {o}</option>)}
-            </select></div>
+            <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Correct Answer(s) *</label>
+            <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
+              {OPTIONS.map(o => (
+                <label key={o} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text-main)' }}>
+                  <input type="checkbox" checked={form.correctAnswer?.split(',').includes(o)} onChange={e => {
+                    const current = new Set(form.correctAnswer ? form.correctAnswer.split(',') : [])
+                    if (e.target.checked) current.add(o)
+                    else current.delete(o)
+                    setForm(f => ({ ...f, correctAnswer: Array.from(current).sort().join(',') }))
+                  }} /> Option {o}
+                </label>
+              ))}
+            </div></div>
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Marks</label>
             <input type="number" min="1" value={form.marks} onChange={e => setForm(f => ({ ...f, marks: e.target.value }))} className="input-field" /></div>
           </div>
@@ -101,9 +111,9 @@ export default function ManageQuestions() {
                   <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: 20 }}>{q.questionText}</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
                     {OPTIONS.map(opt => (
-                      <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, background: q.correctAnswer === opt ? 'rgba(56,189,248,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${q.correctAnswer === opt ? 'rgba(56,189,248,0.3)' : 'transparent'}` }}>
-                        <div style={{ width: 20, height: 20, borderRadius: 6, background: q.correctAnswer === opt ? '#38bdf8' : 'rgba(255,255,255,0.1)', color: q.correctAnswer === opt ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{opt}</div>
-                        <span style={{ fontSize: 13, color: q.correctAnswer === opt ? '#e0f2fe' : '#cbd5e1' }}>{q[`option${opt}`]}</span>
+                      <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, background: q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.1)' : 'rgba(255,255,255,0.02)', border: `1px solid ${q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.3)' : 'transparent'}` }}>
+                        <div style={{ width: 20, height: 20, borderRadius: 6, background: q.correctAnswer?.split(',').includes(opt) ? '#38bdf8' : 'rgba(255,255,255,0.1)', color: q.correctAnswer?.split(',').includes(opt) ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{opt}</div>
+                        <span style={{ fontSize: 13, color: q.correctAnswer?.split(',').includes(opt) ? '#e0f2fe' : '#cbd5e1' }}>{q[`option${opt}`]}</span>
                       </div>
                     ))}
                   </div>
@@ -144,6 +154,60 @@ function ImportModal({ quizId, onClose, onImported }) {
     setContent(fileText)
   }
 
+  const parseCSVRows = (text) => {
+    const rows = []
+    let currentRow = []
+    let currentField = ''
+    let inQuotes = false
+    let physicalLine = 1
+    let rowStartLine = 1
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i]
+      const nextChar = text[i + 1]
+
+      if (char === '\n') {
+        physicalLine++
+      }
+
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          currentField += '"'
+          i++
+          if (text[i] === '\n') physicalLine++
+        } else {
+          inQuotes = !inQuotes
+        }
+      } else if (char === ',' && !inQuotes) {
+        currentRow.push(currentField.trim())
+        currentField = ''
+      } else if ((char === '\r' || char === '\n') && !inQuotes) {
+        if (char === '\r' && nextChar === '\n') {
+          i++
+          physicalLine++
+        }
+        currentRow.push(currentField.trim())
+        if (currentRow.some(field => field !== '')) {
+          rows.push({ fields: currentRow, startLine: rowStartLine })
+        }
+        currentRow = []
+        currentField = ''
+        rowStartLine = physicalLine
+      } else {
+        currentField += char
+      }
+    }
+
+    if (currentField || currentRow.length > 0) {
+      currentRow.push(currentField.trim())
+      if (currentRow.some(field => field !== '')) {
+        rows.push({ fields: currentRow, startLine: rowStartLine })
+      }
+    }
+
+    return rows
+  }
+
   const parseQuestions = () => {
     const trimmed = content.trim()
     if (!trimmed) {
@@ -154,49 +218,52 @@ function ImportModal({ quizId, onClose, onImported }) {
     if (trimmed.startsWith('[')) {
       rawQuestions = JSON.parse(trimmed)
     } else {
-      const lines = trimmed.split(/\r?\n/).filter(line => line.trim())
-      rawQuestions = lines.map((line, index) => {
-        const parts = line.split(',').map(part => part.trim())
-        if (parts.length < 7) {
-          throw new Error(`Line ${index + 1} requires at least 7 values: questionText, optionA, optionB, optionC, optionD, correctAnswer, marks`)
+      const parsedRows = parseCSVRows(content)
+      rawQuestions = parsedRows.map((rowObj) => {
+        const { fields, startLine } = rowObj
+        if (fields.length < 6) {
+          throw new Error(`Line ${startLine} requires at least 6 values: questionText, optionA, optionB, optionC, optionD, correctAnswer [, marks]`)
         }
-        
+
         let marks = 1
-        let lastIndex = parts.length - 1
-        if (!isNaN(parts[lastIndex]) && parts[lastIndex] !== '') {
-          marks = Number(parts[lastIndex])
+        let lastIndex = fields.length - 1
+
+        if (fields.length >= 7 && !isNaN(fields[lastIndex]) && fields[lastIndex] !== '') {
+          marks = Number(fields[lastIndex])
           lastIndex--
         }
-        
+
         const correctAnswers = []
         const validOptionsSet = new Set(['A', 'B', 'C', 'D'])
-        while (lastIndex >= 0 && validOptionsSet.has(parts[lastIndex].toUpperCase())) {
-          correctAnswers.unshift(parts[lastIndex].toUpperCase())
+
+        while (lastIndex >= 5 && validOptionsSet.has(fields[lastIndex].toUpperCase())) {
+          correctAnswers.unshift(fields[lastIndex].toUpperCase())
           lastIndex--
         }
-        
-        if (lastIndex < 3) {
-          throw new Error(`Line ${index + 1} has an invalid structure. Option A, B, C, D and Question Text are required.`)
+
+        if (correctAnswers.length === 0 && lastIndex >= 4) {
+          const potentialAns = fields[lastIndex].toUpperCase().replace(/\s+/g, '')
+          if (/^[A-D](,[A-D])*$/.test(potentialAns)) {
+            correctAnswers.push(potentialAns)
+            lastIndex--
+          }
         }
-        
-        const optionD = parts[lastIndex--]
-        const optionC = parts[lastIndex--]
-        const optionB = parts[lastIndex--]
-        const optionA = parts[lastIndex--]
-        
-        const questionTextParts = []
-        for (let i = 0; i <= lastIndex; i++) {
-          questionTextParts.push(parts[i])
+
+        if (lastIndex < 3 || correctAnswers.length === 0) {
+          throw new Error(`Line ${startLine} has an invalid structure. Option A, B, C, D and a valid Correct Answer (A, B, C, or D) are required.`)
         }
-        const questionText = questionTextParts.join(',')
-        
+
+        const optionD = fields[lastIndex--]
+        const optionC = fields[lastIndex--]
+        const optionB = fields[lastIndex--]
+        const optionA = fields[lastIndex--]
+
+        const questionText = fields.slice(0, lastIndex + 1).join(',')
+
         if (!questionText) {
-          throw new Error(`Line ${index + 1} has empty question text.`)
+          throw new Error(`Line ${startLine} has empty question text.`)
         }
-        if (correctAnswers.length === 0) {
-          throw new Error(`Line ${index + 1} has no valid correct answer (must be A, B, C, or D).`)
-        }
-        
+
         return {
           questionText,
           optionA,
@@ -214,7 +281,7 @@ function ImportModal({ quizId, onClose, onImported }) {
       throw new Error('No valid questions found for import.')
     }
 
-    return rawQuestions.map((question, index) => ({
+    return rawQuestions.map((question) => ({
       ...question,
       quizId: Number(quizId),
       marks: Number(question.marks || 1),
@@ -251,7 +318,7 @@ questionText,optionA,optionB,optionC,optionD,correctAnswer,marks`} />
           </div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)' }}>
             Or upload a file
-            <input type="file" accept=".json,.txt" onChange={handleFile} style={{ display: 'block', marginTop: 10 }} />
+            <input type="file" accept=".json,.txt,.csv" onChange={handleFile} style={{ display: 'block', marginTop: 10 }} />
             {fileName && <div style={{ marginTop: 8, color: 'var(--text-main)', fontSize: 13 }}>Loaded: {fileName}</div>}
           </label>
           <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)' }}>

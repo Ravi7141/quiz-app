@@ -174,14 +174,19 @@ export default function QuizAttempt() {
   const isUrgent = timeLeft !== null && timeLeft <= 60
 
   const selectAnswer = useCallback(async (questionId, option) => {
-    setAnswers(prev => ({ ...prev, [questionId]: option }))
-    const aId = attemptIdRef.current
-    if (!aId) return  // attempt not ready yet, just update local state
-    try {
-      await attemptApi.submitAnswer({ attemptId: aId, questionId, selectedOption: option })
-    } catch {
-      // Silent fail — answer is stored locally, will be counted on submit
-    }
+    setAnswers(prev => {
+      const current = prev[questionId] ? prev[questionId].split(',') : []
+      const next = new Set(current)
+      if (next.has(option)) next.delete(option)
+      else next.add(option)
+      const newValue = Array.from(next).sort().join(',')
+      
+      const aId = attemptIdRef.current
+      if (aId) {
+        attemptApi.submitAnswer({ attemptId: aId, questionId, selectedOption: newValue }).catch(() => {})
+      }
+      return { ...prev, [questionId]: newValue }
+    })
   }, [])
 
   const toggleReview = (questionId) => {
@@ -307,7 +312,7 @@ export default function QuizAttempt() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 'auto' }}>
                   {options.map(({ key, val }) => {
-                    const sel = answers[q.id] === key
+                    const sel = answers[q.id]?.split(',').includes(key)
                     return (
                       <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 16 }}>
                         <div style={{ width: 34, height: 34, borderRadius: 9, background: sel ? '#7c3aed' : 'rgba(255,255,255,0.06)', color: sel ? '#fff' : 'var(--text-sec)', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
