@@ -53,10 +53,10 @@ export default function AdminDashboard() {
   }, [fetchData])
 
   const statCards = stats ? [
-    { label: 'Total Assessments',   val: stats.totalQuizzes,   icon: BookOpen,    color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)', border: 'rgba(37,99,235,0.2)' },
-    { label: 'Students',        val: stats.totalStudents,  icon: Users,       color: '#38bdf8', bg: 'rgba(56,189,248,0.1)',  border: 'rgba(56,189,248,0.2)'  },
-    { label: 'Questions',       val: stats.totalQuestions, icon: HelpCircle,  color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)'  },
-    { label: 'Attempts',        val: stats.totalAttempts,  icon: Activity,    color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.2)'  },
+    { label: 'Assessments',  val: stats.totalAssessments, icon: BookOpen,   color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)',  border: 'rgba(37,99,235,0.2)'  },
+    { label: 'Students',     val: stats.totalStudents,    icon: Users,      color: '#38bdf8', bg: 'rgba(56,189,248,0.1)',   border: 'rgba(56,189,248,0.2)'  },
+    { label: 'Questions',    val: stats.totalQuestions,   icon: HelpCircle, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)',  border: 'rgba(251,191,36,0.2)'  },
+    { label: 'Attempts',     val: stats.totalAttempts,    icon: Activity,   color: '#4ade80', bg: 'rgba(74,222,128,0.1)', border: 'rgba(74,222,128,0.2)'  },
   ] : []
 
   const processedResults = results.map(r => {
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
   return (
     <Layout title="Admin Dashboard" subtitle="Platform-wide analytics & overview">
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="dash-stat-grid">
         {statCards.map(({ label, val, icon: Icon, color, bg, border }, i) => (
           <motion.div key={label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
             style={{ background: bg, border: `1px solid ${border}`, borderRadius: 16, padding: '20px 22px', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, marginBottom: 24 }}>
+      <div className="dash-chart-grid">
         {/* Bar Chart */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
           style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 20, padding: '24px 28px' }}>

@@ -11,7 +11,7 @@ const OPTIONS = ['A', 'B', 'C', 'D']
 function QuestionModal({ question, quizId, onClose, onSave }) {
   const isTF = question?.optionC === '' && question?.optionD === ''
   const [qType, setQType] = useState(isTF ? 'TF' : 'MCQ')
-  const [form, setForm] = useState({ quizId: Number(quizId), questionText: '', optionA: '', optionB: '', optionC: '', optionD: '', correctAnswer: 'A', marks: 1, ...question })
+  const [form, setForm] = useState({ quizId: Number(quizId), questionText: '', questionImage: '', optionA: '', optionB: '', optionC: '', optionD: '', correctAnswer: 'A', marks: 1, ...question })
   const [loading, setLoading] = useState(false)
 
   const handleTypeChange = (type) => {
@@ -42,6 +42,17 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
     finally { setLoading(false) }
   }
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setForm(f => ({ ...f, questionImage: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const currentOptions = qType === 'TF' ? ['A', 'B'] : OPTIONS
 
   return (
@@ -60,6 +71,18 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Question Text *</label>
           <textarea required rows={3} value={form.questionText} onChange={e => setForm(f => ({ ...f, questionText: e.target.value }))} className="input-field" style={{ resize: 'none' }} /></div>
+          
+          <div>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Question Image (Optional)</label>
+            <input type="file" accept="image/*" onChange={handleImageUpload} className="input-field" style={{ padding: '8px' }} />
+            {form.questionImage && (
+              <div style={{ position: 'relative', marginTop: 12, display: 'inline-block' }}>
+                <img src={form.questionImage} alt="Question Preview" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, border: '1px solid var(--glass-border)' }} />
+                <button type="button" onClick={() => setForm(f => ({ ...f, questionImage: '' }))} style={{ position: 'absolute', top: -8, right: -8, background: '#ef4444', color: '#fff', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14} /></button>
+              </div>
+            )}
+          </div>
+
           {currentOptions.map(opt => (
             <div key={opt}><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Option {opt} *</label>
             <input required value={form[`option${opt}`]} onChange={e => setForm(f => ({ ...f, [`option${opt}`]: e.target.value }))} className="input-field" /></div>
@@ -138,7 +161,12 @@ export default function ManageQuestions() {
                   Q{i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: 20 }}>{q.questionText}</p>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: q.questionImage ? 12 : 20 }}>{q.questionText}</p>
+                  {q.questionImage && (
+                    <div style={{ marginBottom: 20 }}>
+                      <img src={q.questionImage} alt="Question" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, border: '1px solid var(--glass-border)' }} />
+                    </div>
+                  )}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
                     {OPTIONS.filter(opt => q[`option${opt}`] && q[`option${opt}`].trim() !== '').map(opt => (
                       <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, background: q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.1)' : 'var(--glass-bg)', border: `1px solid ${q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.3)' : 'var(--glass-border)'}` }}>

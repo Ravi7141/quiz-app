@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '../assets/logo.png'
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from 'framer-motion'
-import { Zap, BookOpen, Users, Target, Trophy, ArrowRight, Sun, Moon, Star, BarChart3, GraduationCap, Sparkles, Layers, ChevronRight, Mail, MapPin, Globe, Camera, Play, MessageCircle, Share2, Menu, X } from 'lucide-react'
+import { Zap, BookOpen, Users, Target, Trophy, ArrowRight, Sun, Moon, Star, BarChart3, GraduationCap, Sparkles, Layers, ChevronRight, Mail, MapPin, Globe, Camera, Play, MessageCircle, Share2, Menu, X, FileText } from 'lucide-react'
 import ParticleBackground from '../components/ParticleBackground'
 import AdminMock from '../components/AdminMock'
 
@@ -51,10 +51,10 @@ const FEATURES = [
 ]
 
 const STATS = [
-  { value: '10K+', label: 'Exams Created', suffix: 'exams' },
-  { value: '80K+', label: 'Students', suffix: 'learners' },
-  { value: '220K+', label: 'Questions Bank', suffix: 'questions' },
-  { value: '99%', label: 'Teacher Adoption', suffix: 'satisfaction' },
+  { value: '10K+', label: 'Exams Created', icon: FileText, color: '#a855f7', bg: '#f3e8ff' },
+  { value: '80K+', label: 'Students', icon: Users, color: '#3b82f6', bg: '#eff6ff' },
+  { value: '220K+', label: 'Questions Bank', icon: Layers, color: '#22c55e', bg: '#f0fdf4' },
+  { value: '99%', label: 'Teacher Adoption', icon: Trophy, color: '#f59e0b', bg: '#fffbeb' },
 ]
 
 const STEPS = [
@@ -217,7 +217,7 @@ function Counter({ value, label }) {
 }
 
 export default function Landing() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('quiz_theme') || 'dark')
+  const [theme, setTheme] = useState(() => localStorage.getItem('quiz_theme') || 'light')
   const [mounted, setMounted] = useState(false)
   const { scrollYProgress } = useScroll()
   // Reduce the fade intensity so the hero doesn't become fully invisible on small scrolls
@@ -237,7 +237,7 @@ export default function Landing() {
   if (!mounted) return null
 
   return (
-    <div style={{ background: 'var(--bg-main)', minHeight: '100vh', color: 'var(--text-main)', overflow: 'hidden' }}>
+    <div style={{ background: '#ffffff', minHeight: '100vh', color: 'var(--text-main)', overflow: 'hidden' }}>
       <ParticleBackground />
 
       {/* Navbar */}
@@ -259,25 +259,15 @@ export default function Landing() {
         </Link>
 
         {/* Desktop links */}
-        <div className="nav-desktop-links" style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+        <div className="nav-desktop-links" style={{ display: 'flex', alignItems: 'center', gap: 18, marginLeft: 'auto' }}>
           <motion.a href="#features" className="nav-link" whileHover={{ scale: 1.05 }}>Features</motion.a>
           <motion.a href="#how-it-works" className="nav-link" whileHover={{ scale: 1.05 }}>How It Works</motion.a>
-          <motion.button onClick={toggleTheme} className="theme-toggle" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <motion.div key={theme} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.3 }}>
-              {theme === 'dark' ? <Sun size={18} color="#fbbf24" /> : <Moon size={18} color="#2563eb" />}
-            </motion.div>
-          </motion.button>
           <Link to="/login" className="btn-ghost" style={{ padding: '9px 20px', fontSize: 14 }}>Login</Link>
           <Link to="/register" className="btn-primary" style={{ padding: '9px 22px', fontSize: 14 }}>Sign Up</Link>
         </div>
 
-        {/* Mobile controls: theme toggle + hamburger — hidden on desktop via CSS */}
+        {/* Mobile controls */}
         <div className="nav-mobile-controls" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <motion.button onClick={toggleTheme} className="theme-toggle" style={{ width: 36, height: 36 }} whileTap={{ scale: 0.9 }}>
-            <motion.div key={theme} initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} transition={{ duration: 0.3 }}>
-              {theme === 'dark' ? <Sun size={16} color="#fbbf24" /> : <Moon size={16} color="#2563eb" />}
-            </motion.div>
-          </motion.button>
           <button className="hamburger-btn" onClick={() => setMobileNavOpen(o => !o)} aria-label="Toggle menu">
             {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
@@ -308,49 +298,41 @@ export default function Landing() {
         <div className="dot-pattern" />
         <div className="hero-wrapper">
           <div className="hero-copy">
-            <motion.div className="hero-badge" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-              <Sparkles size={14} /> Managed Assessments
+            <motion.div className="hero-badge" style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', maxWidth: '620px', padding: '16px 24px', fontSize: '15px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '24px', color: '#1e3a8a', fontWeight: 700 }} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+              <Sparkles size={18} /> Managed Assessments
             </motion.div>
 
-            <motion.h1 initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.12 }}>
-              Create exams and track student performance <span className="grad">effortlessly</span>
+            <motion.h1 style={{ fontSize: 'clamp(28px, 4.5vw, 52px)', lineHeight: 1.2, fontWeight: 800, letterSpacing: 'normal', wordSpacing: '0.1em', color: '#0f172a' }} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.12 }}>
+              <span style={{ whiteSpace: 'nowrap' }}>Recruit top talent</span><br />
+              <span style={{ whiteSpace: 'nowrap' }}>through intelligent</span><br />
+              <span style={{ whiteSpace: 'nowrap', color: '#7dd3fc' }}>online assessments</span>
             </motion.h1>
 
-            <motion.p initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}>
-              Manage assessments, coding challenges, student access, and analytics from one powerful platform.
+            <motion.p style={{ fontSize: '18px', lineHeight: 1.6, color: '#475569', maxWidth: '580px', marginTop: '-8px' }} initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.22 }}>
+              Conduct secure recruitment assessments with instant evaluation and performance insights.
             </motion.p>
 
             <motion.div className="hero-actions" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.32 }}>
               <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                <Link to="/register" className="btn-primary glow hero-cta" style={{ fontSize: 16 }}>
-                  Start Free
+                <Link to="/register" className="btn-primary" style={{ fontSize: 16, padding: '16px 42px', borderRadius: '9999px', background: '#3b82f6', color: '#fff', border: 'none', fontWeight: 600, display: 'inline-flex' }}>
+                  Create One
                 </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
-                <Link to="#features" className="btn-ghost hero-ghost" style={{ fontSize: 16 }}>Explore Features</Link>
               </motion.div>
             </motion.div>
 
             <motion.div className="hero-trust" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.44 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                <div className="trust-avatars">
-                  <div className="trust-avatar" style={{ background: '#2563eb' }} />
-                  <div className="trust-avatar" style={{ background: '#60a5fa', marginLeft: -8 }} />
-                  <div className="trust-avatar" style={{ background: 'var(--primary-400)', marginLeft: -8 }} />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 800 }}>2,400+ institutions</div>
-                  <div style={{ color: 'var(--text-sec)', fontSize: 13 }}>Rated 4.8/5 by educators</div>
-                </div>
-
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: 16 }} className="trust-stats">
-                  {STATS.slice(0,3).map((s) => (
-                    <div key={s.label} className="stat-card-new stat-card-hero">
-                      <div className="stat-val">{s.value}</div>
-                      <div className="stat-label">{s.label}</div>
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 32 }} className="trust-stats">
+                {STATS.map((s) => (
+                  <div key={s.label} className="stat-card-new stat-card-hero" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', minWidth: '140px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', justifyContent: 'center' }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <s.icon size={18} color={s.color} />
+                      </div>
+                      <div className="stat-val" style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>{s.value}</div>
                     </div>
-                  ))}
-                </div>
+                    <div className="stat-label" style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textAlign: 'center' }}>{s.label}</div>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
@@ -363,18 +345,6 @@ export default function Landing() {
         </div>
       </motion.section>
 
-      {/* Stats Section */}
-      <section className="stats-section">
-        <div className="stats-container">
-          <motion.div className="stats-grid-new" {...fadeUp()}>
-            {STATS.map((stat, i) => (
-              <motion.div key={stat.label} className="stat-card-new" {...scaleIn(0.1 + i * 0.08)}>
-                <Counter value={stat.value} label={stat.label} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
       {/* Features Section */}
       <section id="features" className="section">

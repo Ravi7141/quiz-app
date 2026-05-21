@@ -27,6 +27,8 @@ public class QuestionRequest {
     @NotBlank(message = "Question text is required")
     private String questionText;
 
+    private String questionImage;
+
     @NotBlank(message = "Option A is required")
     private String optionA;
 

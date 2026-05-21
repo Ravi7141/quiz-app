@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Link as LinkIcon, QrCode, Copy, CheckCircle2, Mail, Users, Key } from 'lucide-react'
+import { X, Link as LinkIcon, QrCode, Copy, CheckCircle2, Mail, Users, Key, Loader2, AlertTriangle } from 'lucide-react'
 import { examTokenApi } from '../api/axios'
 import { QRCodeSVG } from 'qrcode.react'
 import toast from 'react-hot-toast'
@@ -53,23 +53,39 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
   const getPrivateLink = (token) => `${window.location.origin}/exam/entry/${token}`
   const getGeneralLink = () => `${window.location.origin}/${examType.toLowerCase()}/${shareToken}`
 
+  // ── Clipboard helper: works on HTTP (local IP) too ──────────────────────
+  const copyToClipboard = (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      // HTTPS or localhost — use modern API
+      return navigator.clipboard.writeText(text)
+    } else {
+      // HTTP fallback (local network IP) — use legacy execCommand
+      const ta = document.createElement('textarea')
+      ta.value = text
+      ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0'
+      document.body.appendChild(ta)
+      ta.focus()
+      ta.select()
+      try { document.execCommand('copy') } catch {}
+      document.body.removeChild(ta)
+      return Promise.resolve()
+    }
+  }
+
   const handleCopyLink = (link) => {
-    navigator.clipboard.writeText(link)
-    toast.success('Link copied!')
+    copyToClipboard(link).then(() => toast.success('Link copied!'))
   }
 
   const handleCopyDetails = (t) => {
     const text = `Hi ${t.studentEmail},\n\nHere is your private link to access the assessment: ${t.examTitle}\n\nLink: ${getPrivateLink(t.token)}\n\nDo not share this link with anyone, it is strictly tied to your email.\nGood luck!`
-    navigator.clipboard.writeText(text)
-    toast.success('Details copied!')
+    copyToClipboard(text).then(() => toast.success('Details copied!'))
   }
 
   const handleCopyAll = () => {
     const available = tokens.filter(t => !t.isUsed)
     if (!available.length) return toast.error('No available links to copy')
     const text = available.map(t => `${t.studentEmail}: ${getPrivateLink(t.token)}`).join('\n')
-    navigator.clipboard.writeText(text)
-    toast.success(`Copied ${available.length} links to clipboard!`)
+    copyToClipboard(text).then(() => toast.success(`Copied ${available.length} links to clipboard!`))
   }
 
   const handleEmailAll = async () => {

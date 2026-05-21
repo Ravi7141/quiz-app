@@ -73,7 +73,7 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
     <div className="modal-overlay" onClick={onClose} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-        className="modal-box" style={{ margin: '40px auto', maxWidth: 620, width: '100%' }} onClick={e => e.stopPropagation()}
+        className="modal-box" style={{ margin: '20px auto', maxWidth: 620, width: '95%' }} onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>Create Unified Assessment</h2>
@@ -90,7 +90,7 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description</label>
             <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={2} className="input-field" style={{ resize: 'none' }} placeholder="Optional description or candidate instructions" />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (minutes) *</label>
               <input required type="number" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} className="input-field" placeholder="e.g. 60" min="1" />
@@ -102,7 +102,7 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
           </div>
 
           {/* Scheduling */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>
                 <Calendar size={13} style={{ display: 'inline', marginRight: 4 }} />Start Date &amp; Time
@@ -137,13 +137,23 @@ function CreateAssessmentModal({ quizzes, codingTests, onClose, onSave }) {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {form.sections.map((sec, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: 12 }}>
-                  <div style={{ background: 'var(--primary)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
-                  <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '8px 12px' }}>
+                <div key={idx} style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'auto auto 1fr auto',
+                  gap: 8,
+                  alignItems: 'center',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 10,
+                  padding: 10,
+                  minWidth: 0
+                }}>
+                  <div style={{ background: 'var(--primary)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{idx + 1}</div>
+                  <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '7px 8px' }}>
                     <option value="QUIZ">MCQ Quiz</option>
                     <option value="CODING">Coding Test</option>
                   </select>
-                  <select value={sec.referenceId} onChange={e => updateSection(idx, 'referenceId', e.target.value)} className="input-field" style={{ flex: 1, padding: '8px 12px' }} required>
+                  <select value={sec.referenceId} onChange={e => updateSection(idx, 'referenceId', e.target.value)} className="input-field" style={{ width: '100%', minWidth: 0, padding: '7px 8px' }} required>
                     <option value="">-- Select Target --</option>
                     {sec.type === 'QUIZ'
                       ? quizzes.map(q => <option key={q.id} value={q.id}>{q.title}</option>)
@@ -208,7 +218,7 @@ export default function ManageAssessments() {
     <Layout
       title="Manage Assessments"
       subtitle="Combine Quiz & Coding tests into a single assessment"
-      action={<button onClick={() => setShowCreateModal(true)} className="btn-primary"><Plus size={16} /> New Assessment</button>}
+      action={<button onClick={() => setShowCreateModal(true)} className="btn-primary"><Plus size={16} /><span> New Assessment</span></button>}
     >
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div>

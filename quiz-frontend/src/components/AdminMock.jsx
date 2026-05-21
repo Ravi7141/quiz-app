@@ -86,40 +86,6 @@ export default function AdminMock() {
               </div>
             </div>
 
-            <div className="recent-attempts">
-              <div className="recent-header">Recent Attempts <span className="muted">(3 total)</span></div>
-              <table className="attempts-table">
-                <thead>
-                  <tr><th>Student</th><th>Phone</th><th>Quiz</th><th>Score</th><th>%</th><th>Status</th></tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><span className="blurred">Rohit Sharma</span></td>
-                    <td><span className="blurred">+91 98765 43210</span></td>
-                    <td>Java Programming Basics</td>
-                    <td>92</td>
-                    <td>92%</td>
-                    <td>Passed</td>
-                  </tr>
-                  <tr>
-                    <td><span className="blurred">Priya Patel</span></td>
-                    <td><span className="blurred">+91 91234 56789</span></td>
-                    <td>Data Structures Quiz</td>
-                    <td>89</td>
-                    <td>89%</td>
-                    <td>Passed</td>
-                  </tr>
-                  <tr>
-                    <td><span className="blurred">Amit Verma</span></td>
-                    <td><span className="blurred">+91 90123 45678</span></td>
-                    <td>Web Development MCQ</td>
-                    <td>87</td>
-                    <td>87%</td>
-                    <td>Passed</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
           </div>
 
           <div className="admin-right">
@@ -138,12 +104,6 @@ export default function AdminMock() {
               </ul>
             </div>
 
-            <div className="small-card top-students">
-              <div className="small-title">Top Performing Students</div>
-              <div className="student-row"><span className="avatar">RS</span><div className="sname blurred">Rohit Sharma</div><div className="sscore">92%</div></div>
-                <div className="student-row"><span className="avatar">PP</span><div className="sname blurred">Priya Patel</div><div className="sscore">89%</div></div>
-              <div className="student-row"><span className="avatar">AV</span><div className="sname blurred">Amit Verma</div><div className="sscore">87%</div></div>
-            </div>
           </div>
         </div>
       </div>

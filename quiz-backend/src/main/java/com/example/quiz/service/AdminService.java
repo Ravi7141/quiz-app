@@ -32,6 +32,7 @@ public class AdminService {
     private final AuthService authService;
     private final AssessmentAttemptRepository assessmentAttemptRepository;
     private final AssessmentSectionRepository assessmentSectionRepository;
+    private final AssessmentRepository assessmentRepository;
 
     // ─── Dashboard Stats ──────────────────────────────────────────────────────
 
@@ -44,6 +45,7 @@ public class AdminService {
         if (currentAdmin != null) {
             return AdminStatsResponse.builder()
                     .totalQuizzes(quizRepository.countByCreatedById(currentAdmin.getId()))
+                    .totalAssessments(assessmentRepository.countByCreatedById(currentAdmin.getId()))
                     .totalQuestions(questionRepository.countByQuizCreatedById(currentAdmin.getId()))
                     .totalStudents(userRepository.countByRoleAndCreatedById(Role.STUDENT, currentAdmin.getId()))
                     .totalAttempts(attemptRepository.countByQuizCreatedById(currentAdmin.getId()))
@@ -51,6 +53,7 @@ public class AdminService {
         }
         return AdminStatsResponse.builder()
                 .totalQuizzes(quizRepository.count())
+                .totalAssessments(assessmentRepository.count())
                 .totalQuestions(questionRepository.count())
                 .totalStudents(userRepository.countByRole(Role.STUDENT))
                 .totalAttempts(attemptRepository.count())

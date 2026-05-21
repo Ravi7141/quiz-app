@@ -51,9 +51,9 @@ export default function Students() {
 
   return (
     <Layout title="Students" subtitle={`${students.length} registered accounts`}>
-      <div style={{ position: 'relative', width: 300, marginBottom: 24 }}>
+      <div className="admin-search" style={{ position: 'relative', width: 300, marginBottom: 24 }}>
         <Search size={15} color="#64748b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or email..." className="input-field" style={{ paddingLeft: 40 }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or email..." className="input-field" style={{ paddingLeft: 40, width: '100%' }} />
       </div>
 
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div>
@@ -62,7 +62,9 @@ export default function Students() {
           <table className="data-table">
             <thead>
               <tr>
-                {['#', 'Name', 'Email', 'Phone', 'Role', 'Actions'].map(h => <th key={h}>{h}</th>)}
+                {['#', 'Name', 'Email', 'Phone', 'Role', 'Actions'].map(h => (
+                  <th key={h} className={['Phone','Role'].includes(h) ? 'col-hide-mobile' : ''}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -75,15 +77,18 @@ export default function Students() {
                   <td style={{ color: 'var(--text-sec)' }}>{i + 1}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                         {s.name?.[0]?.toUpperCase() || 'U'}
                       </div>
-                      <span style={{ fontWeight: 600, fontSize: 15 }}>{s.name}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 15, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                        <div className="col-show-mobile" style={{ fontSize: 12, color: 'var(--text-sec)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.email}</div>
+                      </div>
                     </div>
                   </td>
-                  <td><div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-sec)' }}><Mail size={14} /> {s.email}</div></td>
-                  <td style={{ color: 'var(--text-sec)', fontSize: 13 }}>{s.phone || '—'}</td>
-                  <td><span className={`badge ${s.role === 'ADMIN' ? 'badge-admin' : 'badge-student'}`}>{s.role}</span></td>
+                  <td className="col-hide-mobile"><div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-sec)' }}><Mail size={14} /> {s.email}</div></td>
+                  <td className="col-hide-mobile" style={{ color: 'var(--text-sec)', fontSize: 13 }}>{s.phone || '—'}</td>
+                  <td className="col-hide-mobile"><span className={`badge ${s.role === 'ADMIN' ? 'badge-admin' : 'badge-student'}`}>{s.role}</span></td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} onClick={e => e.stopPropagation()}>
                       <button

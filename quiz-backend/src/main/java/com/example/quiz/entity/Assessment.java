@@ -43,6 +43,10 @@ public class Assessment {
     @Column(name = "passing_percentage")
     private Integer passingPercentage;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_id")
+    private User createdBy;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -27,6 +27,10 @@ public class Question {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
+    /** Base64 string of the question image */
+    @Column(columnDefinition = "TEXT")
+    private String questionImage;
+
     /** Option A */
     @Column(nullable = false)
     private String optionA;

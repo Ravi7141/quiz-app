@@ -22,6 +22,18 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
           setFaceDetected(true);
           return;
         }
+
+        // Camera/microphone requires HTTPS or localhost (secure context)
+        if (!window.isSecureContext || !navigator.mediaDevices) {
+          setStatus('error');
+          setErrorMsg(
+            'Camera access requires a secure connection (HTTPS). ' +
+            'You are currently on HTTP. Please ask your admin to share the link as https://... ' +
+            'or open the exam on the same device as the server (localhost).'
+          );
+          return;
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         if (!mounted) {
           stream.getTracks().forEach(track => track.stop());
@@ -36,7 +48,13 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
       } catch (err) {
         if (!mounted) return;
         setStatus('error');
-        setErrorMsg('Camera or Microphone permission denied or not found. Please allow both camera and microphone access to continue.');
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setErrorMsg('Camera or Microphone permission was denied. Please click the camera icon in your browser address bar and allow access, then refresh the page.');
+        } else if (err.name === 'NotFoundError') {
+          setErrorMsg('No camera or microphone found on this device. Please connect a camera and microphone to continue.');
+        } else {
+          setErrorMsg('Camera or Microphone permission denied or not found. Please allow both camera and microphone access to continue.');
+        }
       }
     };
     init();

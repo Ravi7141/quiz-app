@@ -32,7 +32,8 @@ export default function QuizDetail() {
   }, [id])
 
   const handleStartQuiz = () => {
-    // Just navigate — UnifiedAssessment handles starting the attempt
+    try { document.documentElement.requestFullscreen().catch(() => {}) } catch(e) {}
+    // Navigate — UnifiedAssessment handles starting the attempt
     navigate(`/assessment/${id}`, { state: { requestFullscreen: true } })
   }
 

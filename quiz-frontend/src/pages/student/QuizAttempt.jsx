@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { questionApi, attemptApi, studentQuizApi, examTokenApi } from '../../api/axios'
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
-import { ChevronLeft, ChevronRight, CheckCircle2, Clock, Send, AlertTriangle, Shield, Flag } from 'lucide-react'
+import { ZoomIn, ZoomOut, ChevronLeft, ChevronRight, CheckCircle2, Clock, Send, AlertTriangle, Shield, Flag } from 'lucide-react'
 import FaceDetectionGuard from '../../components/FaceDetectionGuard'
 import CameraSetupGate from '../../components/CameraSetupGate'
 
@@ -20,11 +20,13 @@ export default function QuizAttempt() {
   const attemptIdRef = useRef(null)
   const autoSubmittedRef = useRef(false)
   const antiCheatActiveRef = useRef(false)
+  const imageContainerRef = useRef(null)
 
   const [questions, setQuestions] = useState([])
   const [quiz, setQuiz] = useState(null)
   const [attemptId, setAttemptId] = useState(null)
   const [current, setCurrent] = useState(0)
+  const [zoomLevel, setZoomLevel] = useState(1)
   const [answers, setAnswers] = useState({})
   const [markedForReview, setMarkedForReview] = useState(new Set())
   const [loading, setLoading] = useState(true)
@@ -152,11 +154,18 @@ export default function QuizAttempt() {
       }
     }
 
+    const checkInterval = setInterval(() => {
+      if (antiCheatActiveRef.current && !document.fullscreenElement) {
+        handleViolation('Fullscreen is required for this assessment.')
+      }
+    }, 2000)
+
     document.addEventListener('fullscreenchange', onFullscreenChange)
     document.addEventListener('visibilitychange', onVisibilityChange)
     window.addEventListener('blur', onBlur)
     window.addEventListener('keydown', onKeyDown)
     return () => {
+      clearInterval(checkInterval)
       document.removeEventListener('fullscreenchange', onFullscreenChange)
       document.removeEventListener('visibilitychange', onVisibilityChange)
       window.removeEventListener('blur', onBlur)
@@ -268,17 +277,18 @@ export default function QuizAttempt() {
       </div>
 
       {/* Main Area */}
-      <div style={{ flex: 1, padding: '32px 40px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+      <div className="flex-1 p-4 md:p-8 flex flex-col">
+        <div className="max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
+        <div className="grid grid-cols-1 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[var(--glass-border)] flex-1">
 
-          {/* Left: Question */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {/* Left Side: Question Text & Image (50%) */}
+          <div className="lg:col-span-2 flex flex-col gap-6" style={{ height: '100%', padding: 24 }}>
             <AnimatePresence mode="wait">
               <motion.div key={current} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}
-                className="card" style={{ padding: '40px 48px', minHeight: 460, display: 'flex', flexDirection: 'column' }}>
+                className="flex flex-col flex-1 h-full">
 
                 {/* Question header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(37,99,235,0.15)', color: 'var(--primary-400)', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {current + 1}
@@ -306,39 +316,72 @@ export default function QuizAttempt() {
                   </button>
                 </div>
 
-                <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.55, marginBottom: 40 }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: q?.questionImage ? 24 : 0 }}>
                   {q?.questionText}
                 </h2>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 'auto' }}>
-                  {options.map(({ key, val }) => {
-                    const sel = answers[q.id]?.split(',').includes(key)
-                    return (
-                      <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 16 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: 9, background: sel ? 'var(--primary)' : 'rgba(255,255,255,0.06)', color: sel ? '#fff' : 'var(--text-sec)', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          {key}
-                        </div>
-                        <span style={{ flex: 1, fontSize: 16 }}>{val}</span>
-                        {sel && <CheckCircle2 size={20} color="var(--primary-400)" />}
-                      </button>
-                    )
-                  })}
-                </div>
+                {/* Image */}
+                {q?.questionImage && (
+                  <div ref={imageContainerRef} style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, borderRadius: 12, overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 8, zIndex: 10 }}>
+                      <button onClick={() => setZoomLevel(z => Math.min(3, z + 0.25))} className="btn-ghost" style={{ padding: 8, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }} title="Zoom In"><ZoomIn size={18} /></button>
+                      <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.25))} className="btn-ghost" style={{ padding: 8, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }} title="Zoom Out"><ZoomOut size={18} /></button>
+                      <button onClick={() => setZoomLevel(1)} className="btn-ghost" style={{ padding: '8px 12px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', fontSize: 12, fontWeight: 700 }}>Reset</button>
+                    </div>
+                    <motion.img 
+                      src={q.questionImage} 
+                      alt="Question" 
+                      drag={zoomLevel > 1}
+                      dragConstraints={{ 
+                        left: -400 * (zoomLevel - 1), 
+                        right: 400 * (zoomLevel - 1), 
+                        top: -400 * (zoomLevel - 1), 
+                        bottom: 400 * (zoomLevel - 1) 
+                      }}
+                      style={{ 
+                        maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
+                        scale: zoomLevel, cursor: zoomLevel > 1 ? 'grab' : 'default' 
+                      }} 
+                    />
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
+          </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0} className="btn-ghost" style={{ padding: '12px 22px', fontSize: 15, opacity: current === 0 ? 0.4 : 1, cursor: current === 0 ? 'not-allowed' : 'pointer' }}>
-                <ChevronLeft size={17} /> Previous
-              </button>
-              <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))} disabled={current === questions.length - 1} className="btn-ghost" style={{ padding: '12px 22px', fontSize: 15, opacity: current === questions.length - 1 ? 0.4 : 1, cursor: current === questions.length - 1 ? 'not-allowed' : 'pointer' }}>
-                Next <ChevronRight size={17} />
-              </button>
+          {/* Middle Section: Options (25%) */}
+          <div className="lg:col-span-1 flex flex-col gap-6" style={{ height: '100%' }}>
+            <div className="flex flex-col" style={{ height: '100%', minHeight: 400 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1, justifyContent: 'center' }}>
+                {options.map(({ key, val }) => {
+                  const sel = answers[q.id]?.split(',').includes(key)
+                  return (
+                    <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 16, background: sel ? 'rgba(37,99,235,0.08)' : 'var(--glass-bg)', border: `1px solid ${sel ? 'var(--primary)' : 'var(--glass-border)'}`, borderRadius: 14 }}>
+                      <div style={{ width: 24, height: 24, borderRadius: 6, background: sel ? 'rgba(37,99,235,0.1)' : 'transparent', border: sel ? '2px solid var(--primary-400)' : '2px solid var(--glass-border)', color: sel ? 'var(--primary)' : 'var(--text-sec)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {sel ? <div style={{ width: 12, height: 12, borderRadius: 2, background: 'var(--primary-400)' }} /> : key}
+                      </div>
+                      <span style={{ flex: 1, fontSize: 15, textAlign: 'left', color: sel ? 'var(--primary)' : 'var(--text-main)', fontWeight: 500 }}>{val}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--glass-border)' }}>
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0} className="btn-sec flex-1" style={{ padding: '12px 0', fontSize: 14, opacity: current === 0 ? 0.4 : 1, cursor: current === 0 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
+                    <ChevronLeft size={16} /> Prev
+                  </button>
+                  <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))} disabled={current === questions.length - 1} className="btn-primary flex-1" style={{ padding: '12px 0', fontSize: 14, opacity: current === questions.length - 1 ? 0.4 : 1, cursor: current === questions.length - 1 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
+                    Next <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right: Navigation Grid */}
-          <div className="card" style={{ padding: 24, position: 'sticky', top: 96 }}>
+          {/* Right Side: Question Navigation Panel (25%) */}
+          <div className="lg:col-span-1" style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: 24 }}>
+          <div style={{ padding: 0, position: 'sticky', top: 96 }}>
             <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-sec)', marginBottom: 16 }}>
               Navigation Map
             </h3>

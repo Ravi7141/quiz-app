@@ -46,8 +46,6 @@ function QuizModal({ quiz, onClose, onSave }) {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    durationMinutes: '',
-    totalMarks: '',
     active: true,
     ...quiz
   })
@@ -55,19 +53,13 @@ function QuizModal({ quiz, onClose, onSave }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.durationMinutes || Number(form.durationMinutes) < 1) {
-      toast.error('Duration must be at least 1 minute'); return
-    }
-    if (!form.totalMarks || Number(form.totalMarks) < 1) {
-      toast.error('Total marks must be at least 1'); return
-    }
     setLoading(true)
     try {
       const payload = {
         title: form.title,
         description: form.description || '',
-        durationMinutes: Number(form.durationMinutes),
-        totalMarks: Number(form.totalMarks),
+        durationMinutes: quiz?.durationMinutes || 120,
+        totalMarks: quiz?.totalMarks || 100,
         active: form.active,
       }
       if (quiz?.id) { await adminQuizApi.update(quiz.id, payload); toast.success('Quiz updated!'); }
@@ -89,12 +81,6 @@ function QuizModal({ quiz, onClose, onSave }) {
           <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="input-field" placeholder="Quiz title" /></div>
           <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description</label>
           <textarea value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className="input-field" style={{ resize: 'none' }} placeholder="Optional description" /></div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (min) *</label>
-            <input required type="number" value={form.durationMinutes || ''} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} className="input-field" placeholder="e.g. 30" min="1" /></div>
-            <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
-            <input required type="number" value={form.totalMarks || ''} onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value }))} className="input-field" placeholder="e.g. 100" min="1" /></div>
-          </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button type="button" onClick={onClose} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
             <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{loading ? <Loader2 size={16} className="spin" /> : <Check size={16} />} {quiz?.id ? 'Update' : 'Create'}</button>
@@ -132,7 +118,7 @@ export default function ManageQuizzes() {
 
   return (
     <Layout title="Manage Quizzes" subtitle="Create, edit and manage all quizzes"
-      action={<button onClick={() => setModal({})} className="btn-primary"><Plus size={16} /> New Quiz</button>}>
+      action={<button onClick={() => setModal({})} className="btn-primary"><Plus size={16} /><span> New Quiz</span></button>}>
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div>
       : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 22 }}>

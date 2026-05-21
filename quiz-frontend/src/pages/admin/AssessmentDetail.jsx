@@ -81,7 +81,7 @@ function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections
     <div className="modal-overlay" onClick={onClose} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-        className="modal-box" style={{ margin: '40px auto', maxWidth: 620, width: '100%' }} onClick={e => e.stopPropagation()}
+        className="modal-box" style={{ margin: '20px auto', maxWidth: 620, width: '95%' }} onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>Edit Assessment</h2>
@@ -98,7 +98,7 @@ function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description</label>
             <textarea rows={2} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} className="input-field" style={{ resize: 'none' }} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 16 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (minutes) *</label>
               <input required type="number" min="1" value={form.durationMinutes} onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))} className="input-field" />
@@ -108,7 +108,7 @@ function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections
               <input type="number" min="0" max="100" value={form.passingPercentage} onChange={e => setForm(f => ({ ...f, passingPercentage: e.target.value }))} className="input-field" placeholder="e.g. 70" />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Start Date & Time</label>
               <input type="datetime-local" value={form.scheduledFor} onChange={e => setForm(f => ({ ...f, scheduledFor: e.target.value }))} className="input-field" />
@@ -129,13 +129,23 @@ function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {form.sections.map((sec, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 10, padding: 12 }}>
+                <div key={idx} style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 8,
+                  alignItems: 'center',
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: 10,
+                  padding: 10,
+                  minWidth: 0
+                }}>
                   <div style={{ background: 'var(--primary)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{idx + 1}</div>
-                  <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '8px 12px' }}>
+                  <select value={sec.type} onChange={e => updateSection(idx, 'type', e.target.value)} className="input-field" style={{ width: 110, padding: '7px 8px', flexShrink: 0 }}>
                     <option value="QUIZ">MCQ Quiz</option>
                     <option value="CODING">Coding Test</option>
                   </select>
-                  <select value={sec.referenceId} onChange={e => updateSection(idx, 'referenceId', e.target.value)} className="input-field" style={{ flex: 1, padding: '8px 12px' }} required>
+                  <select value={sec.referenceId} onChange={e => updateSection(idx, 'referenceId', e.target.value)} className="input-field" style={{ flex: '1 1 180px', minWidth: 0, padding: '7px 8px' }} required>
                     <option value="">-- Select Target --</option>
                     {sec.type === 'QUIZ'
                       ? quizzes.map(q => <option key={q.id} value={q.id}>{q.title}</option>)
@@ -145,6 +155,7 @@ function EditAssessmentModal({ assessment, quizzes, codingTests, currentSections
                     <Trash2 size={16} />
                   </button>
                 </div>
+
               ))}
               {form.sections.length === 0 && (
                 <div style={{ textAlign: 'center', padding: 20, color: 'var(--text-sec)', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: 10 }}>
@@ -248,28 +259,28 @@ export default function AssessmentDetail() {
       title={assessment.title}
       subtitle={assessment.description || 'Assessment details'}
       action={
-        <div style={{ display: 'flex', gap: 12 }}>
-          <Link to="/admin/assessments" className="btn-ghost" style={{ padding: '8px 16px', fontSize: 13, textDecoration: 'none' }}>
-            <ArrowLeft size={14} /> Back
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          <Link to="/admin/assessments" className="btn-ghost" style={{ padding: '8px 14px', fontSize: 13, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <ArrowLeft size={14} /><span> Back</span>
           </Link>
-          <button onClick={() => setShowShareModal(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', fontSize: 13, color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
-            <Share2 size={14} /> Share Links
+          <button onClick={() => setShowShareModal(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 13, color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
+            <Share2 size={14} /><span> Share</span>
           </button>
-          <button onClick={() => setShowEdit(true)} className="btn-primary" style={{ padding: '8px 16px', fontSize: 13 }}>
-            <Pencil size={14} /> Edit
+          <button onClick={() => setShowEdit(true)} className="btn-primary" style={{ padding: '8px 14px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <Pencil size={14} /><span> Edit</span>
           </button>
           <button
             onClick={handleDelete}
             disabled={deleting}
             style={{
-              padding: '8px 16px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 12px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6,
               background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8,
               cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1,
-              fontWeight: 600
+              fontWeight: 600, flexShrink: 0
             }}
           >
             {deleting ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
-            {deleting ? 'Deleting...' : 'Delete'}
+            <span>{deleting ? ' Deleting...' : ' Del'}</span>
           </button>
         </div>
       }
@@ -340,7 +351,13 @@ export default function AssessmentDetail() {
                         <div style={{ fontSize: 11, color: 'var(--text-sec)', textTransform: 'uppercase' }}>Marks</div>
                       </div>
                     </div>
-                    {section.description && <div style={{ fontSize: 13, color: 'var(--text-sec)', marginTop: 8 }}>{section.description}</div>}
+                    {section.description && (
+                      <div 
+                        className="leetcode-description"
+                        style={{ fontSize: 13, color: 'var(--text-sec)', marginTop: 8, lineHeight: 1.5, maxHeight: 60, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
+                        dangerouslySetInnerHTML={{ __html: section.description }}
+                      />
+                    )}
                   </div>
                 );
               })}
