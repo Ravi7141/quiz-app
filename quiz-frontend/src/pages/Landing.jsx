@@ -217,7 +217,7 @@ function Counter({ value, label }) {
 }
 
 export default function Landing() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('quiz_theme') || 'dark')
+  const [theme, setTheme] = useState(() => localStorage.getItem('quiz_theme') || 'light')
   const [mounted, setMounted] = useState(false)
   const { scrollYProgress } = useScroll()
   // Reduce the fade intensity so the hero doesn't become fully invisible on small scrolls

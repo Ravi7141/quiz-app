@@ -35,10 +35,12 @@ public class AssessmentService {
     private final QuizAttemptRepository quizAttemptRepository;
     private final StudentAnswerRepository studentAnswerRepository;
     private final StudentCodingSubmissionRepository studentCodingSubmissionRepository;
-    private final UserService userService; // ← replaces duplicate enroll logic
+    private final UserService userService;
+    private final AuthService authService; // ← for admin-scoped filtering
 
     @Transactional
     public AssessmentResponse createAssessment(AssessmentRequest request) {
+        User currentAdmin = authService.getCurrentUser(); // ← tag this assessment to the creating admin
         Assessment assessment = Assessment.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -48,6 +50,7 @@ public class AssessmentService {
                 .validUntil(request.getValidUntil())
                 .passingPercentage(request.getPassingPercentage())
                 .active(true)
+                .createdBy(currentAdmin)
                 .build();
 
         Assessment saved = assessmentRepository.save(assessment);
@@ -68,7 +71,14 @@ public class AssessmentService {
     }
 
     public List<AssessmentResponse> getAllAssessments() {
-        return assessmentRepository.findAll().stream()
+        User currentAdmin = authService.getCurrentUser();
+        List<Assessment> assessments;
+        if (currentAdmin != null) {
+            assessments = assessmentRepository.findByCreatedById(currentAdmin.getId());
+        } else {
+            assessments = assessmentRepository.findAll();
+        }
+        return assessments.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

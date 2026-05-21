@@ -172,10 +172,54 @@ public class CompilerService {
         Files.writeString(sourcePath, code);
 
         String compileResult = executeCommand(dir.toFile(), null, "g++", "main.cpp", "-o", "main.exe");
+        if (compileResult.contains("Command not found")) {
+            log.info("g++ not found, falling back to Piston API for C++");
+            return runWithPistonAPI("c++", "10.2.0", code, input);
+        }
         if (!compileResult.isEmpty() && compileResult.toLowerCase().contains("error")) {
             return "Compile Error:\n" + compileResult;
         }
         return executeCommand(dir.toFile(), input, "main.exe");
+    }
+
+    private String runWithPistonAPI(String language, String version, String code, String input) {
+        try {
+            Map<String, Object> request = new HashMap<>();
+            request.put("language", language);
+            request.put("version", version);
+            
+            Map<String, String> file = new HashMap<>();
+            file.put("content", code);
+            request.put("files", java.util.Arrays.asList(file));
+            
+            if (input != null && !input.isEmpty()) {
+                request.put("stdin", input);
+            }
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+            
+            ResponseEntity<Map> response = restTemplate.postForEntity("https://emkc.org/api/v2/piston/execute", entity, Map.class);
+            Map<String, Object> body = response.getBody();
+            if (body != null) {
+                if (body.containsKey("compile")) {
+                    Map<String, Object> compile = (Map<String, Object>) body.get("compile");
+                    Integer codeStatus = (Integer) compile.get("code");
+                    if (codeStatus != null && codeStatus != 0) {
+                        return "Compile Error:\n" + compile.get("output");
+                    }
+                }
+                Map<String, Object> run = (Map<String, Object>) body.get("run");
+                if (run != null) {
+                    return (String) run.get("output");
+                }
+            }
+            return "Execution failed via Cloud API.";
+        } catch (Exception ex) {
+            log.error("Piston API execution failed", ex);
+            return "Execution Failed: Cloud compiler unavailable.";
+        }
     }
 
     private String runJava(Path dir, String code, String input) throws Exception {

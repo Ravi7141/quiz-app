@@ -132,7 +132,7 @@ export default function ManageQuizzes() {
 
   return (
     <Layout title="Manage Quizzes" subtitle="Create, edit and manage all quizzes"
-      action={<button onClick={() => setModal({})} className="btn-primary"><Plus size={16} /> New Quiz</button>}>
+      action={<button onClick={() => setModal({})} className="btn-primary"><Plus size={16} /><span> New Quiz</span></button>}>
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div>
       : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 22 }}>

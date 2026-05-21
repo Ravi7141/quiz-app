@@ -15,7 +15,7 @@ const FACE_OPTS = new faceapi.TinyFaceDetectorOptions({
   scoreThreshold: 0.45,
 });
 
-export default function FaceDetectionGuard({ onViolation, sharedStream = null }) {
+export default function FaceDetectionGuard({ onViolation, sharedStream = null, isPaused = false }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [cameraReady, setCameraReady] = useState(false);
@@ -29,9 +29,17 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
   const scanTimerRef = useRef(null);
 
   const onViolationRef = useRef(onViolation);
+  const isPausedRef = useRef(isPaused);
   useEffect(() => {
     onViolationRef.current = onViolation;
   }, [onViolation]);
+
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+    if (isPaused) {
+      violationCountRef.current = { noFace: 0, multiFace: 0, personBg: 0 };
+    }
+  }, [isPaused]);
 
   const showBackgroundWarning = (message) => {
     setBackgroundWarning(message);
@@ -169,7 +177,7 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
     const runScan = async () => {
       if (!mounted || !videoRef.current) return;
 
-      if (!isViolatingRef.current) {
+      if (!isViolatingRef.current && !isPausedRef.current) {
         scanCycleRef.current += 1;
 
         try {
@@ -259,7 +267,10 @@ export default function FaceDetectionGuard({ onViolation, sharedStream = null })
 
       let consecutiveVoiceTicks = 0;
       checkInterval = setInterval(() => {
-        if (isViolatingRef.current) return;
+        if (isViolatingRef.current || isPausedRef.current) {
+          consecutiveVoiceTicks = 0;
+          return;
+        }
 
         analyser.getByteFrequencyData(dataArray);
         let sum = 0;

@@ -115,19 +115,18 @@ export default function AdminQuizDetail() {
       title={quiz.title}
       subtitle="Admin Quiz Overview"
       action={
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           <button onClick={() => fetchResults(true)} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }} disabled={refreshing}>
-            <RefreshCw size={15} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} /> Refresh
+            <RefreshCw size={15} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} /><span> Refresh</span>
           </button>
           <button onClick={handleEditClick} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Edit3 size={15} /> Edit
+            <Edit3 size={15} /><span> Edit</span>
           </button>
-
-          <Link to={`/admin/quizzes/${id}/questions`} className="btn-primary">
-            <HelpCircle size={15} /> Manage Questions
+          <Link to={`/admin/quizzes/${id}/questions`} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <HelpCircle size={15} /><span> Questions</span>
           </Link>
-          <Link to="/admin/quizzes" className="btn-ghost">
-            <ArrowLeft size={15} /> Back
+          <Link to="/admin/quizzes" className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <ArrowLeft size={15} /><span> Back</span>
           </Link>
         </div>
       }

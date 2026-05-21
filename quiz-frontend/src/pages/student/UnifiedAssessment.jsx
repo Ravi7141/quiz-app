@@ -96,6 +96,8 @@ export default function UnifiedAssessment() {
   // Proctoring/Anti-cheat
   const [violations, setViolations] = useState(0)
   const [violationPopup, setViolationPopup] = useState(null)
+  const [isProctoringPaused, setIsProctoringPaused] = useState(false)
+  const isProctoringPausedRef = useRef(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [timeLeft, setTimeLeft] = useState(null)
 
@@ -235,7 +237,11 @@ export default function UnifiedAssessment() {
 
   // ── Anti-cheat violation recorder ────────────────────────────────
   const handleViolation = useCallback((reason) => {
-    if (!antiCheatActiveRef.current || autoSubmittedRef.current) return
+    if (!antiCheatActiveRef.current || autoSubmittedRef.current || isProctoringPausedRef.current) return
+    
+    isProctoringPausedRef.current = true
+    setIsProctoringPaused(true)
+    
     violRef.current += 1
     const count = violRef.current
     setViolations(count)
@@ -498,12 +504,12 @@ export default function UnifiedAssessment() {
 
   if (!activeStudentId) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a0d14', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, color: 'var(--text-main)' }}>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, color: 'var(--text-main)' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 24, padding: '48px', maxWidth: 460, width: '100%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+          style={{ background: 'var(--glass-card)', border: '1px solid var(--glass-border)', borderRadius: 24, padding: '48px', maxWidth: 460, width: '100%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
-            <h1 style={{ fontSize: 24, color: '#fff', fontWeight: 800, marginBottom: 8 }}>Candidate Enrollment</h1>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }}>Please provide your details to begin the assessment.</p>
+            <h1 style={{ fontSize: 24, color: 'var(--text-main)', fontWeight: 800, marginBottom: 8 }}>Candidate Enrollment</h1>
+            <p style={{ color: 'var(--text-sec)', fontSize: 14 }}>Please provide your details to begin the assessment.</p>
           </div>
           <form onSubmit={handleCandidateSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
@@ -557,25 +563,31 @@ export default function UnifiedAssessment() {
     <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
       
       {/* Proctoring camera & guard */}
-      <FaceDetectionGuard onViolation={handleViolation} sharedStream={cameraStreamRef.current} />
+      <FaceDetectionGuard onViolation={handleViolation} sharedStream={cameraStreamRef.current} isPaused={isProctoringPaused} />
 
       {/* Violation Popup Overlay */}
       <AnimatePresence>
         {violationPopup && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
-              style={{ background: '#161b22', border: '1px solid #ef4444', borderRadius: 24, padding: 40, maxWidth: 480, width: '100%', textAlign: 'center' }}>
+              style={{ background: 'var(--glass-card)', border: '1px solid #ef4444', borderRadius: 24, padding: 40, maxWidth: 480, width: '100%', textAlign: 'center' }}>
               <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
                 <AlertTriangle size={32} color="#ef4444" />
               </div>
-              <h2 style={{ color: '#fff', fontSize: 24, fontWeight: 800, marginBottom: 12 }}>Proctoring Alert</h2>
+              <h2 style={{ color: 'var(--text-main)', fontSize: 24, fontWeight: 800, marginBottom: 12 }}>Proctoring Alert</h2>
               <p style={{ color: '#ef4444', fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Violation Detected: {violationPopup.reason}</p>
               <p style={{ color: 'var(--text-sec)', fontSize: 14, marginBottom: 24 }}>
                 This is warning <strong style={{ color: '#f87171' }}>{violationPopup.count} of {MAX_VIOLATIONS}</strong>.
                 {violationPopup.autoSubmit ? ' Maximum violations reached. The assessment is being submitted automatically.' : ' Please keep your face aligned, do not switch tabs or windows, and remain silent.'}
               </p>
               {!violationPopup.autoSubmit && (
-                <button onClick={() => setViolationPopup(null)} className="btn-primary" style={{ margin: '0 auto' }}>I Understand</button>
+                <button onClick={() => {
+                  setViolationPopup(null);
+                  setTimeout(() => {
+                    isProctoringPausedRef.current = false;
+                    setIsProctoringPaused(false);
+                  }, 2000);
+                }} className="btn-primary" style={{ margin: '0 auto' }}>I Understand</button>
               )}
             </motion.div>
           </div>
@@ -587,13 +599,13 @@ export default function UnifiedAssessment() {
         {showConfirm && (
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(5,8,22,0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 15 }}
-              style={{ background: '#161b22', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 24, padding: 32, maxWidth: 460, width: '100%', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 12 }}>Submit Assessment?</h3>
+              style={{ background: 'var(--glass-card)', border: '1px solid var(--glass-border)', borderRadius: 24, padding: 32, maxWidth: 460, width: '100%', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 12 }}>Submit Assessment?</h3>
               <p style={{ color: 'var(--text-sec)', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
                 Are you sure you want to finish the entire assessment? Once submitted, you cannot change your answers or write any more code.
               </p>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                <button onClick={() => setShowConfirm(false)} style={{ padding: '10px 20px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text-sec)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button onClick={() => setShowConfirm(false)} style={{ padding: '10px 20px', borderRadius: 10, background: 'var(--glass-bg)', border: 'none', color: 'var(--text-sec)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
                 <button onClick={() => handleFinish(true)} className="btn-primary" style={{ background: 'linear-gradient(135deg,var(--primary),var(--primary-400))' }}>Submit Assessment</button>
               </div>
             </motion.div>
@@ -606,7 +618,7 @@ export default function UnifiedAssessment() {
         // ── QUIZ SECTION ─────────────────────────────────────────────────────────────
         <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
           {/* Header Bar */}
-          <div style={{ background: 'rgba(6,8,24,0.92)', borderBottom: '1px solid rgba(255,255,255,0.06)', position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)' }}>
+          <div style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)' }}>
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8" style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', minHeight: 72 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
                 <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-main)', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{exam?.title}</span>
@@ -635,7 +647,7 @@ export default function UnifiedAssessment() {
                   </span>
                 )}
                 {codingTests.length > 0 && (
-                  <button onClick={() => setCurrentSection('coding')} className="btn-primary" style={{ padding: '10px 20px', background: '#21262d', border: '1px solid rgba(255,255,255,0.1)' }}>
+                  <button onClick={() => setCurrentSection('coding')} className="btn-sec" style={{ padding: '10px 20px' }}>
                     Coding Section <ChevronRight size={14} />
                   </button>
                 )}
@@ -807,11 +819,11 @@ export default function UnifiedAssessment() {
                   <ArrowLeft size={14} /> Back to Quiz
                 </button>
               )}
-              {questions.length > 0 && <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)' }} />}
+              {questions.length > 0 && <div style={{ width: 1, height: 16, background: 'var(--border)' }} />}
               <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)' }}>Coding Challenge</span>
               {codingTests.length > 1 && (
                 <select value={currentCoding} onChange={e => { setCurrentCoding(Number(e.target.value)); setConsoleOutput(null) }}
-                  style={{ background: '#21262d', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--text-main)', padding: '4px 10px', borderRadius: 6, fontSize: 12, outline: 'none', cursor: 'pointer' }}>
+                  style={{ background: 'var(--input-bg)', border: '1px solid var(--border)', color: 'var(--text-main)', padding: '4px 10px', borderRadius: 6, fontSize: 12, outline: 'none', cursor: 'pointer' }}>
                   {codingTests.map((t, idx) => <option key={t.id} value={idx}>Problem {idx + 1}: {t.title}</option>)}
                 </select>
               )}
@@ -832,17 +844,17 @@ export default function UnifiedAssessment() {
               )}
 
               <select value={codingStates[codingTests[currentCoding]?.id]?.language || 'javascript'} onChange={e => handleLangChange(e.target.value)}
-                style={{ background: '#21262d', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: 6, fontSize: 13, outline: 'none', cursor: 'pointer' }}>
-                {LANGUAGES.map(l => <option key={l.val} value={l.val} style={{ background: '#161b22', color: 'var(--text-main)' }}>{l.label}</option>)}
+                style={{ background: 'var(--input-bg)', border: '1px solid var(--border)', color: 'var(--text-main)', padding: '6px 12px', borderRadius: 6, fontSize: 13, outline: 'none', cursor: 'pointer' }}>
+                {LANGUAGES.map(l => <option key={l.val} value={l.val} style={{ background: 'var(--input-bg)', color: 'var(--text-main)' }}>{l.label}</option>)}
               </select>
 
               <button onClick={handleRunCode} disabled={codingStates[codingTests[currentCoding]?.id]?.running}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, background: '#21262d', border: '1px solid rgba(56,189,248,0.3)', color: '#38bdf8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, background: 'var(--input-bg)', border: '1px solid rgba(56,189,248,0.3)', color: '#38bdf8', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {codingStates[codingTests[currentCoding]?.id]?.running ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Play size={14} />} Run
               </button>
 
               <button onClick={handleSubmitCode} disabled={codingStates[codingTests[currentCoding]?.id]?.submitting}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: '#21262d', border: '1px solid rgba(167,139,250,0.3)', color: 'var(--primary-400)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 18px', borderRadius: 8, background: 'var(--input-bg)', border: '1px solid rgba(167,139,250,0.3)', color: 'var(--primary-400)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 {codingStates[codingTests[currentCoding]?.id]?.submitting ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Send size={14} />} Submit Code
               </button>
 
@@ -870,13 +882,13 @@ export default function UnifiedAssessment() {
                   {codingTests[currentCoding].sampleInput && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-sec)', marginBottom: 10 }}>Sample Input</div>
-                      <pre style={{ background: '#0d1117', padding: '12px 14px', borderRadius: 8, fontSize: 13, color: '#38bdf8', overflowX: 'auto', border: '1px solid rgba(56,189,248,0.2)', fontFamily: "'Fira Code', monospace", lineHeight: 1.6 }}>{codingTests[currentCoding].sampleInput}</pre>
+                      <pre style={{ background: 'var(--glass-hover)', padding: '12px 14px', borderRadius: 8, fontSize: 13, color: '#38bdf8', overflowX: 'auto', border: '1px solid rgba(56,189,248,0.2)', fontFamily: "'Fira Code', monospace", lineHeight: 1.6 }}>{codingTests[currentCoding].sampleInput}</pre>
                     </div>
                   )}
                   {codingTests[currentCoding].sampleOutput && (
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-sec)', marginBottom: 10 }}>Expected Output</div>
-                      <pre style={{ background: '#0d1117', padding: '12px 14px', borderRadius: 8, fontSize: 13, color: '#4ade80', overflowX: 'auto', border: '1px solid rgba(74,222,128,0.2)', fontFamily: "'Fira Code', monospace", lineHeight: 1.6 }}>{codingTests[currentCoding].sampleOutput}</pre>
+                      <pre style={{ background: 'var(--glass-hover)', padding: '12px 14px', borderRadius: 8, fontSize: 13, color: '#4ade80', overflowX: 'auto', border: '1px solid rgba(74,222,128,0.2)', fontFamily: "'Fira Code', monospace", lineHeight: 1.6 }}>{codingTests[currentCoding].sampleOutput}</pre>
                     </div>
                   )}
                 </div>
@@ -892,7 +904,7 @@ export default function UnifiedAssessment() {
                   language={codingStates[codingTests[currentCoding]?.id]?.language || 'javascript'}
                   value={codingStates[codingTests[currentCoding]?.id]?.code || ''}
                   onChange={handleCodeChange}
-                  theme="vs-dark"
+                  theme="light"
                   options={{
                     fontSize: 15,
                     fontFamily: "'Fira Code', 'Cascadia Code', monospace",
@@ -907,8 +919,8 @@ export default function UnifiedAssessment() {
               </div>
 
               {/* Console Output Panel */}
-              <div style={{ height: '240px', background: '#0b0e14', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: '#11151d', borderBottom: '1px solid rgba(255,255,255,0.05)', fontSize: 12, fontWeight: 700, color: 'var(--text-sec)' }}>
+              <div style={{ height: '240px', flexShrink: 0, background: 'var(--sidebar-bg)', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', background: 'var(--header-bg)', borderBottom: '1px solid var(--border)', fontSize: 12, fontWeight: 700, color: 'var(--text-sec)' }}>
                   <Terminal size={14} /> Console / Output
                 </div>
                 <div style={{ flex: 1, padding: 16, overflowY: 'auto', fontFamily: "'Fira Code', monospace", fontSize: 13 }}>
@@ -927,7 +939,7 @@ export default function UnifiedAssessment() {
                         <span style={{ color: 'var(--text-sec)' }}>({consoleOutput.data.executionTimeMs || 0}ms)</span>
                       </div>
                       {consoleOutput.data.compileMessage && (
-                        <pre style={{ color: 'var(--text-main)', whiteSpace: 'pre-wrap', background: '#0d1117', padding: 12, borderRadius: 6 }}>{consoleOutput.data.compileMessage}</pre>
+                        <pre style={{ color: 'var(--text-main)', whiteSpace: 'pre-wrap', background: 'var(--glass-hover)', padding: 12, borderRadius: 6 }}>{consoleOutput.data.compileMessage}</pre>
                       )}
                       <div>
                         <div style={{ color: 'var(--text-sec)', fontSize: 11, textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Standard Output:</div>

@@ -320,7 +320,7 @@ export default function AdminCodingTests() {
 
   return (
     <Layout title="Coding Tests" subtitle="Manage programming challenges"
-      action={<button onClick={() => setModal({})} className="btn-primary"><Plus size={16} /> New Problem</button>}>
+      action={<button onClick={() => setModal({})} className="btn-primary"><Plus size={16} /><span> New Problem</span></button>}>
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div>
       : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(320px,1fr))', gap: 20 }}>

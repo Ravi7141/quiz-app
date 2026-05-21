@@ -35,7 +35,7 @@ export default function Results() {
   return (
     <Layout title="All Results" subtitle="Detailed student performance overview">
       {/* Summary Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
+      <div className="results-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
         {[
           { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)' },
           { label: 'Avg Score', val: avg !== '—' ? `${avg}%` : '—', icon: Trophy, color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
@@ -52,10 +52,10 @@ export default function Results() {
       </div>
 
       {/* Toolbar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative', width: 280 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+        <div className="admin-search" style={{ position: 'relative', flex: 1, minWidth: 200 }}>
           <Search size={15} color="#64748b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search student or quiz..." className="input-field" style={{ paddingLeft: 40 }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search student or quiz..." className="input-field" style={{ paddingLeft: 40, width: '100%' }} />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {['ALL', 'PASSED', 'FAILED'].map(f => (

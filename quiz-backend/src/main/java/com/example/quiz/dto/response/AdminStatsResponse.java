@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AdminStatsResponse {
     private long totalQuizzes;
+    private long totalAssessments;
     private long totalQuestions;
     private long totalStudents;
     private long totalAttempts;
