@@ -4,6 +4,7 @@ import com.example.quiz.dto.request.CodeRunRequest;
 import com.example.quiz.dto.request.CodingTestRequest;
 import com.example.quiz.dto.response.CodingTestResponse;
 import com.example.quiz.entity.CodingTest;
+import com.example.quiz.entity.TestCase;
 import com.example.quiz.entity.User;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.repository.CodingTestRepository;
@@ -80,6 +81,7 @@ public class CodingTestService {
                 .difficulty(request.getDifficulty())
                 .scheduledFor(request.getScheduledFor())
                 .validUntil(request.getValidUntil())
+                .testCases(request.getTestCases() != null ? request.getTestCases() : new java.util.ArrayList<>())
                 .createdBy(currentAdmin)
                 .build();
         return mapToResponse(codingTestRepository.save(test));
@@ -106,6 +108,10 @@ public class CodingTestService {
         if (request.getDifficulty() != null)   test.setDifficulty(request.getDifficulty());
         if (request.getScheduledFor() != null) test.setScheduledFor(request.getScheduledFor());
         if (request.getValidUntil() != null)   test.setValidUntil(request.getValidUntil());
+        if (request.getTestCases() != null) {
+            test.getTestCases().clear();
+            test.getTestCases().addAll(request.getTestCases());
+        }
 
         return mapToResponse(codingTestRepository.save(test));
     }
@@ -148,23 +154,41 @@ public class CodingTestService {
 
         log.info("Submitting {} code for problem: {}", request.getLanguage(), test.getTitle());
 
-        long startTime = System.currentTimeMillis();
-        String output = compilerService.executeCode(request.getCode(), request.getLanguage(), test.getSampleInput());
-        long executionTimeMs = System.currentTimeMillis() - startTime;
+        long totalExecutionTimeMs = 0;
+        int passedCount = 0;
+        
+        List<TestCase> testCases = test.getTestCases();
+        if (testCases == null || testCases.isEmpty()) {
+            // Fallback to sample input if no test cases defined
+            testCases = List.of(new TestCase(test.getSampleInput(), test.getSampleOutput()));
+        }
+        
+        int totalTestCases = testCases.size();
+        String firstFailedOutput = null;
 
-        boolean passed = false;
-        String expected = test.getSampleOutput() != null ? test.getSampleOutput().trim() : "";
-        if (output.trim().equals(expected)) {
-            passed = true;
+        for (TestCase tc : testCases) {
+            long startTime = System.currentTimeMillis();
+            String output = compilerService.executeCode(request.getCode(), request.getLanguage(), tc.getInput());
+            totalExecutionTimeMs += (System.currentTimeMillis() - startTime);
+
+            String expected = tc.getExpectedOutput() != null ? tc.getExpectedOutput().trim() : "";
+            if (output.trim().equals(expected)) {
+                passedCount++;
+            } else if (firstFailedOutput == null) {
+                firstFailedOutput = output;
+            }
         }
 
+        boolean allPassed = (passedCount == totalTestCases && totalTestCases > 0);
+        String finalOutput = allPassed ? "All test cases passed!" : (firstFailedOutput != null ? firstFailedOutput : "Output did not match expected output.");
+
         return Map.of(
-                "status", passed ? "ACCEPTED" : "FAILED",
-                "message", passed ? "All test cases passed!" : "Output did not match expected output.",
-                "testCasesPassed", passed ? 1 : 0,
-                "totalTestCases", 1,
-                "executionTimeMs", executionTimeMs,
-                "output", output,
+                "status", allPassed ? "ACCEPTED" : "FAILED",
+                "message", allPassed ? "All test cases passed!" : "Some test cases failed.",
+                "testCasesPassed", passedCount,
+                "totalTestCases", totalTestCases,
+                "executionTimeMs", totalExecutionTimeMs,
+                "output", finalOutput,
                 "language", request.getLanguage()
         );
     }
@@ -182,6 +206,7 @@ public class CodingTestService {
                 .scheduledFor(test.getScheduledFor())
                 .validUntil(test.getValidUntil())
                 .createdAt(test.getCreatedAt())
+                .testCases(test.getTestCases())
                 .build();
     }
 

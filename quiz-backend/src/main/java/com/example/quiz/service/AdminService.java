@@ -83,18 +83,20 @@ public class AdminService {
 
     /**
      * GET /admin/results
-     * Returns all quiz attempts across all students and quizzes.
+     * Returns all assessment attempts across all students.
      */
     public List<AdminResultResponse> getAllResults() {
         User currentAdmin = authService.getCurrentUser();
-        List<QuizAttempt> attempts;
+        List<AssessmentAttempt> attempts;
         if (currentAdmin != null) {
-            attempts = attemptRepository.findByQuizCreatedById(currentAdmin.getId());
+            attempts = assessmentAttemptRepository.findAll().stream()
+                    .filter(a -> a.getAssessment().getCreatedBy() != null && a.getAssessment().getCreatedBy().getId().equals(currentAdmin.getId()))
+                    .collect(Collectors.toList());
         } else {
-            attempts = attemptRepository.findAll();
+            attempts = assessmentAttemptRepository.findAll();
         }
         return attempts.stream()
-                .map(this::mapToResultResponse)
+                .map(this::mapToAssessmentResultResponse)
                 .collect(Collectors.toList());
     }
 
@@ -103,24 +105,23 @@ public class AdminService {
      * Returns all attempts for a specific student.
      */
     public List<AdminResultResponse> getStudentResults(Long studentId) {
-        // validate student exists
         userRepository.findById(studentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Student", studentId));
         User currentAdmin = authService.getCurrentUser();
-        List<QuizAttempt> attempts = attemptRepository.findByStudentId(studentId);
+        List<AssessmentAttempt> attempts = assessmentAttemptRepository.findByStudentId(studentId);
         if (currentAdmin != null) {
             attempts = attempts.stream()
-                    .filter(a -> a.getQuiz().getCreatedBy() != null && a.getQuiz().getCreatedBy().getId().equals(currentAdmin.getId()))
+                    .filter(a -> a.getAssessment().getCreatedBy() != null && a.getAssessment().getCreatedBy().getId().equals(currentAdmin.getId()))
                     .collect(Collectors.toList());
         }
         return attempts.stream()
-                .map(this::mapToResultResponse)
+                .map(this::mapToAssessmentResultResponse)
                 .collect(Collectors.toList());
     }
 
     /**
      * GET /admin/quizzes/{id}/results
-     * Returns all attempts for a specific quiz.
+     * Returns all attempts for a specific quiz (keep for backward compatibility).
      */
     public List<AdminResultResponse> getQuizResults(Long quizId) {
         User currentAdmin = authService.getCurrentUser();
@@ -208,6 +209,43 @@ public class AdminService {
                 .totalMarks(attempt.getQuiz().getTotalMarks())
                 .correctAnswers(correctCount)
                 .totalQuestions(totalQ)
+                .status(attempt.getStatus())
+                .startedAt(attempt.getStartedAt())
+                .submittedAt(attempt.getSubmittedAt())
+                .build();
+    }
+
+    private AdminResultResponse mapToAssessmentResultResponse(AssessmentAttempt attempt) {
+        // Calculate total marks for the assessment
+        int totalMarks = 0;
+        List<com.example.quiz.entity.AssessmentSection> sections = assessmentSectionRepository
+                .findByAssessmentIdOrderBySectionOrderAsc(attempt.getAssessment().getId());
+        for (com.example.quiz.entity.AssessmentSection section : sections) {
+            if (section.getSectionType() == com.example.quiz.enums.SectionType.QUIZ && section.getReferenceId() != null) {
+                com.example.quiz.entity.Quiz quiz = quizRepository.findById(section.getReferenceId()).orElse(null);
+                if (quiz != null) {
+                    int qMax = (quiz.getTotalMarks() != null && quiz.getTotalMarks() > 0)
+                            ? quiz.getTotalMarks()
+                            : questionRepository.findByQuizId(quiz.getId()).stream()
+                              .mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
+                    totalMarks += qMax;
+                }
+            } else if (section.getSectionType() == com.example.quiz.enums.SectionType.CODING) {
+                totalMarks += 20;
+            }
+        }
+
+        return AdminResultResponse.builder()
+                .attemptId(attempt.getId())
+                .studentName(attempt.getStudent().getName())
+                .studentEmail(attempt.getStudent().getEmail())
+                .studentPhone(attempt.getStudent().getPhone())
+                .quizId(attempt.getAssessment().getId())
+                .quizTitle(attempt.getAssessment().getTitle()) // This will seamlessly populate the frontend!
+                .score(attempt.getScore() != null ? attempt.getScore() : 0)
+                .totalMarks(totalMarks)
+                .correctAnswers(null) // Assessments don't have a simple correctAnswers count due to multiple sections
+                .totalQuestions(null)
                 .status(attempt.getStatus())
                 .startedAt(attempt.getStartedAt())
                 .submittedAt(attempt.getSubmittedAt())

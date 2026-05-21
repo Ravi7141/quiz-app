@@ -338,9 +338,10 @@ export default function QuizAttempt() {
                         top: -400 * (zoomLevel - 1), 
                         bottom: 400 * (zoomLevel - 1) 
                       }}
+                      animate={{ scale: zoomLevel, x: zoomLevel === 1 ? 0 : undefined, y: zoomLevel === 1 ? 0 : undefined }}
                       style={{ 
                         maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
-                        scale: zoomLevel, cursor: zoomLevel > 1 ? 'grab' : 'default' 
+                        cursor: zoomLevel > 1 ? 'grab' : 'default' 
                       }} 
                     />
                   </div>

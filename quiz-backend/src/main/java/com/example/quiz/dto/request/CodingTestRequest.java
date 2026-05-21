@@ -3,6 +3,8 @@ package com.example.quiz.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import java.util.List;
+import com.example.quiz.entity.TestCase;
 
 /**
  * Request body for POST /admin/coding-tests and PUT /admin/coding-tests/{id}
@@ -34,4 +36,6 @@ public class CodingTestRequest {
 
     private java.time.LocalDateTime scheduledFor;
     private java.time.LocalDateTime validUntil;
+
+    private List<TestCase> testCases;
 }
