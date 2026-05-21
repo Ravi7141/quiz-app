@@ -775,9 +775,10 @@ export default function UnifiedAssessment() {
                                   top: -400 * (zoomLevel - 1), 
                                   bottom: 400 * (zoomLevel - 1) 
                                 }}
+                                animate={{ scale: zoomLevel, x: zoomLevel === 1 ? 0 : undefined, y: zoomLevel === 1 ? 0 : undefined }}
                                 style={{ 
                                   maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
-                                  scale: zoomLevel, cursor: zoomLevel > 1 ? 'grab' : 'default' 
+                                  cursor: zoomLevel > 1 ? 'grab' : 'default' 
                                 }} 
                               />
                             </div>
@@ -1075,6 +1076,12 @@ export default function UnifiedAssessment() {
                         <div style={{ color: '#ef4444', background: 'rgba(239,68,68,0.06)', padding: 12, borderRadius: 6, border: '1px solid rgba(239,68,68,0.15)' }}>
                           <strong>Error message:</strong>
                           <pre style={{ whiteSpace: 'pre-wrap', marginTop: 4 }}>{consoleOutput.data.errorMessage}</pre>
+                        </div>
+                      )}
+                      {consoleOutput.data.output && (
+                        <div>
+                          <div style={{ color: 'var(--text-sec)', fontSize: 11, textTransform: 'uppercase', fontWeight: 700, marginBottom: 4 }}>Standard Output:</div>
+                          <pre style={{ color: 'var(--text-main)', whiteSpace: 'pre-wrap' }}>{consoleOutput.data.output}</pre>
                         </div>
                       )}
                     </div>

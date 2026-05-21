@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a coding problem available to students.
@@ -44,6 +46,10 @@ public class CodingTest {
     /** Difficulty level: EASY, MEDIUM, HARD */
     @Column(nullable = false)
     private String difficulty;
+
+    @ElementCollection
+    @CollectionTable(name = "coding_test_cases", joinColumns = @JoinColumn(name = "coding_test_id"))
+    private List<TestCase> testCases = new ArrayList<>();
 
     @Column(name = "scheduled_for")
     private LocalDateTime scheduledFor;

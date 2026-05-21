@@ -7,7 +7,7 @@ import {
   Plus, Pencil, Trash2, Code2, X, Loader2, Check,
   Share2, Eye, Calendar, Clock, Terminal, ChevronRight
 } from 'lucide-react'
-import ShareLinkModal from '../../components/ShareLinkModal'
+
 
 const DIFFICULTIES = ['EASY', 'MEDIUM', 'HARD']
 const diffClass = { EASY: 'badge-easy', MEDIUM: 'badge-medium', HARD: 'badge-hard' }
@@ -100,9 +100,6 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: 12, marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--glass-border)' }}>
-            <button onClick={onShare} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
-              <Share2 size={14} /> Share Links
-            </button>
             <button onClick={onDelete} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', marginLeft: 'auto' }}>
               <Trash2 size={14} /> Delete
             </button>
@@ -117,7 +114,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
 }
 
 function CodingModal({ test, onClose, onSave }) {
-  const [form, setForm] = useState({ title: '', description: '', sampleInput: '', sampleOutput: '', difficulty: 'EASY', ...test })
+  const [form, setForm] = useState({ title: '', description: '', sampleInput: '', sampleOutput: '', difficulty: 'EASY', testCases: [], ...test })
   const [loading, setLoading] = useState(false)
   const [importQuery, setImportQuery] = useState('')
   const [importing, setImporting] = useState(false)
@@ -278,6 +275,74 @@ function CodingModal({ test, onClose, onSave }) {
               ))}
             </div>
           </div>
+          
+          {/* Test Cases Section */}
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--glass-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <label style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)' }}>Evaluation Test Cases</label>
+              <button 
+                type="button" 
+                onClick={() => setForm(f => ({ ...f, testCases: [...(f.testCases || []), { input: '', expectedOutput: '' }] }))}
+                style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 6, padding: '4px 8px', fontSize: 11, color: '#38bdf8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+              >
+                <Plus size={12} /> Add Test Case
+              </button>
+            </div>
+            
+            {(!form.testCases || form.testCases.length === 0) ? (
+              <div style={{ padding: 16, textAlign: 'center', background: 'var(--glass-bg)', borderRadius: 8, fontSize: 12, color: 'var(--text-sec)', border: '1px dashed var(--glass-border)' }}>
+                No extra test cases added. The sample input/output above will be used.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 300, overflowY: 'auto' }}>
+                {form.testCases.map((tc, idx) => (
+                  <div key={idx} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 8, padding: 12, position: 'relative' }}>
+                    <div style={{ position: 'absolute', top: 12, right: 12 }}>
+                      <button 
+                        type="button" 
+                        onClick={() => setForm(f => ({ ...f, testCases: f.testCases.filter((_, i) => i !== idx) }))}
+                        style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: 'none', borderRadius: 4, padding: 4, cursor: 'pointer', display: 'flex' }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-sec)', display: 'block', marginBottom: 8 }}>Test Case #{idx + 1}</span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                      <div>
+                        <label style={{ fontSize: 11, color: 'var(--text-sec)', marginBottom: 4, display: 'block' }}>Input</label>
+                        <textarea 
+                          rows={2} 
+                          value={tc.input || ''} 
+                          onChange={e => {
+                            const newTc = [...form.testCases];
+                            newTc[idx].input = e.target.value;
+                            setForm(f => ({ ...f, testCases: newTc }));
+                          }} 
+                          className="input-field" 
+                          style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 11, padding: 8 }} 
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, color: 'var(--text-sec)', marginBottom: 4, display: 'block' }}>Expected Output</label>
+                        <textarea 
+                          rows={2} 
+                          value={tc.expectedOutput || ''} 
+                          onChange={e => {
+                            const newTc = [...form.testCases];
+                            newTc[idx].expectedOutput = e.target.value;
+                            setForm(f => ({ ...f, testCases: newTc }));
+                          }} 
+                          className="input-field" 
+                          style={{ resize: 'vertical', fontFamily: 'monospace', fontSize: 11, padding: 8 }} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button type="button" onClick={onClose} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
             <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
@@ -297,7 +362,6 @@ export default function AdminCodingTests() {
   const [detailModal, setDetailModal] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
-  const [shareExam, setShareExam] = useState(null)
 
   const fetchTests = () => codingApi.getAll().then(r => setTests(r.data.data || [])).finally(() => setLoading(false))
   useEffect(() => { fetchTests() }, [])
@@ -342,15 +406,7 @@ export default function AdminCodingTests() {
               <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {test.description ? test.description.replace(/<[^>]*>/g, '') : ''}
               </p>
-              <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--glass-border)' }} onClick={e => e.stopPropagation()}>
-                <button onClick={() => setShareExam(test)} style={{ padding: '0 12px', height: 32, borderRadius: 8, background: 'rgba(56,189,248,0.1)', color: '#38bdf8', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', marginRight: 'auto' }}>
-                  <Share2 size={14} /> Share Links
-                </button>
-                <button onClick={() => setModal(test)} style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--glass-bg)', color: 'var(--text-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', cursor: 'pointer' }}><Pencil size={14} /></button>
-                <button onClick={() => setDeleteTarget(test)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(239,68,68,0.1)', color: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
-                  <Trash2 size={14} />
-                </button>
-              </div>
+
             </motion.div>
           ))}
           {tests.length === 0 && <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 80, color: 'var(--text-sec)' }}><Code2 size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} /><p>No problems yet</p></div>}
@@ -371,9 +427,6 @@ export default function AdminCodingTests() {
             onDelete={() => {
               setDeleteTarget(detailModal);
             }}
-            onShare={() => {
-              setShareExam(detailModal);
-            }}
           />
         )}
       </AnimatePresence>
@@ -389,13 +442,6 @@ export default function AdminCodingTests() {
           />
         )}
       </AnimatePresence>
-      <ShareLinkModal
-        isOpen={!!shareExam}
-        onClose={() => setShareExam(null)}
-        examId={shareExam?.id}
-        examType="CODING"
-        shareToken={shareExam?.shareToken}
-      />
     </Layout>
   )
 }

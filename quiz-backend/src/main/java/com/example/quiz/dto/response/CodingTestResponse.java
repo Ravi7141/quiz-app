@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import com.example.quiz.entity.TestCase;
 
 /**
  * Response shape for coding test listing.
@@ -35,4 +37,5 @@ public class CodingTestResponse {
     private LocalDateTime scheduledFor;
     private LocalDateTime validUntil;
     private LocalDateTime createdAt;
+    private List<TestCase> testCases;
 }
