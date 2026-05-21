@@ -282,12 +282,6 @@ export default function AdminQuizDetail() {
                 <input required name="title" value={editFormData.title} onChange={handleEditChange} className="input-field" placeholder="Quiz title" /></div>
                 <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description</label>
                 <textarea name="description" value={editFormData.description} onChange={handleEditChange} rows={3} className="input-field" style={{ resize: 'none' }} placeholder="Optional description" /></div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Duration (min) *</label>
-                  <input required type="number" name="durationMinutes" value={editFormData.durationMinutes} onChange={handleEditChange} className="input-field" placeholder="e.g. 30" min="1" /></div>
-                  <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Total Marks *</label>
-                  <input required type="number" name="totalMarks" value={editFormData.totalMarks} onChange={handleEditChange} className="input-field" placeholder="e.g. 100" min="1" /></div>
-                </div>
 
                 <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                   <button type="button" onClick={() => setShowEditModal(false)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={savingEdit}>Cancel</button>

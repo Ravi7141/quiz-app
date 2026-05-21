@@ -29,6 +29,7 @@ import lombok.NoArgsConstructor;
 public class QuestionResponse {
     private Long id;
     private String questionText;
+    private String questionImage;
     private String optionA;
     private String optionB;
     private String optionC;

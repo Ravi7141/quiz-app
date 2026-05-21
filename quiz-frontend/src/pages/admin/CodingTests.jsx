@@ -67,7 +67,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Description */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+          <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: 16 }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-main)', marginBottom: 8 }}>Problem Description</h3>
             <div
               className="leetcode-description"
@@ -78,19 +78,19 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
 
           {/* Code Sample Inputs/Outputs */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+            <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: 16 }}>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Terminal size={14} color="#38bdf8" /> Sample Input
               </h4>
-              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: 'var(--text-main)', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
+              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: '#f8fafc', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
                 {test.sampleInput || '—'}
               </pre>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 12, padding: 16 }}>
+            <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: 16 }}>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <Terminal size={14} color="#4ade80" /> Expected Output
               </h4>
-              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: 'var(--text-main)', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
+              <pre style={{ margin: 0, padding: 10, background: '#0a0f1d', borderRadius: 8, fontSize: 12, color: '#f8fafc', fontFamily: 'monospace', overflowX: 'auto', minHeight: 48 }}>
                 {test.sampleOutput || '—'}
               </pre>
             </div>
@@ -99,7 +99,7 @@ function CodingTestDetailModal({ test, onClose, onEdit, onDelete, onShare }) {
 
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: 12, marginTop: 8, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 8, paddingTop: 16, borderTop: '1px solid var(--glass-border)' }}>
             <button onClick={onShare} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#38bdf8', border: '1px solid rgba(56,189,248,0.2)' }}>
               <Share2 size={14} /> Share Links
             </button>
@@ -251,8 +251,8 @@ function CodingModal({ test, onClose, onSave }) {
                   minHeight: 120,
                   maxHeight: 250,
                   overflowY: 'auto',
-                  background: '#0d1117',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'var(--glass-bg)',
+                  border: '1px solid var(--glass-border)',
                   borderRadius: 12,
                   padding: '12px 16px',
                   textAlign: 'left'
@@ -272,7 +272,7 @@ function CodingModal({ test, onClose, onSave }) {
             <div style={{ display: 'flex', gap: 8 }}>
               {DIFFICULTIES.map(d => (
                 <button key={d} type="button" onClick={() => setForm(f => ({ ...f, difficulty: d }))}
-                  style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 600, border: `1px solid ${form.difficulty === d ? (d === 'EASY' ? '#4ade80' : d === 'MEDIUM' ? '#fbbf24' : '#f87171') : 'rgba(255,255,255,0.1)'}`, background: form.difficulty === d ? (d === 'EASY' ? 'rgba(74,222,128,0.15)' : d === 'MEDIUM' ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)') : 'rgba(255,255,255,0.03)', color: form.difficulty === d ? (d === 'EASY' ? '#4ade80' : d === 'MEDIUM' ? '#fbbf24' : '#f87171') : '#94a3b8', cursor: 'pointer', transition: 'all 0.2s' }}>
+                  style={{ flex: 1, padding: '8px', borderRadius: 8, fontSize: 12, fontWeight: 600, border: `1px solid ${form.difficulty === d ? (d === 'EASY' ? '#4ade80' : d === 'MEDIUM' ? '#fbbf24' : '#f87171') : 'var(--glass-border)'}`, background: form.difficulty === d ? (d === 'EASY' ? 'rgba(74,222,128,0.15)' : d === 'MEDIUM' ? 'rgba(251,191,36,0.15)' : 'rgba(248,113,113,0.15)') : 'var(--glass-bg)', color: form.difficulty === d ? (d === 'EASY' ? '#4ade80' : d === 'MEDIUM' ? '#fbbf24' : '#f87171') : 'var(--text-sec)', cursor: 'pointer', transition: 'all 0.2s' }}>
                   {d}
                 </button>
               ))}
@@ -342,11 +342,11 @@ export default function AdminCodingTests() {
               <p style={{ fontSize: 13, color: 'var(--text-sec)', lineHeight: 1.6, marginBottom: 16, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                 {test.description ? test.description.replace(/<[^>]*>/g, '') : ''}
               </p>
-              <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }} onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--glass-border)' }} onClick={e => e.stopPropagation()}>
                 <button onClick={() => setShareExam(test)} style={{ padding: '0 12px', height: 32, borderRadius: 8, background: 'rgba(56,189,248,0.1)', color: '#38bdf8', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, border: 'none', cursor: 'pointer', marginRight: 'auto' }}>
                   <Share2 size={14} /> Share Links
                 </button>
-                <button onClick={() => setModal(test)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.05)', color: 'var(--text-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><Pencil size={14} /></button>
+                <button onClick={() => setModal(test)} style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--glass-bg)', color: 'var(--text-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--glass-border)', cursor: 'pointer' }}><Pencil size={14} /></button>
                 <button onClick={() => setDeleteTarget(test)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(239,68,68,0.1)', color: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
                   <Trash2 size={14} />
                 </button>

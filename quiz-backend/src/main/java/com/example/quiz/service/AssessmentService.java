@@ -184,6 +184,7 @@ public class AssessmentService {
                             .map(q -> QuestionResponse.builder()
                                     .id(q.getId())
                                     .questionText(q.getQuestionText())
+                                    .questionImage(q.getQuestionImage())
                                     .optionA(q.getOptionA())
                                     .optionB(q.getOptionB())
                                     .optionC(q.getOptionC())

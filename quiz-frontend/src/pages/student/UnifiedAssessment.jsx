@@ -6,6 +6,7 @@ import { questionApi, attemptApi, studentQuizApi, examTokenApi, codingApi, asses
 import { useAuth } from '../../context/AuthContext'
 import toast from 'react-hot-toast'
 import {
+  ZoomIn, ZoomOut,
   ChevronLeft, ChevronRight, CheckCircle2, Clock, Send,
   AlertTriangle, Shield, Flag, Play, Terminal, XCircle, Loader2, ArrowLeft, ShieldAlert
 } from 'lucide-react'
@@ -20,10 +21,10 @@ const LANGUAGES = [
 ]
 
 const STARTERS = {
-  javascript: '// Write your solution here\nfunction solution(input) {\n  // your code\n}\n',
-  python:     '# Write your solution here\ndef solution(input):\n    pass\n',
-  java:       'public class Solution {\n    public static void main(String[] args) {\n        // your code\n    }\n}\n',
-  cpp:        '#include <iostream>\nusing namespace std;\n\nint main() {\n    // your code\n    return 0;\n}\n',
+  javascript: '// Read input from stdin if needed\n// const fs = require("fs");\n// const input = fs.readFileSync(0, "utf-8").trim();\n\n// Write your solution here\n',
+  python:     'import sys\n# Read input from stdin if needed\n# input_data = sys.stdin.read().strip()\n\n# Write your solution here\n',
+  java:       'import java.util.Scanner;\n\npublic class Solution {\n    public static void main(String[] args) {\n        // Scanner sc = new Scanner(System.in);\n        // String input = sc.hasNext() ? sc.nextLine() : "";\n        \n        // Write your solution here\n        \n    }\n}\n',
+  cpp:        '#include <iostream>\n#include <string>\nusing namespace std;\n\nint main() {\n    // string input;\n    // if (cin >> input) { ... }\n    \n    // Write your solution here\n    \n    return 0;\n}\n',
 }
 
 const diffClass = { EASY: 'badge-easy', MEDIUM: 'badge-medium', HARD: 'badge-hard' }
@@ -45,6 +46,7 @@ export default function UnifiedAssessment() {
   const violRef = useRef(0)
   const cameraStreamRef = useRef(null)
   const locationStateRef = useRef(location.state) // capture once — don't add location.state to effect deps
+  const imageContainerRef = useRef(null)
   
   const handleFinishRef = useRef(null)
   useEffect(() => {
@@ -83,6 +85,7 @@ export default function UnifiedAssessment() {
   // Assessment Progress
   const [currentSection, setCurrentSection] = useState('quiz') // quiz, coding
   const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [zoomLevel, setZoomLevel] = useState(1)
   const [currentCoding, setCurrentCoding] = useState(0)
 
   // MCQ state
@@ -103,6 +106,28 @@ export default function UnifiedAssessment() {
 
   // Compilation/Submission UI state (for the active coding challenge)
   const [consoleOutput, setConsoleOutput] = useState(null)
+
+  // Editor Layout State
+  const [panelWidth, setPanelWidth] = useState(380)
+  const [isResizing, setIsResizing] = useState(false)
+  
+  // Quiz Layout State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    if (!isResizing) return
+    const handleMouseMove = (e) => {
+      // Allow resizing between 200px and 60% of the screen width
+      setPanelWidth(Math.max(200, Math.min(e.clientX, window.innerWidth * 0.6)))
+    }
+    const handleMouseUp = () => setIsResizing(false)
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizing])
 
   useEffect(() => {
     if (cameraVerified) {
@@ -275,11 +300,18 @@ export default function UnifiedAssessment() {
       if (!document.fullscreenElement) handleViolation('Fullscreen was exited.')
     }
 
+    const checkInterval = setInterval(() => {
+      if (antiCheatActiveRef.current && !document.fullscreenElement) {
+        handleViolation('Fullscreen is required for this assessment.')
+      }
+    }, 500)
+
     window.addEventListener('blur', onBlur)
     document.addEventListener('visibilitychange', onVisibility)
     document.addEventListener('keydown', onKey)
     document.addEventListener('fullscreenchange', onFullscreen)
     return () => {
+      clearInterval(checkInterval)
       window.removeEventListener('blur', onBlur)
       document.removeEventListener('visibilitychange', onVisibility)
       document.removeEventListener('keydown', onKey)
@@ -583,6 +615,7 @@ export default function UnifiedAssessment() {
               {!violationPopup.autoSubmit && (
                 <button onClick={() => {
                   setViolationPopup(null);
+                  try { document.documentElement.requestFullscreen().catch(() => {}) } catch(e) {}
                   setTimeout(() => {
                     isProctoringPausedRef.current = false;
                     setIsProctoringPaused(false);
@@ -659,7 +692,7 @@ export default function UnifiedAssessment() {
           </div>
 
           {/* Main Area */}
-          <div className="flex-1 p-4 md:p-8">
+          <div className="flex-1 p-4 md:p-8 flex flex-col">
             {totalQuestions === 0 ? (
               <div style={{ textAlign: 'center', marginTop: 80 }}>
                 <p style={{ color: 'var(--text-sec)', marginBottom: 20 }}>No MCQ questions in this section.</p>
@@ -668,106 +701,166 @@ export default function UnifiedAssessment() {
                 )}
               </div>
             ) : (
-              <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6 md:gap-8 items-start">
-                {/* Left: Question Card */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  <AnimatePresence mode="wait">
-                    <motion.div key={currentQuestion} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}
-                      className="card flex flex-col min-h-[400px] p-5 md:p-10">
+              <div className="max-w-[1400px] mx-auto w-full flex-1 flex flex-col relative overflow-hidden">
+                
+                {/* Floating open button when sidebar is collapsed */}
+                {!isSidebarOpen && (
+                  <button 
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="absolute top-6 right-6 z-10 flex items-center justify-center bg-[var(--glass-bg)] shadow-sm transition-all"
+                    style={{ width: 36, height: 36, borderRadius: 10, color: 'var(--text-sec)', border: '1px solid var(--glass-border)', cursor: 'pointer' }}
+                    title="Open Questions Panel"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                )}
 
-                      {/* Question Header */}
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(37,99,235,0.15)', color: 'var(--primary-400)', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            {currentQuestion + 1}
-                          </div>
-                          <span style={{ fontSize: 14, color: 'var(--text-sec)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                            Question {currentQuestion + 1} of {totalQuestions}
-                          </span>
-                          {markedForReview.has(questions[currentQuestion]?.id) && (
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 6, padding: '3px 8px' }}>
-                              <Flag size={10} /> Marked for Review
-                            </span>
-                          )}
-                        </div>
-
-                        <button onClick={() => toggleReview(questions[currentQuestion]?.id)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'all 0.2s',
-                            background: markedForReview.has(questions[currentQuestion]?.id) ? 'rgba(245,158,11,0.15)' : 'var(--glass-hover)',
-                            color: markedForReview.has(questions[currentQuestion]?.id) ? '#f59e0b' : 'var(--text-sec)',
-                          }}>
-                          <Flag size={13} /> {markedForReview.has(questions[currentQuestion]?.id) ? 'Unmark' : 'Mark for Review'}
-                        </button>
-                      </div>
-
-                      {/* Question Text */}
-                      <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: 32 }}>
-                        {questions[currentQuestion]?.questionText}
-                      </h2>
-
-                      {/* Options */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1 }}>
-                        {[
-                          { key: 'A', val: questions[currentQuestion]?.optionA },
-                          { key: 'B', val: questions[currentQuestion]?.optionB },
-                          { key: 'C', val: questions[currentQuestion]?.optionC },
-                          { key: 'D', val: questions[currentQuestion]?.optionD }
-                        ].filter(o => o.val).map(opt => {
-                          const q = questions[currentQuestion]
-                          const isMulti = q?.multiAnswer === true
-                          const isSelected = answers[q?.id]?.split(',').filter(Boolean).includes(opt.key)
-                          return (
-                            <div key={opt.key} onClick={() => selectAnswer(q?.id, opt.key, q?.quizAttemptId, isMulti)}
-                              className={`option-card ${isSelected ? 'active' : ''}`}
-                              style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 24px', borderRadius: 14, cursor: 'pointer', border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--glass-border)'}`, background: isSelected ? 'rgba(37,99,235,0.08)' : 'var(--glass-bg)', transition: 'all 0.15s' }}>
-                              <div style={{
-                                width: 22, height: 22,
-                                borderRadius: isMulti ? 4 : '50%',
-                                border: isSelected ? '2px solid var(--primary-400)' : '2px solid var(--glass-border)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                background: isSelected ? 'rgba(37,99,235,0.1)' : 'transparent'
-                              }}>
-                                {isSelected && <div style={{ width: isMulti ? 12 : 10, height: isMulti ? 12 : 10, borderRadius: isMulti ? 2 : '50%', background: 'var(--primary-400)' }} />}
+                <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+                  
+                  {/* Main Content Area (Left + Middle) */}
+                  <div className="flex-1 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-[var(--glass-border)] overflow-y-auto transition-all duration-300">
+                    
+                    {/* Left Side: Question Text & Image */}
+                    <div className="flex-1 flex flex-col gap-6" style={{ padding: 24 }}>
+                      <AnimatePresence mode="wait">
+                        <motion.div key={currentQuestion} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}
+                          className="flex flex-col flex-1 h-full">
+  
+                          {/* Question Header */}
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                              <div style={{ width: 42, height: 42, borderRadius: 12, background: 'rgba(37,99,235,0.15)', color: 'var(--primary-400)', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                {currentQuestion + 1}
                               </div>
-                              <span style={{ fontSize: 15, fontWeight: 500, color: isSelected ? 'var(--primary)' : 'var(--text-sec)' }}>{opt.val}</span>
+                              <span style={{ fontSize: 14, color: 'var(--text-sec)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                                Question {currentQuestion + 1} of {totalQuestions}
+                              </span>
+                              {markedForReview.has(questions[currentQuestion]?.id) && (
+                                <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 700, color: '#f59e0b', background: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 6, padding: '3px 8px' }}>
+                                  <Flag size={10} /> Marked for Review
+                                </span>
+                              )}
                             </div>
-                          )
-                        })}
-                        {questions[currentQuestion]?.multiAnswer && (
-                          <div style={{ fontSize: 12, color: 'var(--text-sec)', fontStyle: 'italic', marginTop: 4 }}>✦ Select all that apply</div>
-                        )}
-                      </div>
+  
+                            <button onClick={() => toggleReview(questions[currentQuestion]?.id)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer', border: 'none', transition: 'all 0.2s',
+                                background: markedForReview.has(questions[currentQuestion]?.id) ? 'rgba(245,158,11,0.15)' : 'var(--glass-hover)',
+                                color: markedForReview.has(questions[currentQuestion]?.id) ? '#f59e0b' : 'var(--text-sec)',
+                              }}>
+                              <Flag size={13} /> {markedForReview.has(questions[currentQuestion]?.id) ? 'Unmark' : 'Mark for Review'}
+                            </button>
+                          </div>
+  
+                          {/* Question Text */}
+                          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: questions[currentQuestion]?.questionImage ? 24 : 0 }}>
+                            {questions[currentQuestion]?.questionText}
+                          </h2>
+                          
+                          {/* Image */}
+                          {questions[currentQuestion]?.questionImage && (
+                            <div ref={imageContainerRef} style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0, borderRadius: 12, overflow: 'hidden' }}>
+                              <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 8, zIndex: 10 }}>
+                                <button onClick={() => setZoomLevel(z => Math.min(3, z + 0.25))} className="btn-ghost" style={{ padding: 8, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }} title="Zoom In"><ZoomIn size={18} /></button>
+                                <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.25))} className="btn-ghost" style={{ padding: 8, background: 'var(--glass-bg)', border: '1px solid var(--glass-border)' }} title="Zoom Out"><ZoomOut size={18} /></button>
+                                <button onClick={() => setZoomLevel(1)} className="btn-ghost" style={{ padding: '8px 12px', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', fontSize: 12, fontWeight: 700 }}>Reset</button>
+                              </div>
+                              <motion.img 
+                                src={questions[currentQuestion]?.questionImage} 
+                                alt="Question" 
+                                drag={zoomLevel > 1}
+                                dragConstraints={{ 
+                                  left: -400 * (zoomLevel - 1), 
+                                  right: 400 * (zoomLevel - 1), 
+                                  top: -400 * (zoomLevel - 1), 
+                                  bottom: 400 * (zoomLevel - 1) 
+                                }}
+                                style={{ 
+                                  maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', 
+                                  scale: zoomLevel, cursor: zoomLevel > 1 ? 'grab' : 'default' 
+                                }} 
+                              />
+                            </div>
+                          )}
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
 
-                      {/* Nav Buttons */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--glass-border)' }}>
-                        <button disabled={currentQuestion === 0} onClick={() => setCurrentQuestion(c => c - 1)} className="btn-sec" style={{ opacity: currentQuestion === 0 ? 0.3 : 1 }}>
-                          <ChevronLeft size={16} /> Previous
+                {/* Middle Section: Options (25%) */}
+                <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-6" style={{ height: '100%', padding: 24 }}>
+                  <div className="flex flex-col" style={{ height: '100%', minHeight: 400 }}>
+                    {/* Changed justifyContent from center to flex-start */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1, justifyContent: 'flex-start' }}>
+                      {[
+                        { key: 'A', val: questions[currentQuestion]?.optionA },
+                        { key: 'B', val: questions[currentQuestion]?.optionB },
+                        { key: 'C', val: questions[currentQuestion]?.optionC },
+                        { key: 'D', val: questions[currentQuestion]?.optionD }
+                      ].filter(o => o.val).map(opt => {
+                        const q = questions[currentQuestion]
+                        const isMulti = q?.multiAnswer === true
+                        const isSelected = answers[q?.id]?.split(',').filter(Boolean).includes(opt.key)
+                        return (
+                          <div key={opt.key} onClick={() => selectAnswer(q?.id, opt.key, q?.quizAttemptId, isMulti)}
+                            className={`option-card ${isSelected ? 'active' : ''}`}
+                            style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', borderRadius: 14, cursor: 'pointer', border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--glass-border)'}`, background: isSelected ? 'rgba(37,99,235,0.08)' : 'var(--glass-bg)', transition: 'all 0.15s' }}>
+                            <div style={{
+                              width: 22, height: 22, flexShrink: 0,
+                              borderRadius: isMulti ? 4 : '50%',
+                              border: isSelected ? '2px solid var(--primary-400)' : '2px solid var(--glass-border)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              background: isSelected ? 'rgba(37,99,235,0.1)' : 'transparent'
+                            }}>
+                              {isSelected && <div style={{ width: isMulti ? 12 : 10, height: isMulti ? 12 : 10, borderRadius: isMulti ? 2 : '50%', background: 'var(--primary-400)' }} />}
+                            </div>
+                            <span style={{ fontSize: 14, fontWeight: 500, color: isSelected ? 'var(--primary)' : 'var(--text-sec)' }}>{opt.val}</span>
+                          </div>
+                        )
+                      })}
+                      {questions[currentQuestion]?.multiAnswer && (
+                        <div style={{ fontSize: 12, color: 'var(--text-sec)', fontStyle: 'italic', marginTop: 4, textAlign: 'center' }}>✦ Select all that apply</div>
+                      )}
+                    </div>
+
+                    {/* Nav Buttons */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--glass-border)' }}>
+                      <div style={{ display: 'flex', gap: 12 }}>
+                        <button disabled={currentQuestion === 0} onClick={() => setCurrentQuestion(c => c - 1)} className="btn-sec flex-1" style={{ opacity: currentQuestion === 0 ? 0.3 : 1, padding: '12px 0', justifyContent: 'center' }}>
+                          <ChevronLeft size={16} /> Prev
                         </button>
                         
                         {currentQuestion < totalQuestions - 1 ? (
-                          <button onClick={() => setCurrentQuestion(c => c + 1)} className="btn-primary">
-                            Next Question <ChevronRight size={16} />
+                          <button onClick={() => setCurrentQuestion(c => c + 1)} className="btn-primary flex-1" style={{ padding: '12px 0', justifyContent: 'center' }}>
+                            Next <ChevronRight size={16} />
                           </button>
                         ) : codingTests.length > 0 ? (
-                          <button onClick={() => setCurrentSection('coding')} className="btn-primary" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)' }}>
-                            Continue to Coding Section <ChevronRight size={16} />
+                          <button onClick={() => setCurrentSection('coding')} className="btn-primary flex-1" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', padding: '12px 0', justifyContent: 'center' }}>
+                            Coding <ChevronRight size={16} />
                           </button>
                         ) : (
-                          <button onClick={() => setShowConfirm(true)} className="btn-primary">
-                            Final Submit <CheckCircle2 size={16} />
+                          <button onClick={() => setShowConfirm(true)} className="btn-primary flex-1" style={{ padding: '12px 0', justifyContent: 'center' }}>
+                            Submit <CheckCircle2 size={16} />
                           </button>
                         )}
                       </div>
-
-                    </motion.div>
-                  </AnimatePresence>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                {/* Right: Question Navigation Panel */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  <div className="card" style={{ padding: 24 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 16 }}>Questions</h3>
+                {/* Right Side: Question Navigation Panel */}
+                <div 
+                  className={`border-t lg:border-t-0 lg:border-l border-[var(--glass-border)] transition-all duration-300 bg-[var(--bg-main)] lg:relative fixed inset-y-0 right-0 z-20 shadow-xl lg:shadow-none overflow-hidden ${isSidebarOpen ? 'w-full lg:w-[320px] translate-x-0' : 'w-full lg:w-0 translate-x-full lg:translate-x-0 lg:border-l-0'}`}
+                >
+                  <div className="w-full lg:w-[320px] h-full flex flex-col" style={{ padding: 24, gap: 24, overflowY: 'auto' }}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => setIsSidebarOpen(false)} className="btn-ghost flex items-center justify-center hover:bg-[var(--glass-hover)] transition-all" style={{ padding: 6, borderRadius: 8, border: '1px solid var(--glass-border)', color: 'var(--text-sec)', cursor: 'pointer' }} title="Collapse Panel">
+                          <ChevronRight size={16} />
+                        </button>
+                        <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-sec)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>Questions</h3>
+                      </div>
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
                       {questions.map((q, idx) => {
                         const isCurrent = idx === currentQuestion
@@ -803,6 +896,7 @@ export default function UnifiedAssessment() {
                     </div>
                   </div>
                 </div>
+              </div>
               </div>
             )}
           </div>
@@ -868,7 +962,7 @@ export default function UnifiedAssessment() {
           {/* Body */}
           <div className="editor-body" style={{ flex: 1, minHeight: 0 }}>
             {/* Problem Panel */}
-            <div className="problem-panel" style={{ overflowY: 'auto' }}>
+            <div className="problem-panel" style={{ overflowY: 'auto', width: panelWidth, flexShrink: 0 }}>
               {codingTests[currentCoding] ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
                   <div>
@@ -897,8 +991,26 @@ export default function UnifiedAssessment() {
               )}
             </div>
 
+            {/* Resizer */}
+            <div
+              className={`resizer-handle ${isResizing ? 'active' : ''}`}
+              onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+              style={{
+                width: 6,
+                cursor: 'col-resize',
+                background: isResizing ? 'var(--primary-200)' : 'transparent',
+                borderRight: '1px solid var(--glass-card)',
+                transition: 'background 0.2s',
+                zIndex: 10,
+                flexShrink: 0,
+                '&:hover': { background: 'var(--primary-100)' }
+              }}
+              onMouseEnter={(e) => { if(!isResizing) e.target.style.background = 'var(--glass-border)' }}
+              onMouseLeave={(e) => { if(!isResizing) e.target.style.background = 'transparent' }}
+            />
+
             {/* Monaco Editor Panel */}
-            <div className="editor-right" style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+            <div className="editor-right" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
               <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
                 <Editor
                   language={codingStates[codingTests[currentCoding]?.id]?.language || 'javascript'}

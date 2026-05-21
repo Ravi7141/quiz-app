@@ -32,6 +32,7 @@ public class QuestionService {
 
         Question question = Question.builder()
                 .questionText(request.getQuestionText())
+                .questionImage(request.getQuestionImage())
                 .optionA(request.getOptionA())
                 .optionB(request.getOptionB())
                 .optionC(request.getOptionC())
@@ -63,6 +64,7 @@ public class QuestionService {
 
         List<Question> questions = requests.stream().map(request -> Question.builder()
                 .questionText(request.getQuestionText())
+                .questionImage(request.getQuestionImage())
                 .optionA(request.getOptionA())
                 .optionB(request.getOptionB())
                 .optionC(request.getOptionC())
@@ -117,6 +119,7 @@ public class QuestionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Question", id));
 
         if (request.getQuestionText() != null)  question.setQuestionText(request.getQuestionText());
+        if (request.getQuestionImage() != null) question.setQuestionImage(request.getQuestionImage());
         if (request.getOptionA() != null)       question.setOptionA(request.getOptionA());
         if (request.getOptionB() != null)       question.setOptionB(request.getOptionB());
         if (request.getOptionC() != null)       question.setOptionC(request.getOptionC());
@@ -148,6 +151,7 @@ public class QuestionService {
         return QuestionResponse.builder()
                 .id(question.getId())
                 .questionText(question.getQuestionText())
+                .questionImage(question.getQuestionImage())
                 .optionA(question.getOptionA())
                 .optionB(question.getOptionB())
                 .optionC(question.getOptionC())
