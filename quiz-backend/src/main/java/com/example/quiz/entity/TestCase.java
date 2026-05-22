@@ -17,4 +17,7 @@ public class TestCase {
 
     @Column(columnDefinition = "TEXT")
     private String expectedOutput;
+
+    @Column(name = "is_hidden")
+    private Boolean isHidden = true;
 }

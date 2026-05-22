@@ -111,10 +111,10 @@ export default function ExamEntry() {
               </ul>
             </div>
             
-            {(examData.durationMinutes || examData.difficulty) && (
+            {(examData.durationMinutes || examData.difficulty || examData.totalMarks) && (
               <>
                 <div style={{ height: 1, background: '#e2e8f0', marginBottom: 24 }} />
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 24 }}>
                   {examData.durationMinutes && (
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#2563eb', fontWeight: 700, fontSize: 13, letterSpacing: '0.05em', marginBottom: 8 }}>
@@ -122,6 +122,15 @@ export default function ExamEntry() {
                         DURATION
                       </div>
                       <div style={{ color: '#0f172a', fontWeight: 600, fontSize: 16, paddingLeft: 28 }}>{examData.durationMinutes} minutes</div>
+                    </div>
+                  )}
+                  {examData.totalMarks && (
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#2563eb', fontWeight: 700, fontSize: 13, letterSpacing: '0.05em', marginBottom: 8 }}>
+                        <Trophy size={18} />
+                        TOTAL MARKS
+                      </div>
+                      <div style={{ color: '#0f172a', fontWeight: 600, fontSize: 16, paddingLeft: 28 }}>{examData.totalMarks}</div>
                     </div>
                   )}
                   {examData.difficulty && (

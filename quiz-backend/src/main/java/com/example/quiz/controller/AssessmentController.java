@@ -9,6 +9,9 @@ import com.example.quiz.dto.response.AuthResponse;
 import com.example.quiz.service.AssessmentService;
 import com.example.quiz.dto.request.SubmitAttemptRequest;
 import lombok.Data;
+import com.example.quiz.service.AssessmentService;
+import com.example.quiz.dto.request.SubmitAttemptRequest;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -82,6 +85,13 @@ public class AssessmentController {
         AssessmentAttemptResponse response = assessmentService.submitAttempt(body.getAttemptId(), body.getAnswers());
         return ResponseEntity.ok(ApiResponse.success("Assessment attempt submitted successfully", response));
     }
+
+    @GetMapping("/assessment/last-error")
+    public ResponseEntity<String> getLastError() {
+        return ResponseEntity.ok(com.example.quiz.exception.GlobalExceptionHandler.lastExceptionTrace);
+    }
+
+
 
     /** DEBUG endpoint — call GET /assessment/debug/{attemptId} to see quiz attempts and answers */
     @GetMapping("/assessment/debug/{attemptId}")

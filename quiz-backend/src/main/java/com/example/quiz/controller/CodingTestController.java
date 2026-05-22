@@ -135,4 +135,10 @@ public class CodingTestController {
         Map<String, Object> data = codingTestService.importLeetCodeQuestion(query);
         return ResponseEntity.ok(ApiResponse.success("LeetCode question imported successfully", data));
     }
+
+    @GetMapping("/admin/coding-tests/debug/{id}")
+    public ResponseEntity<java.util.List<com.example.quiz.entity.TestCase>> debugTestCases(@PathVariable Long id, @org.springframework.beans.factory.annotation.Autowired com.example.quiz.repository.CodingTestRepository repo) {
+        com.example.quiz.entity.CodingTest test = repo.findById(id).orElse(null);
+        return ResponseEntity.ok(test != null ? test.getTestCases() : java.util.Collections.emptyList());
+    }
 }

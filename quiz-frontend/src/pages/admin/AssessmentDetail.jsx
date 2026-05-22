@@ -294,10 +294,10 @@ export default function AssessmentDetail() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         {[
           { icon: <Clock size={18} color="var(--primary-400)" />, label: 'Duration', value: `${assessment.durationMinutes} minutes` },
+          { icon: <Trophy size={18} color="#fbbf24" />, label: 'Total Marks', value: assessment.totalMarks || '0' },
           { icon: <BookOpen size={18} color="#f472b6" />, label: 'Passing Cutoff', value: assessment.passingPercentage ? `${assessment.passingPercentage}%` : 'None' },
           { icon: <Calendar size={18} color="#38bdf8" />, label: 'Start', value: formatDate(assessment.scheduledFor) },
           { icon: <Calendar size={18} color="#f87171" />, label: 'End', value: formatDate(assessment.validUntil) },
-          { icon: <Sparkles size={18} color="#4ade80" />, label: 'Status', value: assessment.active ? 'Active' : 'Inactive' },
         ].map(item => (
           <div key={item.label} className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
