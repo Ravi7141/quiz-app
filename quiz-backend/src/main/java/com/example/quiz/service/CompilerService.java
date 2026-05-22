@@ -171,7 +171,14 @@ public class CompilerService {
         Path sourcePath = dir.resolve("main.cpp");
         Files.writeString(sourcePath, code);
 
-        String compileResult = executeCommand(dir.toFile(), null, "g++", "main.cpp", "-o", "main.exe");
+        String compilerPath = "g++";
+        if (new java.io.File(System.getProperty("user.home") + "/mingw64/bin/g++.exe").exists()) {
+            compilerPath = System.getProperty("user.home") + "/mingw64/bin/g++.exe";
+        } else if (new java.io.File("C:/mingw64/bin/g++.exe").exists()) {
+            compilerPath = "C:/mingw64/bin/g++.exe";
+        }
+
+        String compileResult = executeCommand(dir.toFile(), null, compilerPath, "-static", "main.cpp", "-o", "main.exe");
         if (compileResult.contains("Command not found")) {
             log.info("g++ not found, falling back to Piston API for C++");
             return runWithPistonAPI("c++", "10.2.0", code, input);
@@ -179,7 +186,7 @@ public class CompilerService {
         if (!compileResult.isEmpty() && compileResult.toLowerCase().contains("error")) {
             return "Compile Error:\n" + compileResult;
         }
-        return executeCommand(dir.toFile(), input, "main.exe");
+        return executeCommand(dir.toFile(), input, dir.toFile().getAbsolutePath() + java.io.File.separator + "main.exe");
     }
 
     private String runWithPistonAPI(String language, String version, String code, String input) {

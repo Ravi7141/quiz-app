@@ -236,6 +236,7 @@ public class AssessmentService {
                 .scheduledFor(assessment.getScheduledFor())
                 .validUntil(assessment.getValidUntil())
                 .passingPercentage(assessment.getPassingPercentage())
+                .totalMarks(calculateTotalMarksForAssessment(assessment))
                 .sections(sectionDetailsList)
                 .build();
     }
@@ -340,9 +341,7 @@ public class AssessmentService {
                 List<com.example.quiz.entity.Question> questions = questionRepository.findByQuizId(quiz.getId());
 
                 // Calculate max marks for this quiz section
-                int quizMax = (quiz.getTotalMarks() != null && quiz.getTotalMarks() > 0)
-                        ? quiz.getTotalMarks()
-                        : questions.stream().mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
+                int quizMax = questions.stream().mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
                 totalMaxScore += quizMax;
 
                 // Find or create the quiz attempt for this section
@@ -450,6 +449,23 @@ public class AssessmentService {
                 .sum();
     }
 
+    private int calculateTotalMarksForAssessment(Assessment assessment) {
+        List<AssessmentSection> sections = sectionRepository.findByAssessmentIdOrderBySectionOrderAsc(assessment.getId());
+        int totalMarks = 0;
+        for (AssessmentSection section : sections) {
+            if (section.getSectionType() == SectionType.QUIZ && section.getReferenceId() != null) {
+                Quiz quiz = quizRepository.findById(section.getReferenceId()).orElse(null);
+                if (quiz != null) {
+                    List<com.example.quiz.entity.Question> qs = questionRepository.findByQuizId(quiz.getId());
+                    totalMarks += qs.stream().mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
+                }
+            } else if (section.getSectionType() == SectionType.CODING) {
+                totalMarks += 20; // Fixed marks for coding test
+            }
+        }
+        return totalMarks;
+    }
+
     private AssessmentResponse mapToResponse(Assessment assessment) {
         return AssessmentResponse.builder()
                 .id(assessment.getId())
@@ -461,6 +477,7 @@ public class AssessmentService {
                 .scheduledFor(assessment.getScheduledFor())
                 .validUntil(assessment.getValidUntil())
                 .passingPercentage(assessment.getPassingPercentage())
+                .totalMarks(calculateTotalMarksForAssessment(assessment))
                 .createdAt(assessment.getCreatedAt())
                 .build();
     }
@@ -468,6 +485,7 @@ public class AssessmentService {
     private AssessmentAttemptResponse mapToAttemptResponse(AssessmentAttempt attempt) {
         List<QuizAttempt> quizAttempts = quizAttemptRepository.findByAssessmentAttemptId(attempt.getId());
         java.util.Map<Long, Long> quizAttemptMap = quizAttempts.stream()
+                .filter(qa -> qa.getQuiz() != null)
                 .collect(Collectors.toMap(qa -> qa.getQuiz().getId(), QuizAttempt::getId, (a, b) -> a));
 
         return AssessmentAttemptResponse.builder()

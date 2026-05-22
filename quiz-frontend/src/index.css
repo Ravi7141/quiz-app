@@ -508,6 +508,11 @@ select, select option {
   box-shadow: var(--shadow);
   max-height: 90vh;
   overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+.modal-box::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }
 
 /* ── Premium landing/auth overrides ── */

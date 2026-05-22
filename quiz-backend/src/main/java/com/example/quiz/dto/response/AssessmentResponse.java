@@ -20,5 +20,6 @@ public class AssessmentResponse {
     private LocalDateTime scheduledFor;
     private LocalDateTime validUntil;
     private Integer passingPercentage;
+    private Integer totalMarks;
     private LocalDateTime createdAt;
 }

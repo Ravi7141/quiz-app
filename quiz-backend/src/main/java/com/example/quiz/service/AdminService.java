@@ -154,9 +154,7 @@ public class AdminService {
             if (section.getSectionType() == com.example.quiz.enums.SectionType.QUIZ && section.getReferenceId() != null) {
                 com.example.quiz.entity.Quiz quiz = quizRepository.findById(section.getReferenceId()).orElse(null);
                 if (quiz != null) {
-                    int qMax = (quiz.getTotalMarks() != null && quiz.getTotalMarks() > 0)
-                            ? quiz.getTotalMarks()
-                            : questionRepository.findByQuizId(quiz.getId()).stream()
+                    int qMax = questionRepository.findByQuizId(quiz.getId()).stream()
                               .mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
                     totalMarks += qMax;
                 }
@@ -224,9 +222,7 @@ public class AdminService {
             if (section.getSectionType() == com.example.quiz.enums.SectionType.QUIZ && section.getReferenceId() != null) {
                 com.example.quiz.entity.Quiz quiz = quizRepository.findById(section.getReferenceId()).orElse(null);
                 if (quiz != null) {
-                    int qMax = (quiz.getTotalMarks() != null && quiz.getTotalMarks() > 0)
-                            ? quiz.getTotalMarks()
-                            : questionRepository.findByQuizId(quiz.getId()).stream()
+                    int qMax = questionRepository.findByQuizId(quiz.getId()).stream()
                               .mapToInt(q -> q.getMarks() != null ? q.getMarks() : 1).sum();
                     totalMarks += qMax;
                 }

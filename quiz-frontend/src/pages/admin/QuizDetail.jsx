@@ -5,7 +5,7 @@ import Layout from '../../components/Layout'
 import { adminQuizApi, questionApi, adminApi } from '../../api/axios'
 import {
   BookOpen, Clock, HelpCircle, ArrowLeft, CheckCircle, AlertTriangle,
-  Users, BarChart2, Award, Share2, RefreshCw, Calendar, Edit3, X, Loader2, Check
+  Users, BarChart2, Award, Share2, RefreshCw, Calendar, Edit3, X, Loader2, Check, Trash2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import ShareLinkModal from '../../components/ShareLinkModal'
@@ -23,6 +23,8 @@ export default function AdminQuizDetail() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [editFormData, setEditFormData] = useState({})
   const [savingEdit, setSavingEdit] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const fetchResults = useCallback(async (showSpinner = false) => {
     if (showSpinner) setRefreshing(true)
@@ -99,6 +101,19 @@ export default function AdminQuizDetail() {
     }
   }
 
+  const confirmDelete = async () => {
+    setDeleting(true)
+    try {
+      await adminQuizApi.delete(id)
+      toast.success('Quiz deleted successfully')
+      navigate('/admin/quizzes')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete quiz')
+      setDeleting(false)
+      setShowDeleteModal(false)
+    }
+  }
+
   if (loading) return <Layout title="Loading..."><div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div></Layout>
   if (!quiz) return <Layout title="Not Found"><div style={{ textAlign: 'center', padding: 80, color: 'var(--text-sec)' }}>Quiz not found.</div></Layout>
 
@@ -125,6 +140,10 @@ export default function AdminQuizDetail() {
           <Link to={`/admin/quizzes/${id}/questions`} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <HelpCircle size={15} /><span> Questions</span>
           </Link>
+          <button onClick={() => setShowDeleteModal(true)} disabled={deleting} style={{ padding: '8px 12px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, cursor: deleting ? 'not-allowed' : 'pointer', opacity: deleting ? 0.7 : 1, fontWeight: 600 }}>
+            {deleting ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
+            <span>{deleting ? ' Deleting...' : ' Del'}</span>
+          </button>
           <Link to="/admin/quizzes" className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <ArrowLeft size={15} /><span> Back</span>
           </Link>
@@ -148,8 +167,6 @@ export default function AdminQuizDetail() {
               <div style={{ display: 'flex', gap: 24, paddingTop: 20, borderTop: '1px solid var(--glass-border)', flexWrap: 'wrap' }}>
                 {[
                   { icon: HelpCircle, label: 'Questions', val: questions.length },
-                  ...(quiz.durationMinutes || quiz.duration ? [{ icon: Clock, label: 'Duration', val: `${quiz.durationMinutes || quiz.duration} min` }] : []),
-                  { icon: Award, label: 'Total Marks', val: quiz.totalMarks || '—' },
                   ...(quiz.passMark ? [{ icon: CheckCircle, label: 'Pass Mark', val: `${quiz.passMark}%` }] : []),
                 ].map(({ icon: Icon, label, val }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -167,23 +184,7 @@ export default function AdminQuizDetail() {
           </div>
         </motion.div>
 
-        {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
-          {[
-            { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)', bg: 'rgba(37,99,235,0.1)' },
-            { label: 'Completed', val: submittedResults.length, icon: CheckCircle, color: '#4ade80', bg: 'rgba(74,222,128,0.1)' },
-            { label: 'Avg Score', val: avgScore !== '—' ? `${avgScore}%` : '—', icon: Award, color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
-            { label: 'Pass Rate', val: passRate !== '—' ? `${passRate}%` : '—', icon: Users, color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
-          ].map(({ label, val, icon: Icon, color, bg }, i) => (
-            <motion.div key={label} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="card" style={{ padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Icon size={20} color={color} /></div>
-              <div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-main)' }}>{val}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-sec)', marginTop: 2 }}>{label}</div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+
 
         {/* Questions List */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="card" style={{ padding: 28 }}>
@@ -223,43 +224,7 @@ export default function AdminQuizDetail() {
           )}
         </motion.div>
 
-        {/* Recent Attempts */}
-        {results.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="card" style={{ padding: 28 }}>
-            <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-main)', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-              Recent Attempts
-              <span style={{ fontSize: 12, color: 'var(--text-sec)', fontWeight: 500, background: 'var(--glass-bg)', padding: '3px 10px', borderRadius: 20, border: '1px solid var(--glass-border)' }}>
-                {results.length} total
-              </span>
-              {refreshing && <span style={{ fontSize: 11, color: 'var(--primary-400)', display: 'flex', alignItems: 'center', gap: 4 }}><RefreshCw size={11} style={{ animation: 'spin 0.8s linear infinite' }} /> Refreshing…</span>}
-            </h3>
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead><tr>{['Student', 'Phone', 'Score', 'Correct', '%', 'Status'].map(h => <th key={h}>{h}</th>)}</tr></thead>
-                <tbody>
-                  {results.slice(0, 10).map((r, i) => {
-                    const rawPct = r.totalMarks > 0 ? ((r.score || 0) / r.totalMarks * 100) : 0
-                    const pct = Math.min(rawPct, 100)
-                    const passed = pct >= 60
-                    return (
-                      <tr key={r.attemptId}>
-                        <td><div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', color: '#fff', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{r.studentName?.[0]?.toUpperCase()}</div>
-                          <span style={{ fontWeight: 500 }}>{r.studentName}</span>
-                        </div></td>
-                        <td style={{ color: 'var(--text-sec)', fontSize: 13 }}>{r.studentPhone || '—'}</td>
-                        <td style={{ fontFamily: 'monospace' }}>{r.score ?? '—'}/{r.totalMarks}</td>
-                        <td><span style={{ color: '#38bdf8', fontWeight: 700 }}>{r.correctAnswers ?? '—'}</span>{r.totalQuestions != null ? <span style={{ color: 'var(--text-sec)' }}>/{r.totalQuestions}</span> : ''}</td>
-                        <td><span style={{ fontWeight: 700, color: pct >= 60 ? '#4ade80' : '#f87171' }}>{pct.toFixed(1)}%</span></td>
-                        <td>{passed ? <span className="badge badge-active">✓ Passed</span> : <span className="badge badge-hard">✕ Failed</span>}</td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-        )}
+
       </div>
       <ShareLinkModal 
         isOpen={showShareModal} 
@@ -288,6 +253,40 @@ export default function AdminQuizDetail() {
                   <button type="submit" disabled={savingEdit} className="btn-primary" style={{ flex: 1, justifyContent: 'center' }}>{savingEdit ? <Loader2 size={16} className="spin" /> : <Check size={16} />} Update</button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+        {showDeleteModal && (
+          <div className="modal-overlay" onClick={() => setShowDeleteModal(false)} style={{ alignItems: 'center' }}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="modal-box"
+              style={{ margin: 'auto', maxWidth: 400, width: '90%', padding: 24 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>Delete Quiz</h3>
+                  <p style={{ fontSize: 13, color: 'var(--text-sec)', margin: '4px 0 0' }}>This action cannot be undone.</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--text-main)', marginBottom: 24, lineHeight: 1.5 }}>
+                Are you sure you want to permanently delete <strong>{quiz?.title}</strong>? All questions and records associated with it will be removed.
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setShowDeleteModal(false)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={deleting}>
+                  Cancel
+                </button>
+                <button onClick={confirmDelete} style={{ flex: 1, justifyContent: 'center', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, cursor: deleting ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: deleting ? 0.7 : 1 }} disabled={deleting}>
+                  {deleting ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />} 
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

@@ -83,8 +83,13 @@ export default function StudentDashboard() {
                       <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-main)', marginBottom: 8, lineHeight: 1.4 }}>{quiz.title}</h3>
                       {quiz.description && <p style={{ fontSize: 13, color: 'var(--text-sec)', marginBottom: 16, lineHeight: 1.55, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{quiz.description}</p>}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 'auto' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-sec)' }}>
-                          <Clock size={13} /> {quiz.durationMinutes ? `${quiz.durationMinutes} min` : 'Open'}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: 'var(--text-sec)' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Clock size={13} /> {quiz.durationMinutes ? `${quiz.durationMinutes} min` : 'Open'}
+                          </span>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Trophy size={13} /> {quiz.totalMarks || 0} marks
+                          </span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: 'var(--primary)', fontWeight: 700 }}>
                           Start <ChevronRight size={13} />

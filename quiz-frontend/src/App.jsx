@@ -21,6 +21,7 @@ import Students from './pages/admin/Students'
 import AdminStudentDetail from './pages/admin/StudentDetail'
 import AdminResults from './pages/admin/Results'
 import AdminCodingTests from './pages/admin/CodingTests'
+import CodingTestDetail from './pages/admin/CodingTestDetail'
 import AdminQuizDetail from './pages/admin/QuizDetail'
 import QuizShareRedirect from './pages/QuizShareRedirect'
 import ManageAssessments from './pages/admin/ManageAssessments'
@@ -65,6 +66,7 @@ function AppRoutes() {
       <Route path="/admin/students/:id" element={<ProtectedRoute requireAdmin><AdminStudentDetail /></ProtectedRoute>} />
       <Route path="/admin/results" element={<ProtectedRoute requireAdmin><AdminResults /></ProtectedRoute>} />
       <Route path="/admin/coding" element={<ProtectedRoute requireAdmin><AdminCodingTests /></ProtectedRoute>} />
+      <Route path="/admin/coding/:id" element={<ProtectedRoute requireAdmin><CodingTestDetail /></ProtectedRoute>} />
       <Route path="/admin/assessments/:id" element={<ProtectedRoute requireAdmin><AssessmentDetail /></ProtectedRoute>} />
 
       {/* Fallback */}

@@ -184,14 +184,18 @@ export default function AssessmentDetail() {
   const [loading, setLoading] = useState(true)
   const [showEdit, setShowEdit] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [quizzes, setQuizzes] = useState([])
   const [codingTests, setCodingTests] = useState([])
   const [sectionDetails, setSectionDetails] = useState([])
   const [submissions, setSubmissions] = useState([])
   const [showShareModal, setShowShareModal] = useState(false)
 
-  const handleDelete = async () => {
-    if (!window.confirm(`Delete "${assessment?.title}"? This will permanently remove all attempts and answers. This cannot be undone.`)) return
+  const handleDelete = () => {
+    setShowDeleteModal(true)
+  }
+
+  const confirmDelete = async () => {
     setDeleting(true)
     try {
       await assessmentApi.delete(id)
@@ -200,6 +204,7 @@ export default function AssessmentDetail() {
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to delete assessment')
       setDeleting(false)
+      setShowDeleteModal(false)
     }
   }
 
@@ -289,10 +294,10 @@ export default function AssessmentDetail() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         {[
           { icon: <Clock size={18} color="var(--primary-400)" />, label: 'Duration', value: `${assessment.durationMinutes} minutes` },
+          { icon: <Trophy size={18} color="#fbbf24" />, label: 'Total Marks', value: assessment.totalMarks || '0' },
           { icon: <BookOpen size={18} color="#f472b6" />, label: 'Passing Cutoff', value: assessment.passingPercentage ? `${assessment.passingPercentage}%` : 'None' },
           { icon: <Calendar size={18} color="#38bdf8" />, label: 'Start', value: formatDate(assessment.scheduledFor) },
           { icon: <Calendar size={18} color="#f87171" />, label: 'End', value: formatDate(assessment.validUntil) },
-          { icon: <Sparkles size={18} color="#4ade80" />, label: 'Status', value: assessment.active ? 'Active' : 'Inactive' },
         ].map(item => (
           <div key={item.label} className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -437,6 +442,40 @@ export default function AssessmentDetail() {
             onClose={() => setShowEdit(false)}
             onSave={() => { setShowEdit(false); fetchData() }}
           />
+        )}
+        {showDeleteModal && (
+          <div className="modal-overlay" onClick={() => setShowDeleteModal(false)} style={{ alignItems: 'center' }}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="modal-box"
+              style={{ margin: 'auto', maxWidth: 400, width: '90%', padding: 24 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>Delete Assessment</h3>
+                  <p style={{ fontSize: 13, color: 'var(--text-sec)', margin: '4px 0 0' }}>This action cannot be undone.</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--text-main)', marginBottom: 24, lineHeight: 1.5 }}>
+                Are you sure you want to permanently delete <strong>{assessment?.title}</strong>? All attempts and answers associated with it will be removed.
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setShowDeleteModal(false)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={deleting}>
+                  Cancel
+                </button>
+                <button onClick={confirmDelete} style={{ flex: 1, justifyContent: 'center', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, cursor: deleting ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: deleting ? 0.7 : 1 }} disabled={deleting}>
+                  {deleting ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />} 
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

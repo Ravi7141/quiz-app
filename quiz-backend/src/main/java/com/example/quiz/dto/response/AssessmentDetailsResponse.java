@@ -18,6 +18,7 @@ public class AssessmentDetailsResponse {
     private LocalDateTime scheduledFor;
     private LocalDateTime validUntil;
     private Integer passingPercentage;
+    private Integer totalMarks;
     private List<SectionDetails> sections;
 
     @Data
