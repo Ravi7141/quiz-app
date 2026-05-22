@@ -1,4 +1,4 @@
-# 🎓 QuizVault — Full-Stack Java & React Assessment Portal
+# 🎓 AssessSphere — Full-Stack Java & React Assessment Portal
 
 Welcome to **QuizVault**, a premium, state-of-the-art full-stack online examination and coding assessment portal. This is a complete Java (Spring Boot) and React application engineered with a sleek modern design system, robust anti-cheat controls, and secure data isolation.
 
