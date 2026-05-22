@@ -112,7 +112,7 @@ export default function UnifiedAssessment() {
   const [isResizing, setIsResizing] = useState(false)
   
   // Quiz Layout State
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024)
 
   useEffect(() => {
     if (!isResizing) return
@@ -131,6 +131,7 @@ export default function UnifiedAssessment() {
 
   useEffect(() => {
     if (cameraVerified) {
+      window.scrollTo(0, 0);
       const timer = setTimeout(() => { antiCheatActiveRef.current = true }, 2000)
       return () => clearTimeout(timer)
     }
@@ -824,7 +825,7 @@ export default function UnifiedAssessment() {
                     </div>
 
                     {/* Nav Buttons */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--glass-border)' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, paddingTop: 24, paddingBottom: window.innerWidth < 1024 ? 140 : 0, borderTop: '1px solid var(--glass-border)' }}>
                       <div style={{ display: 'flex', gap: 12 }}>
                         <button disabled={currentQuestion === 0} onClick={() => setCurrentQuestion(c => c - 1)} className="btn-sec flex-1" style={{ opacity: currentQuestion === 0 ? 0.3 : 1, padding: '12px 0', justifyContent: 'center' }}>
                           <ChevronLeft size={16} /> Prev
@@ -851,7 +852,7 @@ export default function UnifiedAssessment() {
 
                 {/* Right Side: Question Navigation Panel */}
                 <div 
-                  className={`border-t lg:border-t-0 lg:border-l border-[var(--glass-border)] transition-all duration-300 bg-[var(--bg-main)] lg:relative fixed inset-y-0 right-0 z-20 shadow-xl lg:shadow-none overflow-hidden ${isSidebarOpen ? 'w-full lg:w-[320px] translate-x-0' : 'w-full lg:w-0 translate-x-full lg:translate-x-0 lg:border-l-0'}`}
+                  className={`border-t lg:border-t-0 lg:border-l border-[var(--glass-border)] transition-all duration-300 bg-[var(--bg-main)] lg:relative fixed inset-y-0 right-0 z-50 shadow-2xl lg:shadow-none overflow-hidden ${isSidebarOpen ? 'w-full lg:w-[320px] translate-x-0' : 'w-full lg:w-0 translate-x-full lg:translate-x-0 lg:border-l-0'}`}
                 >
                   <div className="w-full lg:w-[320px] h-full flex flex-col" style={{ padding: 24, gap: 24, overflowY: 'auto' }}>
                     <div className="flex items-center justify-between mb-2">
@@ -882,7 +883,7 @@ export default function UnifiedAssessment() {
                           border = '1px solid rgba(16,185,129,0.3)'
                         }
                         return (
-                          <button key={q.id} onClick={() => setCurrentQuestion(idx)}
+                          <button key={q.id} onClick={() => { setCurrentQuestion(idx); if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
                             style={{ height: 42, borderRadius: 10, background: bg, border, color, fontWeight: 700, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
                             {idx + 1}
                           </button>
@@ -963,7 +964,7 @@ export default function UnifiedAssessment() {
           {/* Body */}
           <div className="editor-body" style={{ flex: 1, minHeight: 0 }}>
             {/* Problem Panel */}
-            <div className="problem-panel" style={{ overflowY: 'auto', width: panelWidth, flexShrink: 0 }}>
+            <div className="problem-panel" style={{ overflowY: 'auto', ...(window.innerWidth > 768 ? { width: panelWidth } : { width: '100%' }), flexShrink: 0 }}>
               {codingTests[currentCoding] ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
                   <div>
@@ -993,22 +994,24 @@ export default function UnifiedAssessment() {
             </div>
 
             {/* Resizer */}
-            <div
-              className={`resizer-handle ${isResizing ? 'active' : ''}`}
-              onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
-              style={{
-                width: 6,
-                cursor: 'col-resize',
-                background: isResizing ? 'var(--primary-200)' : 'transparent',
-                borderRight: '1px solid var(--glass-card)',
-                transition: 'background 0.2s',
-                zIndex: 10,
-                flexShrink: 0,
-                '&:hover': { background: 'var(--primary-100)' }
-              }}
-              onMouseEnter={(e) => { if(!isResizing) e.target.style.background = 'var(--glass-border)' }}
-              onMouseLeave={(e) => { if(!isResizing) e.target.style.background = 'transparent' }}
-            />
+            {window.innerWidth > 768 && (
+              <div
+                className={`resizer-handle ${isResizing ? 'active' : ''}`}
+                onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+                style={{
+                  width: 6,
+                  cursor: 'col-resize',
+                  background: isResizing ? 'var(--primary-200)' : 'transparent',
+                  borderRight: '1px solid var(--glass-card)',
+                  transition: 'background 0.2s',
+                  zIndex: 10,
+                  flexShrink: 0,
+                  '&:hover': { background: 'var(--primary-100)' }
+                }}
+                onMouseEnter={(e) => { if(!isResizing) e.target.style.background = 'var(--glass-border)' }}
+                onMouseLeave={(e) => { if(!isResizing) e.target.style.background = 'transparent' }}
+              />
+            )}
 
             {/* Monaco Editor Panel */}
             <div className="editor-right" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>

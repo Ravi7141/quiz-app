@@ -14,6 +14,7 @@ export default function ExamEntry() {
   const [now, setNow] = useState(new Date())
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     verifyToken()
   }, [token])
 
@@ -39,12 +40,12 @@ export default function ExamEntry() {
 
   // Common Header Component
   const Header = () => (
-    <div style={{ padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <img src={logo} alt="AssessSphere" style={{ width: 36, height: 36, borderRadius: 8 }} />
-        <span style={{ fontSize: 22, fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.02em' }}>AssessSphere</span>
-        <div style={{ width: 1, height: 24, background: '#e2e8f0' }} />
-        <span style={{ fontSize: 14, color: '#64748b', fontWeight: 500 }}>Assessment Platform</span>
+    <div style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16, borderBottom: '1px solid #f1f5f9', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <img src={logo} alt="AssessSphere" style={{ width: 32, height: 32, borderRadius: 8 }} />
+        <span style={{ fontSize: 20, fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.02em' }}>AssessSphere</span>
+        <div style={{ width: 1, height: 20, background: '#e2e8f0' }} />
+        <span style={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>Assessment Platform</span>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#3b82f6', fontSize: 13, fontWeight: 600 }}>
         <ShieldCheck size={18} />

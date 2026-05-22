@@ -13,6 +13,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
   const streamHandedOffRef = useRef(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     let mounted = true;
     let interval;
     
@@ -108,7 +109,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
 
   // Common Header Component
   const Header = () => (
-    <div style={{ padding: '24px 48px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
+    <div style={{ padding: '16px 24px', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f5f9', background: '#fff', position: 'sticky', top: 0, zIndex: 100 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <img src={logo} alt="AssessSphere" style={{ width: 36, height: 36, borderRadius: 8 }} />
         <span style={{ fontSize: 22, fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.02em' }}>AssessSphere</span>
@@ -159,8 +160,8 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
           </div>
 
           {/* Status Indicators Box */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, padding: '24px', borderRadius: 16, border: '1px solid #e2e8f0', background: '#f8fafc', marginBottom: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, padding: '24px', borderRadius: 16, border: '1px solid #e2e8f0', background: '#f8fafc', marginBottom: 32 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flex: '1 1 150px' }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
                 <Camera size={20} />
               </div>
@@ -169,7 +170,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Detected</div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', borderLeft: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flex: '1 1 150px' }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
                 <Mic size={20} />
               </div>
@@ -178,7 +179,7 @@ export default function CameraSetupGate({ onReady, onCancel, title = "System Che
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#16a34a' }}>Detected</div>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'center', flex: '1 1 150px' }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
                 <Wifi size={20} />
               </div>
