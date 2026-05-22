@@ -19,7 +19,13 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
     if (type === 'TF') {
       setForm(f => ({ ...f, optionA: 'True', optionB: 'False', optionC: '', optionD: '', correctAnswer: 'A' }))
     } else {
-      setForm(f => ({ ...f, optionC: 'Option C', optionD: 'Option D' }))
+      setForm(f => ({ 
+        ...f, 
+        optionA: f.optionA === 'True' ? '' : f.optionA,
+        optionB: f.optionB === 'False' ? '' : f.optionB,
+        optionC: f.optionC === 'Option C' ? '' : f.optionC,
+        optionD: f.optionD === 'Option D' ? '' : f.optionD
+      }))
     }
   }
 
@@ -56,8 +62,8 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
   const currentOptions = qType === 'TF' ? ['A', 'B'] : OPTIONS
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ overflowY: 'auto', alignItems: 'flex-start' }}>
-      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="modal-box" style={{ margin: '40px auto', maxWidth: 600 }} onClick={e => e.stopPropagation()}>
+    <div className="modal-overlay" onClick={onClose}>
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="modal-box" style={{ margin: 'auto', maxWidth: 600 }} onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>{question?.id ? 'Edit Question' : 'Add Question'}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}><X size={20} /></button>
@@ -127,6 +133,7 @@ export default function ManageQuestions() {
   const [modal, setModal] = useState(null)
   const [importModal, setImportModal] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
 
   const fetchData = () => {
     Promise.all([questionApi.getForAdmin(quizId), studentQuizApi.getById(quizId).catch(() => ({ data: { data: null } }))])
@@ -135,11 +142,19 @@ export default function ManageQuestions() {
   }
   useEffect(() => { fetchData() }, [quizId])
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this question?')) return
-    setDeleting(id)
-    try { await questionApi.delete(id); toast.success('Question deleted'); fetchData(); }
-    catch { toast.error('Delete failed'); setDeleting(null); }
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(deleteTarget.id)
+    try { 
+      await questionApi.delete(deleteTarget.id)
+      toast.success('Question deleted')
+      fetchData()
+    } catch { 
+      toast.error('Delete failed')
+    } finally {
+      setDeleting(null)
+      setDeleteTarget(null)
+    }
   }
 
   return (
@@ -179,7 +194,7 @@ export default function ManageQuestions() {
                     <span className="badge badge-active">Correct Answer: {q.correctAnswer} • {q.marks || 1} mark{q.marks !== 1 ? 's' : ''}</span>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => setModal(q)} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(255,255,255,0.05)', color: 'var(--text-sec)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}><Pencil size={14} /></button>
-                      <button onClick={() => handleDelete(q.id)} disabled={deleting === q.id} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(239,68,68,0.1)', color: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
+                      <button onClick={() => setDeleteTarget(q)} disabled={deleting === q.id} style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(239,68,68,0.1)', color: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', cursor: 'pointer' }}>
                         {deleting === q.id ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
                       </button>
                     </div>
@@ -194,6 +209,40 @@ export default function ManageQuestions() {
       <AnimatePresence>
         {modal !== null && <QuestionModal question={modal?.id ? modal : null} quizId={quizId} onClose={() => setModal(null)} onSave={() => { setModal(null); fetchData(); }} />}
         {importModal && <ImportModal quizId={quizId} onClose={() => setImportModal(false)} onImported={() => { setImportModal(false); fetchData(); }} />}
+        {deleteTarget && (
+          <div className="modal-overlay" onClick={() => setDeleteTarget(null)} style={{ alignItems: 'center' }}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="modal-box"
+              style={{ margin: 'auto', maxWidth: 400, width: '90%', padding: 24 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>Delete Question</h3>
+                  <p style={{ fontSize: 13, color: 'var(--text-sec)', margin: '4px 0 0' }}>This action cannot be undone.</p>
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: 'var(--text-main)', marginBottom: 24, lineHeight: 1.5 }}>
+                Are you sure you want to permanently delete this question?
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setDeleteTarget(null)} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={deleting !== null}>
+                  Cancel
+                </button>
+                <button onClick={confirmDelete} style={{ flex: 1, justifyContent: 'center', background: '#ef4444', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, cursor: deleting !== null ? 'not-allowed' : 'pointer', fontWeight: 600, opacity: deleting !== null ? 0.7 : 1 }} disabled={deleting !== null}>
+                  {deleting !== null ? <Loader2 size={16} className="spin" /> : <Trash2 size={16} />} 
+                  {deleting !== null ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </Layout>
   )
