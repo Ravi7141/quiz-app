@@ -281,7 +281,7 @@ public class ExamTokenService {
             }
         }
 
-        String company = "QuizVault Portal";
+        String company = "AssessSphere Portal";
         String supportEmail = "support@example.com";
         if (creator != null) {
             if (creator.getName() != null && !creator.getName().isEmpty()) company = creator.getName();

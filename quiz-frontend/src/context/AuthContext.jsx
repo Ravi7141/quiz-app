@@ -5,19 +5,19 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('quizvault_user')) || null
+      return JSON.parse(localStorage.getItem('assesssphere_user')) || null
     } catch {
       return null
     }
   })
 
   const login = useCallback((userData) => {
-    localStorage.setItem('quizvault_user', JSON.stringify(userData))
+    localStorage.setItem('assesssphere_user', JSON.stringify(userData))
     setUser(userData)
   }, [])
 
   const logout = useCallback(() => {
-    localStorage.removeItem('quizvault_user')
+    localStorage.removeItem('assesssphere_user')
     setUser(null)
   }, [])
 

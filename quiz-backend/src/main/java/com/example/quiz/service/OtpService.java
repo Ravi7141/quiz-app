@@ -56,15 +56,15 @@ public class OtpService {
         log.info("Generated OTP {} for email: {}. Expiration: {}", otp, email, expiry);
 
         // Prepare email
-        String subject = "QuizVault — Password Reset Verification Code";
+        String subject = "AssessSphere — Password Reset Verification Code";
         String body = String.format(
                 "Hello %s,\n\n" +
-                "You have requested to reset your password for your QuizVault account.\n\n" +
+                "You have requested to reset your password for your AssessSphere account.\n\n" +
                 "Your password reset verification code is:\n" +
                 "🔑 %s\n\n" +
                 "This OTP is valid for %d minutes. If you did not request this password reset, please ignore this email.\n\n" +
                 "Regards,\n" +
-                "QuizVault Support Team",
+                "AssessSphere Support Team",
                 user.getName(), otp, OTP_EXPIRY_MINUTES
         );
 
@@ -107,13 +107,13 @@ public class OtpService {
         log.info("Password reset successful for email: {}", email);
 
         // Send confirmation email
-        String subject = "QuizVault — Password Reset Confirmation";
+        String subject = "AssessSphere — Password Reset Confirmation";
         String body = String.format(
                 "Hello %s,\n\n" +
-                "The password for your QuizVault account has been successfully reset.\n\n" +
+                "The password for your AssessSphere account has been successfully reset.\n\n" +
                 "If you did not perform this action, please contact support immediately.\n\n" +
                 "Regards,\n" +
-                "QuizVault Support Team",
+                "AssessSphere Support Team",
                 user.getName()
         );
         try {
