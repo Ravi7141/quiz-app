@@ -255,6 +255,8 @@ public class CompilerService {
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(dir);
         pb.redirectErrorStream(true);
+        File outputFile = new File(dir, "output.txt");
+        pb.redirectOutput(outputFile);
 
         Process process;
         try {
@@ -270,21 +272,20 @@ public class CompilerService {
             } catch (IOException ignored) {}
         }
 
-        StringBuilder output = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-        }
-
         boolean finished = process.waitFor(5, TimeUnit.SECONDS);
         if (!finished) {
             process.destroyForcibly();
-            return output.toString() + "\nError: Execution Timed Out (5s limit)";
+            String partialOutput = "";
+            if (outputFile.exists()) {
+                partialOutput = Files.readString(outputFile.toPath());
+            }
+            return partialOutput + "\nError: Execution Timed Out (5s limit)";
         }
 
-        return output.toString().trim();
+        if (outputFile.exists()) {
+            return Files.readString(outputFile.toPath()).trim();
+        }
+        return "";
     }
 
     private void deleteDirectory(File file) {
