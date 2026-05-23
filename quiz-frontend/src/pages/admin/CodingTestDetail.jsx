@@ -45,6 +45,39 @@ function DeleteModal({ title, onClose, onConfirm, loading }) {
   )
 }
 
+/* ── Delete Test Case Confirmation ───────────────────────── */
+function DeleteTestCaseModal({ tc, onClose, onConfirm, loading }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+        className="modal-box" onClick={e => e.stopPropagation()}
+        style={{ textAlign: 'center', maxWidth: 400 }}
+      >
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+          <Trash2 size={28} color="#f87171" />
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-main)', marginBottom: 10 }}>Delete Test Case?</h2>
+        <p style={{ fontSize: 14, color: 'var(--text-sec)', marginBottom: 16 }}>You are about to delete this test case:</p>
+        <div style={{ background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, padding: '12px 16px', marginBottom: 28, textAlign: 'left' }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', marginBottom: 4, letterSpacing: '0.05em' }}>INPUT:</div>
+          <div style={{ fontSize: 13, color: 'var(--text-main)', fontFamily: 'monospace', marginBottom: 12, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{tc?.input || '—'}</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#f87171', marginBottom: 4, letterSpacing: '0.05em' }}>EXPECTED OUTPUT:</div>
+          <div style={{ fontSize: 13, color: 'var(--text-main)', fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{tc?.expectedOutput || '—'}</div>
+        </div>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={onClose} className="btn-ghost" style={{ flex: 1, justifyContent: 'center' }} disabled={loading}>Cancel</button>
+          <button onClick={() => onConfirm(tc)} disabled={loading}
+            style={{ flex: 1, padding: '10px 16px', background: 'linear-gradient(135deg,#ef4444,#dc2626)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            {loading ? <Loader2 size={15} className="spin" /> : <Trash2 size={15} />}
+            {loading ? 'Deleting…' : 'Yes, Delete'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
 /* ── Edit Modal ───────────────────────────────────────── */
 function EditModal({ test, onClose, onSave }) {
   const [form, setForm] = useState({
@@ -241,6 +274,7 @@ export default function CodingTestDetail() {
   const [addingPublic, setAddingPublic] = useState(false)
   const [addingInternal, setAddingInternal] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [testCaseToDelete, setTestCaseToDelete] = useState(null)
 
   const fetchTest = async () => {
     try {
@@ -329,7 +363,6 @@ export default function CodingTestDetail() {
   }
 
   const deleteTestCase = async (tcToDelete) => {
-    if (!window.confirm('Are you sure you want to delete this test case?')) return
     
     const newTestCases = (test.testCases || []).filter(t => 
       !(t.input === tcToDelete.input && 
@@ -341,6 +374,7 @@ export default function CodingTestDetail() {
     try {
       await codingApi.update(id, { testCases: newTestCases })
       toast.success('Test case deleted')
+      setTestCaseToDelete(null)
       fetchTest()
     } catch (err) {
       toast.error('Failed to delete test case')
@@ -491,7 +525,7 @@ export default function CodingTestDetail() {
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {publicTc.map((tc, i) => <TestCaseCard key={i} tc={tc} index={i} isInternal={false} onUpdate={updateTestCase} onDelete={deleteTestCase} />)}
+              {publicTc.map((tc, i) => <TestCaseCard key={i} tc={tc} index={i} isInternal={false} onUpdate={updateTestCase} onDelete={(tc) => setTestCaseToDelete(tc)} />)}
               <AnimatePresence>
                 {addingPublic && (
                   <AddTestCaseForm isInternal={false}
@@ -532,7 +566,7 @@ export default function CodingTestDetail() {
                   <p style={{ fontSize: 13, color: 'var(--text-sec)', opacity: 0.7 }}>Click <strong style={{ color: '#fbbf24' }}>Add Test Case</strong> above to add grading cases.</p>
                 </div>
               )}
-              {internalTc.map((tc, i) => <TestCaseCard key={i} tc={tc} index={i} isInternal={true} onUpdate={updateTestCase} onDelete={deleteTestCase} />)}
+              {internalTc.map((tc, i) => <TestCaseCard key={i} tc={tc} index={i} isInternal={true} onUpdate={updateTestCase} onDelete={(tc) => setTestCaseToDelete(tc)} />)}
               <AnimatePresence>
                 {addingInternal && (
                   <AddTestCaseForm isInternal={true}
@@ -551,6 +585,9 @@ export default function CodingTestDetail() {
       </AnimatePresence>
       <AnimatePresence>
         {showDelete && <DeleteModal title={test.title} onClose={() => { if (!deleting) setShowDelete(false) }} onConfirm={handleDelete} loading={deleting} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {testCaseToDelete && <DeleteTestCaseModal tc={testCaseToDelete} onClose={() => { if (!saving) setTestCaseToDelete(null) }} onConfirm={deleteTestCase} loading={saving} />}
       </AnimatePresence>
     </Layout>
   )
