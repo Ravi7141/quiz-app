@@ -734,7 +734,7 @@ export default function UnifiedAssessment() {
       {/* Section View Routing */}
       {currentSection === 'quiz' ? (
         // ── QUIZ SECTION ─────────────────────────────────────────────────────────────
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
           {/* Header Bar */}
           <div style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0, zIndex: 40, backdropFilter: 'blur(12px)' }}>
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8" style={{ maxWidth: 1200, margin: '0 auto', padding: '16px 24px', minHeight: 72 }}>
@@ -777,7 +777,7 @@ export default function UnifiedAssessment() {
           </div>
 
           {/* Main Area */}
-          <div className="flex-1 p-4 md:p-8 flex flex-col">
+          <div className="flex-1 p-4 md:p-8 flex flex-col" style={{ minHeight: 0 }}>
             {totalQuestions === 0 ? (
               <div style={{ textAlign: 'center', marginTop: 80 }}>
                 <p style={{ color: 'var(--text-sec)', marginBottom: 20 }}>No MCQ questions in this section.</p>
@@ -803,10 +803,10 @@ export default function UnifiedAssessment() {
                 <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                   
                   {/* Main Content Area (Left + Middle) */}
-                  <div className="flex-1 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-[var(--glass-border)] overflow-y-auto transition-all duration-300">
+                  <div className="flex-1 flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-[var(--glass-border)] overflow-hidden transition-all duration-300">
                     
                     {/* Left Side: Question Text & Image */}
-                    <div className="flex-1 flex flex-col gap-6" style={{ padding: 24 }}>
+                    <div className="flex-1 flex flex-col gap-6 overflow-y-auto" style={{ padding: 24 }}>
                       <AnimatePresence mode="wait">
                         <motion.div key={currentQuestion} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={{ duration: 0.2 }}
                           className="flex flex-col flex-1 h-full">
@@ -838,8 +838,17 @@ export default function UnifiedAssessment() {
                           </div>
   
                           {/* Question Text */}
-                          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: questions[currentQuestion]?.questionImage ? 24 : 0 }}>
-                            {questions[currentQuestion]?.questionText}
+                          <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.6, marginBottom: questions[currentQuestion]?.questionImage ? 24 : 0 }}>
+                            {questions[currentQuestion]?.questionText
+                              ? questions[currentQuestion]?.questionText
+                                  .split(/(?=Statement-[IVX]+:|Assertion:|Reason:)/)
+                                  .filter(part => part.trim() !== '')
+                                  .map((part, idx, arr) => (
+                                    <span key={idx} style={{ display: 'block', marginBottom: idx < arr.length - 1 ? 8 : 0 }}>
+                                      {part.trim()}
+                                    </span>
+                                  ))
+                              : null}
                           </h2>
                           
                           {/* Image */}
@@ -873,10 +882,8 @@ export default function UnifiedAssessment() {
                     </div>
 
                 {/* Middle Section: Options (25%) */}
-                <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-6" style={{ height: '100%', padding: '24px 24px', paddingRight: !isSidebarOpen ? 48 : 24 }}>
-                  <div className="flex flex-col" style={{ height: '100%', minHeight: 400 }}>
-                    {/* Changed justifyContent from center to flex-start */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1, justifyContent: 'flex-start' }}>
+                <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col relative" style={{ height: '100%' }}>
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px', paddingRight: !isSidebarOpen ? 48 : 24, display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 32 }}>
                       {[
                         { key: 'A', val: questions[currentQuestion]?.optionA },
                         { key: 'B', val: questions[currentQuestion]?.optionB },
@@ -906,29 +913,28 @@ export default function UnifiedAssessment() {
                       {questions[currentQuestion]?.multiAnswer && (
                         <div style={{ fontSize: 12, color: 'var(--text-sec)', fontStyle: 'italic', marginTop: 4, textAlign: 'center' }}>✦ Select all that apply</div>
                       )}
-                    </div>
+                  </div>
 
-                    {/* Nav Buttons */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, paddingTop: 24, paddingBottom: window.innerWidth < 1024 ? 140 : 0, borderTop: '1px solid var(--glass-border)' }}>
-                      <div style={{ display: 'flex', gap: 12 }}>
-                        <button disabled={currentQuestion === 0} onClick={() => setCurrentQuestion(c => c - 1)} className="btn-sec flex-1" style={{ opacity: currentQuestion === 0 ? 0.3 : 1, padding: '12px 0', justifyContent: 'center' }}>
-                          <ChevronLeft size={16} /> Prev
+                  {/* Nav Buttons */}
+                  <div style={{ padding: '16px 24px', paddingRight: !isSidebarOpen ? 48 : 24, borderTop: '1px solid var(--glass-border)', background: 'var(--bg-main)', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <button disabled={currentQuestion === 0} onClick={() => setCurrentQuestion(c => c - 1)} className="btn-sec flex-1" style={{ opacity: currentQuestion === 0 ? 0.3 : 1, padding: '12px 0', justifyContent: 'center' }}>
+                        <ChevronLeft size={16} /> Prev
+                      </button>
+                      
+                      {currentQuestion < totalQuestions - 1 ? (
+                        <button onClick={() => setCurrentQuestion(c => c + 1)} className="btn-primary flex-1" style={{ padding: '12px 0', justifyContent: 'center' }}>
+                          Next <ChevronRight size={16} />
                         </button>
-                        
-                        {currentQuestion < totalQuestions - 1 ? (
-                          <button onClick={() => setCurrentQuestion(c => c + 1)} className="btn-primary flex-1" style={{ padding: '12px 0', justifyContent: 'center' }}>
-                            Next <ChevronRight size={16} />
-                          </button>
-                        ) : codingTests.length > 0 ? (
-                          <button onClick={() => setCurrentSection('coding')} className="btn-primary flex-1" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', padding: '12px 0', justifyContent: 'center' }}>
-                            Coding <ChevronRight size={16} />
-                          </button>
-                        ) : (
-                          <button onClick={() => setShowConfirm(true)} className="btn-primary flex-1" style={{ padding: '12px 0', justifyContent: 'center' }}>
-                            Submit <CheckCircle2 size={16} />
-                          </button>
-                        )}
-                      </div>
+                      ) : codingTests.length > 0 ? (
+                        <button onClick={() => setCurrentSection('coding')} className="btn-primary flex-1" style={{ background: 'linear-gradient(135deg,#3b82f6,#2563eb)', padding: '12px 0', justifyContent: 'center' }}>
+                          Coding <ChevronRight size={16} />
+                        </button>
+                      ) : (
+                        <button onClick={() => setShowConfirm(true)} className="btn-primary flex-1" style={{ padding: '12px 0', justifyContent: 'center' }}>
+                          Submit <CheckCircle2 size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

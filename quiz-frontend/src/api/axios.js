@@ -7,7 +7,7 @@ const api = axios.create({
 
 // Request interceptor — attach logged-in user email as token
 api.interceptors.request.use((config) => {
-  const user = JSON.parse(localStorage.getItem('quizvault_user') || 'null')
+  const user = JSON.parse(localStorage.getItem('assesssphere_user') || 'null')
   if (user?.email) {
     config.headers.Authorization = `Bearer ${user.email}`
   }
@@ -19,7 +19,7 @@ api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('quizvault_user')
+      localStorage.removeItem('assesssphere_user')
       window.location.href = '/login'
     }
     return Promise.reject(err)

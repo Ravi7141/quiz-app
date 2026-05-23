@@ -277,9 +277,9 @@ export default function QuizAttempt() {
       </div>
 
       {/* Main Area */}
-      <div className="flex-1 p-4 md:p-8 flex flex-col">
-        <div className="max-w-[1400px] mx-auto w-full flex-1 flex flex-col">
-        <div className="grid grid-cols-1 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-[var(--glass-border)] flex-1">
+      <div style={{ flex: 1 }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', width: '100%' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderTop: '1px solid var(--glass-border)', minHeight: 'calc(100vh - 72px)' }}>
 
           {/* Left Side: Question Text & Image (50%) */}
           <div className="lg:col-span-2 flex flex-col gap-6" style={{ height: '100%', padding: 24 }}>
@@ -316,8 +316,17 @@ export default function QuizAttempt() {
                   </button>
                 </div>
 
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: q?.questionImage ? 24 : 0 }}>
-                  {q?.questionText}
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.6, marginBottom: q?.questionImage ? 24 : 0 }}>
+                  {q?.questionText
+                    ? q.questionText
+                        .split(/(?=Statement-[IVX]+:|Assertion:|Reason:)/)
+                        .filter(part => part.trim() !== '')
+                        .map((part, i, arr) => (
+                          <span key={i} style={{ display: 'block', marginBottom: i < arr.length - 1 ? 8 : 0 }}>
+                            {part.trim()}
+                          </span>
+                        ))
+                    : null}
                 </h2>
 
                 {/* Image */}
@@ -351,69 +360,70 @@ export default function QuizAttempt() {
           </div>
 
           {/* Middle Section: Options (25%) */}
-          <div className="lg:col-span-1 flex flex-col gap-6" style={{ height: '100%' }}>
-            <div className="flex flex-col" style={{ height: '100%', minHeight: 400 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, flex: 1, justifyContent: 'center' }}>
-                {options.map(({ key, val }) => {
-                  const sel = answers[q.id]?.split(',').includes(key)
-                  return (
-                    <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 16, background: sel ? 'rgba(37,99,235,0.08)' : 'var(--glass-bg)', border: `1px solid ${sel ? 'var(--primary)' : 'var(--glass-border)'}`, borderRadius: 14 }}>
-                      <div style={{ width: 24, height: 24, borderRadius: 6, background: sel ? 'rgba(37,99,235,0.1)' : 'transparent', border: sel ? '2px solid var(--primary-400)' : '2px solid var(--glass-border)', color: sel ? 'var(--primary)' : 'var(--text-sec)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        {sel ? <div style={{ width: 12, height: 12, borderRadius: 2, background: 'var(--primary-400)' }} /> : key}
-                      </div>
-                      <span style={{ flex: 1, fontSize: 15, textAlign: 'left', color: sel ? 'var(--primary)' : 'var(--text-main)', fontWeight: 500 }}>{val}</span>
-                    </button>
-                  )
-                })}
-              </div>
+          <div style={{ borderLeft: '1px solid var(--glass-border)', borderRight: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', padding: '24px 16px', position: 'relative' }}>
+            {/* Options */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 100 }}>
+              {options.map(({ key, val }) => {
+                const sel = answers[q.id]?.split(',').includes(key)
+                return (
+                  <button key={key} onClick={() => selectAnswer(q.id, key)} className={`option-btn ${sel ? 'selected' : ''}`} style={{ padding: '16px 20px', fontSize: 15, display: 'flex', alignItems: 'center', gap: 16, background: sel ? 'rgba(37,99,235,0.08)' : 'var(--glass-bg)', border: `1px solid ${sel ? 'var(--primary)' : 'var(--glass-border)'}`, borderRadius: 14 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: sel ? 'rgba(37,99,235,0.1)' : 'transparent', border: sel ? '2px solid var(--primary-400)' : '2px solid var(--glass-border)', color: sel ? 'var(--primary)' : 'var(--text-sec)', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {sel ? <div style={{ width: 12, height: 12, borderRadius: 2, background: 'var(--primary-400)' }} /> : key}
+                    </div>
+                    <span style={{ flex: 1, fontSize: 15, textAlign: 'left', color: sel ? 'var(--primary)' : 'var(--text-main)', fontWeight: 500 }}>{val}</span>
+                  </button>
+                )
+              })}
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--glass-border)' }}>
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0} className="btn-sec flex-1" style={{ padding: '12px 0', fontSize: 14, opacity: current === 0 ? 0.4 : 1, cursor: current === 0 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
-                    <ChevronLeft size={16} /> Prev
-                  </button>
-                  <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))} disabled={current === questions.length - 1} className="btn-primary flex-1" style={{ padding: '12px 0', fontSize: 14, opacity: current === questions.length - 1 ? 0.4 : 1, cursor: current === questions.length - 1 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
-                    Next <ChevronRight size={16} />
-                  </button>
-                </div>
+            {/* Prev / Next — sticky at viewport bottom */}
+            <div style={{ position: 'sticky', bottom: 0, background: 'var(--bg-main)', paddingTop: 16, paddingBottom: 16, borderTop: '1px solid var(--glass-border)' }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={current === 0} className="btn-sec flex-1" style={{ padding: '12px 0', fontSize: 14, opacity: current === 0 ? 0.4 : 1, cursor: current === 0 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
+                  <ChevronLeft size={16} /> Prev
+                </button>
+                <button onClick={() => setCurrent(c => Math.min(questions.length - 1, c + 1))} disabled={current === questions.length - 1} className="btn-primary flex-1" style={{ padding: '12px 0', fontSize: 14, opacity: current === questions.length - 1 ? 0.4 : 1, cursor: current === questions.length - 1 ? 'not-allowed' : 'pointer', justifyContent: 'center' }}>
+                  Next <ChevronRight size={16} />
+                </button>
               </div>
             </div>
           </div>
 
           {/* Right Side: Question Navigation Panel (25%) */}
-          <div className="lg:col-span-1" style={{ display: 'flex', flexDirection: 'column', gap: 24, padding: 24 }}>
-          <div style={{ padding: 0, position: 'sticky', top: 96 }}>
-            <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-sec)', marginBottom: 16 }}>
-              Navigation Map
+          <div className="lg:col-span-1" style={{ display: 'flex', flexDirection: 'column', padding: 24, position: 'sticky', top: 72, height: 'calc(100vh - 72px)', overflowY: 'hidden' }}>
+            <h3 style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-sec)', marginBottom: 16, flexShrink: 0 }}>
+              Questions
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>
-              {questions.map((qs, i) => {
-                const ans = answers[qs?.id]
-                const isCurr = i === current
-                const isRev = markedForReview.has(qs?.id)
-                let bg, color, border = 'transparent'
-                if (isCurr)       { bg = 'var(--primary-400)'; color = '#fff'; border = 'var(--primary)'; }
-                else if (isRev && ans) { bg = '#f59e0b'; color = '#fff'; border = '#d97706'; }
-                else if (isRev)   { bg = 'rgba(245,158,11,0.15)'; color = '#d97706'; border = 'rgba(245,158,11,0.4)'; }
-                else if (ans)     { bg = '#3b0764'; color = '#fff'; border = '#2e054e'; } // Answered -> Dark Purple
-                else              { bg = 'rgba(255,255,255,0.1)'; color = '#fff'; border = 'rgba(255,255,255,0.2)'; } // Unanswered -> Light
-                return (
-                  <button key={i} onClick={() => setCurrent(i)}
-                    style={{ width: '100%', aspectRatio: '1/1', borderRadius: 8, background: bg, border: `1px solid ${border}`, color, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
-                    {i + 1}
-                  </button>
-                )
-              })}
+            {/* Scrollable number grid */}
+            <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 8 }}>
+                {questions.map((qs, i) => {
+                  const ans = answers[qs?.id]
+                  const isCurr = i === current
+                  const isRev = markedForReview.has(qs?.id)
+                  let bg, color, border = 'transparent'
+                  if (isCurr)           { bg = 'var(--primary-400)'; color = '#fff'; border = 'var(--primary)'; }
+                  else if (isRev && ans) { bg = '#f59e0b'; color = '#fff'; border = '#d97706'; }
+                  else if (isRev)       { bg = 'rgba(245,158,11,0.15)'; color = '#d97706'; border = 'rgba(245,158,11,0.4)'; }
+                  else if (ans)         { bg = '#3b0764'; color = '#fff'; border = '#2e054e'; }
+                  else                  { bg = 'rgba(255,255,255,0.1)'; color = '#fff'; border = 'rgba(255,255,255,0.2)'; }
+                  return (
+                    <button key={i} onClick={() => setCurrent(i)}
+                      style={{ width: '100%', aspectRatio: '1/1', borderRadius: 8, background: bg, border: `1px solid ${border}`, color, fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s' }}>
+                      {i + 1}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-            {/* Legend */}
-            <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--primary-400)', border: '1px solid var(--primary)' }} /> Current</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: '#3b0764', border: '1px solid #2e054e' }} /> Answered</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)' }} /> Marked for Review</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }} /> Unanswered</div>
+            {/* Legend — always visible at the bottom */}
+            <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--primary-400)', border: '1px solid var(--primary)', flexShrink: 0 }} /> Current</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: '#3b0764', border: '1px solid #2e054e', flexShrink: 0 }} /> Answered</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.4)', flexShrink: 0 }} /> Marked for Review</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text-sec)' }}><div style={{ width: 10, height: 10, borderRadius: 3, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', flexShrink: 0 }} /> Unanswered</div>
             </div>
           </div>
-        </div>
       </div>
 
       {/* ── Violation Modal ── */}

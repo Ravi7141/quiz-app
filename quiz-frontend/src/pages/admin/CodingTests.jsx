@@ -220,12 +220,18 @@ function CodingModal({ test, onClose, onSave }) {
           <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Title *</label>
             <input required value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="input-field" /></div>
 
-          {/* Description — preview only */}
+          {/* Description */}
           <div>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Description *</label>
-            <div className="leetcode-description" style={{ minHeight: 120, maxHeight: 250, overflowY: 'auto', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: '12px 16px' }}
-              dangerouslySetInnerHTML={{ __html: form.description || '<span style="color:var(--text-sec);font-style:italic;">Import a problem above to see its description here.</span>' }} />
-            <textarea required value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} style={{ display: 'none' }} readOnly />
+            <textarea
+              required
+              rows={6}
+              placeholder="Type your problem description here, or import from LeetCode above…"
+              value={form.description}
+              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              className="input-field"
+              style={{ resize: 'vertical', minHeight: 120, fontFamily: 'inherit', lineHeight: 1.6 }}
+            />
           </div>
 
           {/* Sample I/O */}
