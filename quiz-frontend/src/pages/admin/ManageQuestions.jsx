@@ -176,7 +176,18 @@ export default function ManageQuestions() {
                   Q{i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.5, marginBottom: q.questionImage ? 12 : 20 }}>{q.questionText}</p>
+                  <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.6, marginBottom: q.questionImage ? 12 : 20 }}>
+                    {q.questionText
+                      ? q.questionText
+                          .split(/(?=Statement-[IVX]+:|Assertion:|Reason:)/)
+                          .filter(part => part.trim() !== '')
+                          .map((part, idx, arr) => (
+                            <span key={idx} style={{ display: 'block', marginBottom: idx < arr.length - 1 ? 8 : 0 }}>
+                              {part.trim()}
+                            </span>
+                          ))
+                      : null}
+                  </p>
                   {q.questionImage && (
                     <div style={{ marginBottom: 20 }}>
                       <img src={q.questionImage} alt="Question" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, border: '1px solid var(--glass-border)' }} />
