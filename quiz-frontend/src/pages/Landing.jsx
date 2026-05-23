@@ -483,24 +483,7 @@ export default function Landing() {
                   <span>San Francisco, CA, USA</span>
                 </div>
               </div>
-              <div className="footer-rate">
-                <span className="footer-rate-label">Rate Portal</span>
-                <div className="footer-stars">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.span
-                      key={i}
-                      className="footer-star"
-                      initial={{ opacity: 0, scale: 0 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.06 }}
-                      whileHover={{ scale: 1.3, rotate: 10 }}
-                    >
-                      <Star size={16} color="#fbbf24" fill="#fbbf24" />
-                    </motion.span>
-                  ))}
-                </div>
-              </div>
+
             </div>
 
             {/* Quick Links */}

@@ -56,7 +56,7 @@ export default function AdminStudentDetail() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* Profile Card */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ padding: 28, display: 'flex', alignItems: 'center', gap: 24 }}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card" style={{ padding: 28, display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
           <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 28, fontWeight: 800, flexShrink: 0 }}>
             {student.name?.[0]?.toUpperCase()}
           </div>
@@ -75,7 +75,7 @@ export default function AdminStudentDetail() {
         </motion.div>
 
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 16 }}>
           {[
             { label: 'Total Attempts', val: results.length, icon: BarChart2, color: 'var(--primary)' },
             { label: 'Completed', val: submitted.length, icon: CheckCircle2, color: '#4ade80' },

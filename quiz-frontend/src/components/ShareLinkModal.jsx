@@ -148,30 +148,18 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
                         type="text" 
                         readOnly 
                         value={getGeneralLink()} 
-                        style={{ flex: 1, background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '0 12px', color: '#e2e8f0', fontSize: 13, cursor: 'text' }}
+                        style={{ flex: 1, minWidth: 0, background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '10px 12px', color: '#e2e8f0', fontSize: 13, cursor: 'text' }}
                         onFocus={e => e.target.select()}
                       />
                       <button 
                         onClick={() => handleCopyLink(getGeneralLink())}
-                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', background: 'var(--primary)', color: '#fff', borderRadius: 8, border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', flexShrink: 0, background: 'var(--primary)', color: '#fff', borderRadius: 8, border: 'none', fontWeight: 600, cursor: 'pointer' }}
                       >
                         <Copy size={16} /> Copy
                       </button>
                     </div>
                   </div>
 
-                  {window.location.hostname === 'localhost' && (
-                    <div style={{ background: 'rgba(239,68,68,0.05)', border: '1px solid rgba(239,68,68,0.2)', padding: 16, borderRadius: 12, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                      <div style={{ color: '#ef4444', marginTop: 2 }}>⚠️</div>
-                      <div>
-                        <h4 style={{ fontSize: 13, fontWeight: 700, color: '#ef4444', marginBottom: 4 }}>Localhost Warning</h4>
-                        <p style={{ fontSize: 12, color: 'var(--text-sec)', lineHeight: 1.5 }}>
-                          You are currently accessing the dashboard via <code>localhost</code>. If you send this link to another device, it will not work. 
-                          Please access this dashboard using your computer's local IP address (e.g. <code>http://192.168.x.x:5173</code>) so the generated link reflects the correct network address.
-                        </p>
-                      </div>
-                    </div>
-                  )}
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 12 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 12 }}>Or scan to open on mobile:</p>
@@ -221,21 +209,21 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
                       {tokens.map(t => (
                         <div key={t.token} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 12, padding: 16 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{t.studentEmail}</div>
+                            <div style={{ flex: 1, minWidth: 0, marginRight: 12 }}>
+                              <div style={{ color: '#fff', fontWeight: 600, fontSize: 14, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t.studentEmail}>{t.studentEmail}</div>
                               <div style={{ color: t.isUsed ? '#ef4444' : '#4ade80', fontSize: 12, fontWeight: 600, marginTop: 4 }}>{t.isUsed ? 'Already Used' : 'Available'}</div>
                             </div>
-                            <div style={{ display: 'flex', gap: 8 }}>
+                            <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                               <button onClick={() => handleCopyLink(getPrivateLink(t.token))} disabled={t.isUsed} title="Copy Link"
-                                style={{ padding: 8, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 6, color: t.isUsed ? '#64748b' : '#38bdf8', cursor: t.isUsed ? 'not-allowed' : 'pointer' }}>
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 6, color: t.isUsed ? '#64748b' : '#38bdf8', cursor: t.isUsed ? 'not-allowed' : 'pointer' }}>
                                 <LinkIcon size={16} />
                               </button>
                               <button onClick={() => setShowQrToken(showQrToken === t.token ? null : t.token)} disabled={t.isUsed} title="Show QR Code"
-                                style={{ padding: 8, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 6, color: t.isUsed ? '#64748b' : 'var(--primary-400)', cursor: t.isUsed ? 'not-allowed' : 'pointer' }}>
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 6, color: t.isUsed ? '#64748b' : 'var(--primary-400)', cursor: t.isUsed ? 'not-allowed' : 'pointer' }}>
                                 <QrCode size={16} />
                               </button>
                               <button onClick={() => handleCopyDetails(t)} disabled={t.isUsed} title="Copy Email Details"
-                                style={{ padding: 8, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 6, color: t.isUsed ? '#64748b' : '#f59e0b', cursor: t.isUsed ? 'not-allowed' : 'pointer' }}>
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 34, height: 34, background: 'rgba(255,255,255,0.05)', border: 'none', borderRadius: 6, color: t.isUsed ? '#64748b' : '#f59e0b', cursor: t.isUsed ? 'not-allowed' : 'pointer' }}>
                                 <Copy size={16} />
                               </button>
                             </div>

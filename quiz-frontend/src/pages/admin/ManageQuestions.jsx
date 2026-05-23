@@ -93,7 +93,7 @@ function QuestionModal({ question, quizId, onClose, onSave }) {
             <div key={opt}><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Option {opt} *</label>
             <input required value={form[`option${opt}`]} onChange={e => setForm(f => ({ ...f, [`option${opt}`]: e.target.value }))} className="input-field" /></div>
           ))}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div className="responsive-grid-2" style={{ gap: 16 }}>
             <div><label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-sec)', marginBottom: 8 }}>Correct Answer(s) *</label>
             <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
               {currentOptions.map(o => (
@@ -193,7 +193,7 @@ export default function ManageQuestions() {
                       <img src={q.questionImage} alt="Question" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, border: '1px solid var(--glass-border)' }} />
                     </div>
                   )}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+                  <div className="responsive-grid-2" style={{ marginBottom: 20 }}>
                     {OPTIONS.filter(opt => q[`option${opt}`] && q[`option${opt}`].trim() !== '').map(opt => (
                       <div key={opt} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 12, borderRadius: 8, background: q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.1)' : 'var(--glass-bg)', border: `1px solid ${q.correctAnswer?.split(',').includes(opt) ? 'rgba(56,189,248,0.3)' : 'var(--glass-border)'}` }}>
                         <div style={{ width: 20, height: 20, borderRadius: 6, background: q.correctAnswer?.split(',').includes(opt) ? 'var(--primary)' : 'var(--glass-bg)', color: q.correctAnswer?.split(',').includes(opt) ? '#fff' : 'var(--text-sec)', fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{opt}</div>

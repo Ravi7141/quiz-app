@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 
 export default function Layout({ children, title, subtitle, action }) {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768)
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) return false;
     const saved = localStorage.getItem('quiz_sidebar')
     return saved === null ? true : saved === 'true'
   })
-  const [isMobile, setIsMobile] = useState(false)
 
   const toggleSidebar = () => setIsSidebarOpen(prev => {
     const next = !prev
