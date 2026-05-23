@@ -15,7 +15,13 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Run stage
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:21-jdk-jammy
+
+# Install compilers (Python, Node.js, C++)
+RUN apt-get update && \
+    apt-get install -y python3 python-is-python3 nodejs g++ && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
