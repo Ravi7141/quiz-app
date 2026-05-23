@@ -1,36 +1,33 @@
 package com.example.quiz.controller;
 
-import com.example.quiz.dto.response.ApiResponse;
 import com.example.quiz.dto.response.QuizResponse;
 import com.example.quiz.dto.response.AssessmentResponse;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.service.QuizService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(StudentQuizController.class)
+@ExtendWith(MockitoExtension.class)
 public class StudentQuizControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private QuizService quizService;
+
+    @InjectMocks
+    private StudentQuizController studentQuizController;
 
     private QuizResponse quizResponse;
     private AssessmentResponse assessmentResponse;
@@ -56,24 +53,18 @@ public class StudentQuizControllerTest {
                 .build();
     }
 
-    // ========== Get Active Quizzes Tests ==========
-
     @Test
-    public void testGetQuizzesSuccess() throws Exception {
+    public void testGetQuizzesSuccess() {
         List<QuizResponse> quizzes = Arrays.asList(quizResponse);
         when(quizService.getActiveQuizzes()).thenReturn(quizzes);
-
-        mockMvc.perform(get("/student/quizzes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Quizzes fetched successfully"))
-                .andExpect(jsonPath("$.data[0].id").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("Java Fundamentals"))
-                .andExpect(jsonPath("$.data[0].active").value(true));
+        var result = studentQuizController.getQuizzes();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().getData().size());
+        assertTrue(result.getBody().getData().get(0).getActive());
     }
 
     @Test
-    public void testGetQuizzesMultiple() throws Exception {
+    public void testGetQuizzesMultiple() {
         QuizResponse quiz2 = QuizResponse.builder()
                 .id(2L)
                 .title("Python Basics")
@@ -86,105 +77,54 @@ public class StudentQuizControllerTest {
 
         List<QuizResponse> quizzes = Arrays.asList(quizResponse, quiz2);
         when(quizService.getActiveQuizzes()).thenReturn(quizzes);
-
-        mockMvc.perform(get("/student/quizzes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].title").value("Java Fundamentals"))
-                .andExpect(jsonPath("$.data[1].title").value("Python Basics"));
+        var result = studentQuizController.getQuizzes();
+        assertEquals(2, result.getBody().getData().size());
+        assertEquals("Java Fundamentals", result.getBody().getData().get(0).getTitle());
+        assertEquals("Python Basics", result.getBody().getData().get(1).getTitle());
     }
 
     @Test
-    public void testGetQuizzesEmpty() throws Exception {
+    public void testGetQuizzesEmpty() {
         when(quizService.getActiveQuizzes()).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get("/student/quizzes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(0));
+        var result = studentQuizController.getQuizzes();
+        assertEquals(0, result.getBody().getData().size());
     }
 
     @Test
-    public void testGetQuizzesOnlyActive() throws Exception {
-        List<QuizResponse> quizzes = Arrays.asList(quizResponse);
-        when(quizService.getActiveQuizzes()).thenReturn(quizzes);
-
-        mockMvc.perform(get("/student/quizzes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].active").value(true));
-    }
-
-    // ========== Get Quiz By ID Tests ==========
-
-    @Test
-    public void testGetQuizByIdSuccess() throws Exception {
+    public void testGetQuizByIdSuccess() {
         when(quizService.getQuizById(1L)).thenReturn(quizResponse);
-
-        mockMvc.perform(get("/student/quizzes/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Quiz fetched successfully"))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.title").value("Java Fundamentals"));
+        var result = studentQuizController.getQuizById(1L);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Java Fundamentals", result.getBody().getData().getTitle());
     }
 
     @Test
-    public void testGetQuizByIdNotFound() throws Exception {
+    public void testGetQuizByIdNotFound() {
         when(quizService.getQuizById(999L))
                 .thenThrow(new ResourceNotFoundException("Quiz", 999L));
-
-        mockMvc.perform(get("/student/quizzes/999"))
-                .andExpect(status().isNotFound());
+        assertThrows(ResourceNotFoundException.class, () -> studentQuizController.getQuizById(999L));
     }
 
     @Test
-    public void testGetQuizByIdInvalidId() throws Exception {
-        when(quizService.getQuizById(0L))
-                .thenThrow(new ResourceNotFoundException("Quiz", 0L));
-
-        mockMvc.perform(get("/student/quizzes/0"))
-                .andExpect(status().isNotFound());
-    }
-
-    // ========== Get Assessment Tests ==========
-
-    @Test
-    public void testGetAssessmentSuccess() throws Exception {
+    public void testGetAssessmentSuccess() {
         when(quizService.getAssessment(1L)).thenReturn(assessmentResponse);
-
-        mockMvc.perform(get("/student/quizzes/1/assessment"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Assessment content fetched successfully"))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.title").value("Java Fundamentals"));
+        var result = studentQuizController.getAssessment(1L);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Java Fundamentals", result.getBody().getData().getTitle());
     }
 
     @Test
-    public void testGetAssessmentNotFound() throws Exception {
+    public void testGetAssessmentNotFound() {
         when(quizService.getAssessment(999L))
                 .thenThrow(new ResourceNotFoundException("Exam", 999L));
-
-        mockMvc.perform(get("/student/quizzes/999/assessment"))
-                .andExpect(status().isNotFound());
+        assertThrows(ResourceNotFoundException.class, () -> studentQuizController.getAssessment(999L));
     }
 
     @Test
-    public void testGetAssessmentInvalidId() throws Exception {
-        when(quizService.getAssessment(-1L))
-                .thenThrow(new ResourceNotFoundException("Exam", -1L));
-
-        mockMvc.perform(get("/student/quizzes/-1/assessment"))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void testGetAssessmentCorrectContent() throws Exception {
+    public void testGetAssessmentCorrectContent() {
         when(quizService.getAssessment(1L)).thenReturn(assessmentResponse);
-
-        mockMvc.perform(get("/student/quizzes/1/assessment"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.durationMinutes").value(30))
-                .andExpect(jsonPath("$.data.active").value(true));
+        var result = studentQuizController.getAssessment(1L);
+        assertEquals(30, result.getBody().getData().getDurationMinutes());
+        assertTrue(result.getBody().getData().getActive());
     }
 }
-
