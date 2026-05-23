@@ -620,8 +620,6 @@ export default function UnifiedAssessment() {
     )
   }
 
-  // TEMPORARY BYPASS FOR TESTING: (Uncomment below to re-enable Camera Setup)
-  /*
   if (!cameraVerified) {
     return (
       <CameraSetupGate
@@ -632,20 +630,6 @@ export default function UnifiedAssessment() {
         onCancel={() => navigate(-1)}
         title="Assessment System Check"
       />
-    )
-  }
-  */
-  
-  // Auto-verify bypass
-  if (!cameraVerified) {
-    setTimeout(() => {
-      cameraStreamRef.current = null;
-      setCameraVerified(true)
-    }, 10)
-    return (
-      <div style={{ minHeight: '100vh', background: 'var(--bg-main)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="spinner" />
-      </div>
     )
   }
 
@@ -665,8 +649,7 @@ export default function UnifiedAssessment() {
     <div style={{ height: '100vh', overflow: 'hidden', background: 'var(--bg-main)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column' }}>
       
       {/* Proctoring camera & guard */}
-      {/* TEMPORARY BYPASS FOR TESTING: (Uncomment below to re-enable Proctoring) */}
-      {/* <FaceDetectionGuard onViolation={handleViolation} sharedStream={cameraStreamRef.current} isPaused={isProctoringPaused} /> */}
+      <FaceDetectionGuard onViolation={handleViolation} sharedStream={cameraStreamRef.current} isPaused={isProctoringPaused} />
 
       {/* Violation Popup Overlay */}
       <AnimatePresence>

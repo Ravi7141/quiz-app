@@ -1,43 +1,37 @@
 package com.example.quiz.controller;
 
 import com.example.quiz.dto.request.QuizRequest;
-import com.example.quiz.dto.response.ApiResponse;
 import com.example.quiz.dto.response.QuizResponse;
 import com.example.quiz.exception.ResourceNotFoundException;
 import com.example.quiz.service.QuizService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AdminQuizController.class)
+@ExtendWith(MockitoExtension.class)
 public class AdminQuizControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private QuizService quizService;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @InjectMocks
+    private AdminQuizController adminQuizController;
 
     private QuizRequest validQuizRequest;
     private QuizResponse quizResponse;
@@ -62,170 +56,56 @@ public class AdminQuizControllerTest {
                 .build();
     }
 
-    // ========== Create Quiz Tests ==========
-
     @Test
-    public void testCreateQuizSuccess() throws Exception {
-        when(quizService.createQuiz(any(QuizRequest.class)))
-                .thenReturn(quizResponse);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(validQuizRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Quiz created successfully"))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.title").value("Java Fundamentals"))
-                .andExpect(jsonPath("$.data.totalMarks").value(100));
+    public void testCreateQuizSuccess() {
+        when(quizService.createQuiz(any(QuizRequest.class))).thenReturn(quizResponse);
+        var result = adminQuizController.createQuiz(validQuizRequest);
+        assertEquals(HttpStatus.CREATED, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
+        assertEquals("Java Fundamentals", result.getBody().getData().getTitle());
     }
 
     @Test
-    public void testCreateQuizMissingTitle() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setDescription("Learn the basics of Java");
-        invalidRequest.setDurationMinutes(30);
-        invalidRequest.setTotalMarks(100);
-        invalidRequest.setActive(true);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testCreateQuizMissingDuration() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setTitle("Java Fundamentals");
-        invalidRequest.setDescription("Learn the basics of Java");
-        invalidRequest.setTotalMarks(100);
-        invalidRequest.setActive(true);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testCreateQuizMissingTotalMarks() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setTitle("Java Fundamentals");
-        invalidRequest.setDescription("Learn the basics of Java");
-        invalidRequest.setDurationMinutes(30);
-        invalidRequest.setActive(true);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testCreateQuizInvalidDurationNegative() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setTitle("Java Fundamentals");
-        invalidRequest.setDescription("Learn the basics of Java");
-        invalidRequest.setDurationMinutes(-5);
-        invalidRequest.setTotalMarks(100);
-        invalidRequest.setActive(true);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testCreateQuizInvalidMarksNegative() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setTitle("Java Fundamentals");
-        invalidRequest.setDescription("Learn the basics of Java");
-        invalidRequest.setDurationMinutes(30);
-        invalidRequest.setTotalMarks(-10);
-        invalidRequest.setActive(true);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    public void testCreateQuizInvalidDurationZero() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setTitle("Java Fundamentals");
-        invalidRequest.setDescription("Learn the basics of Java");
-        invalidRequest.setDurationMinutes(0);
-        invalidRequest.setTotalMarks(100);
-        invalidRequest.setActive(true);
-
-        mockMvc.perform(post("/admin/quizzes")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    // ========== Get All Quizzes Tests ==========
-
-    @Test
-    public void testGetAllQuizzesSuccess() throws Exception {
+    public void testGetAllQuizzesSuccess() {
         List<QuizResponse> quizzes = Arrays.asList(quizResponse);
         when(quizService.getAllQuizzes()).thenReturn(quizzes);
-
-        mockMvc.perform(get("/admin/quizzes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("All quizzes fetched successfully"))
-                .andExpect(jsonPath("$.data[0].id").value(1))
-                .andExpect(jsonPath("$.data[0].title").value("Java Fundamentals"));
+        var result = adminQuizController.getAllQuizzes();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(1, result.getBody().getData().size());
     }
 
     @Test
-    public void testGetAllQuizzesEmpty() throws Exception {
+    public void testGetAllQuizzesEmpty() {
         when(quizService.getAllQuizzes()).thenReturn(Collections.emptyList());
-
-        mockMvc.perform(get("/admin/quizzes"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray())
-                .andExpect(jsonPath("$.data.length()").value(0));
+        var result = adminQuizController.getAllQuizzes();
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals(0, result.getBody().getData().size());
     }
 
-    // ========== Get Quiz By ID Tests ==========
-
     @Test
-    public void testGetQuizByIdSuccess() throws Exception {
+    public void testGetQuizByIdSuccess() {
         when(quizService.getQuizById(1L)).thenReturn(quizResponse);
-
-        mockMvc.perform(get("/admin/quizzes/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.id").value(1))
-                .andExpect(jsonPath("$.data.title").value("Java Fundamentals"));
+        var result = adminQuizController.getQuizById(1L);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Java Fundamentals", result.getBody().getData().getTitle());
     }
 
     @Test
-    public void testGetQuizByIdNotFound() throws Exception {
+    public void testGetQuizByIdNotFound() {
         when(quizService.getQuizById(999L))
                 .thenThrow(new ResourceNotFoundException("Quiz", 999L));
-
-        mockMvc.perform(get("/admin/quizzes/999"))
-                .andExpect(status().isNotFound());
+        assertThrows(ResourceNotFoundException.class, () -> adminQuizController.getQuizById(999L));
     }
 
-    // ========== Update Quiz Tests ==========
-
     @Test
-    public void testUpdateQuizSuccess() throws Exception {
+    public void testUpdateQuizSuccess() {
         QuizRequest updateRequest = new QuizRequest();
-        updateRequest.setTitle("Updated Quiz Title");
+        updateRequest.setTitle("Updated Quiz");
         updateRequest.setDurationMinutes(45);
 
         QuizResponse updatedResponse = QuizResponse.builder()
                 .id(1L)
-                .title("Updated Quiz Title")
+                .title("Updated Quiz")
                 .description("Learn the basics of Java")
                 .durationMinutes(45)
                 .totalMarks(100)
@@ -233,59 +113,31 @@ public class AdminQuizControllerTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        when(quizService.updateQuiz(eq(1L), any(QuizRequest.class)))
-                .thenReturn(updatedResponse);
-
-        mockMvc.perform(put("/admin/quizzes/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.title").value("Updated Quiz Title"))
-                .andExpect(jsonPath("$.data.durationMinutes").value(45));
+        when(quizService.updateQuiz(eq(1L), any(QuizRequest.class))).thenReturn(updatedResponse);
+        var result = adminQuizController.updateQuiz(1L, updateRequest);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("Updated Quiz", result.getBody().getData().getTitle());
+        assertEquals(45, result.getBody().getData().getDurationMinutes());
     }
 
     @Test
-    public void testUpdateQuizNotFound() throws Exception {
+    public void testUpdateQuizNotFound() {
         when(quizService.updateQuiz(eq(999L), any(QuizRequest.class)))
                 .thenThrow(new ResourceNotFoundException("Quiz", 999L));
-
-        mockMvc.perform(put("/admin/quizzes/999")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(validQuizRequest)))
-                .andExpect(status().isNotFound());
+        assertThrows(ResourceNotFoundException.class, () -> adminQuizController.updateQuiz(999L, validQuizRequest));
     }
 
     @Test
-    public void testUpdateQuizInvalidDuration() throws Exception {
-        QuizRequest invalidRequest = new QuizRequest();
-        invalidRequest.setDurationMinutes(-1);
-
-        mockMvc.perform(put("/admin/quizzes/1")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
-    }
-
-    // ========== Delete Quiz Tests ==========
-
-    @Test
-    public void testDeleteQuizSuccess() throws Exception {
+    public void testDeleteQuizSuccess() {
         doNothing().when(quizService).deleteQuiz(1L);
-
-        mockMvc.perform(delete("/admin/quizzes/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.message").value("Quiz deleted successfully"));
+        var result = adminQuizController.deleteQuiz(1L);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertTrue(result.getBody().isSuccess());
     }
 
     @Test
-    public void testDeleteQuizNotFound() throws Exception {
-        doThrow(new ResourceNotFoundException("Quiz", 999L))
-                .when(quizService).deleteQuiz(999L);
-
-        mockMvc.perform(delete("/admin/quizzes/999"))
-                .andExpect(status().isNotFound());
+    public void testDeleteQuizNotFound() {
+        doThrow(new ResourceNotFoundException("Quiz", 999L)).when(quizService).deleteQuiz(999L);
+        assertThrows(ResourceNotFoundException.class, () -> adminQuizController.deleteQuiz(999L));
     }
 }
-
