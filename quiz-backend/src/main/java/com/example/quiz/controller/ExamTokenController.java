@@ -26,16 +26,19 @@ public class ExamTokenController {
     @PostMapping("/admin/tokens/generate")
     public ResponseEntity<ApiResponse<List<TokenResponse>>> generateTokens(@Valid @RequestBody TokenGenerateRequest request) {
         List<TokenResponse> data = examTokenService.generateTokens(request);
-        log.info("TOKEN GENERATE: Type [{}] ID [{}] Count [{}]", request.getExamType(), request.getExamId(), request.getNumberOfTokens());
+        log.info("TOKEN GENERATE: Type [{}] ID [{}] Count [{}]", request.getExamType(), request.getExamId(), request.getEmails() != null ? request.getEmails().size() : 0);
         return ResponseEntity.ok(ApiResponse.success("Tokens generated successfully", data));
     }
 
     @GetMapping("/admin/tokens/exam/{type}/{id}")
-    public ResponseEntity<ApiResponse<List<TokenResponse>>> getTokensForExam(
+    public ResponseEntity<ApiResponse<com.example.quiz.dto.response.PageData<TokenResponse>>> getTokensForExam(
             @PathVariable String type,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        List<TokenResponse> data = examTokenService.getTokensForExam(type, id);
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        com.example.quiz.dto.response.PageData<TokenResponse> data = examTokenService.getTokensForExam(type, id, pageable);
         return ResponseEntity.ok(ApiResponse.success("Tokens fetched successfully", data));
     }
 

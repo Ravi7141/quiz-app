@@ -66,17 +66,16 @@ public class AdminService {
      * GET /admin/students
      * Returns all users with STUDENT role (no passwords).
      */
-    public List<StudentResponse> getAllStudents() {
+    public com.example.quiz.dto.response.PageData<StudentResponse> getAllStudents(org.springframework.data.domain.Pageable pageable) {
         User currentAdmin = authService.getCurrentUser();
-        List<User> students;
+        org.springframework.data.domain.Page<User> studentPage;
         if (currentAdmin != null) {
-            students = userRepository.findByRoleAndCreatedById(Role.STUDENT, currentAdmin.getId());
+            studentPage = userRepository.findByRoleAndCreatedById(Role.STUDENT, currentAdmin.getId(), pageable);
         } else {
-            students = userRepository.findByRole(Role.STUDENT);
+            studentPage = userRepository.findByRole(Role.STUDENT, pageable);
         }
-        return students.stream()
-                .map(this::mapToStudentResponse)
-                .collect(Collectors.toList());
+        org.springframework.data.domain.Page<StudentResponse> responsePage = studentPage.map(this::mapToStudentResponse);
+        return com.example.quiz.dto.response.PageData.of(responsePage);
     }
 
     // ─── All Results / Attempts ───────────────────────────────────────────────
@@ -85,19 +84,16 @@ public class AdminService {
      * GET /admin/results
      * Returns all assessment attempts across all students.
      */
-    public List<AdminResultResponse> getAllResults() {
+    public com.example.quiz.dto.response.PageData<AdminResultResponse> getAllResults(org.springframework.data.domain.Pageable pageable) {
         User currentAdmin = authService.getCurrentUser();
-        List<AssessmentAttempt> attempts;
+        org.springframework.data.domain.Page<AssessmentAttempt> attemptsPage;
         if (currentAdmin != null) {
-            attempts = assessmentAttemptRepository.findAll().stream()
-                    .filter(a -> a.getAssessment().getCreatedBy() != null && a.getAssessment().getCreatedBy().getId().equals(currentAdmin.getId()))
-                    .collect(Collectors.toList());
+            attemptsPage = assessmentAttemptRepository.findByAssessmentCreatedById(currentAdmin.getId(), pageable);
         } else {
-            attempts = assessmentAttemptRepository.findAll();
+            attemptsPage = assessmentAttemptRepository.findAll(pageable);
         }
-        return attempts.stream()
-                .map(this::mapToAssessmentResultResponse)
-                .collect(Collectors.toList());
+        org.springframework.data.domain.Page<AdminResultResponse> responsePage = attemptsPage.map(this::mapToAssessmentResultResponse);
+        return com.example.quiz.dto.response.PageData.of(responsePage);
     }
 
     /**

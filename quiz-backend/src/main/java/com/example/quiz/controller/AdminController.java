@@ -57,8 +57,12 @@ public class AdminController {
      * GET /admin/students  
      */
     @GetMapping("/students")
-    public ResponseEntity<ApiResponse<List<StudentResponse>>> getAllStudents() {
-        List<StudentResponse> data = adminService.getAllStudents();
+    public ResponseEntity<ApiResponse<com.example.quiz.dto.response.PageData<StudentResponse>>> getAllStudents(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        com.example.quiz.dto.response.PageData<StudentResponse> data = adminService.getAllStudents(pageable);
         return ResponseEntity.ok(ApiResponse.success("Students fetched successfully", data));
     }
 
@@ -66,8 +70,12 @@ public class AdminController {
      * GET /admin/results
      */
     @GetMapping("/results")
-    public ResponseEntity<ApiResponse<List<AdminResultResponse>>> getAllResults() {
-        List<AdminResultResponse> data = adminService.getAllResults();
+    public ResponseEntity<ApiResponse<com.example.quiz.dto.response.PageData<AdminResultResponse>>> getAllResults(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        com.example.quiz.dto.response.PageData<AdminResultResponse> data = adminService.getAllResults(pageable);
         return ResponseEntity.ok(ApiResponse.success("Results fetched successfully", data));
     }
 

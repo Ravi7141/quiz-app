@@ -11,4 +11,5 @@ public interface AssessmentAttemptRepository extends JpaRepository<AssessmentAtt
     List<AssessmentAttempt> findByStudentId(Long studentId);
     List<AssessmentAttempt> findByAssessmentId(Long assessmentId);
     Optional<AssessmentAttempt> findByAssessmentIdAndStudentId(Long assessmentId, Long studentId);
+    org.springframework.data.domain.Page<AssessmentAttempt> findByAssessmentCreatedById(Long createdById, org.springframework.data.domain.Pageable pageable);
 }

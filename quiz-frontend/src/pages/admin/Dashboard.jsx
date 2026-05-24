@@ -29,7 +29,7 @@ export default function AdminDashboard() {
     try {
       const [s, r] = await Promise.all([adminApi.getStats(), adminApi.getResults()])
       setStats(s.data.data)
-      setResults(r.data.data || [])
+      setResults(r.data.data?.content || [])
       setLastUpdated(new Date())
     } catch {
       // silent on background poll

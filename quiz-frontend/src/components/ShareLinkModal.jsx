@@ -13,23 +13,53 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
   const [loading, setLoading] = useState(false)
   const [emailing, setEmailing] = useState(false)
   const [showQrToken, setShowQrToken] = useState(null)
+  
+  const [page, setPage] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   useEffect(() => {
     if (isOpen) {
-      fetchTokens()
+      setPage(0)
+      setTokens([])
+      setHasMore(true)
+      fetchTokens(0)
       setActiveTab(shareToken ? 'general' : 'private')
     }
   }, [isOpen, shareToken])
 
-  const fetchTokens = async () => {
-    setLoading(true)
+  const fetchTokens = async (pageNum = 0) => {
+    if (pageNum === 0) setLoading(true)
+    else setLoadingMore(true)
+    
     try {
-      const res = await examTokenApi.getForExam(examType, examId)
-      setTokens(res.data.data)
+      const res = await examTokenApi.getForExam(examType, examId, pageNum, 20)
+      const newTokens = res.data.data.content
+      
+      if (pageNum === 0) {
+        setTokens(newTokens)
+      } else {
+        setTokens(prev => {
+          const existingIds = new Set(prev.map(t => t.token))
+          return [...prev, ...newTokens.filter(t => !existingIds.has(t.token))]
+        })
+      }
+      setHasMore(!res.data.data.last)
     } catch (err) {
       toast.error('Failed to load existing links')
     } finally {
       setLoading(false)
+      setLoadingMore(false)
+    }
+  }
+
+  const handleScroll = (e) => {
+    if (activeTab !== 'private') return
+    const { scrollTop, clientHeight, scrollHeight } = e.target
+    if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasMore && !loading && !loadingMore) {
+      const nextPage = page + 1
+      setPage(nextPage)
+      fetchTokens(nextPage)
     }
   }
 
@@ -42,7 +72,9 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
       const res = await examTokenApi.generate({ examId, examType, emails: lines })
       toast.success(`Generated ${res.data.data.length} unique links`)
       setEmails('')
-      fetchTokens()
+      setPage(0)
+      setHasMore(true)
+      fetchTokens(0)
     } catch (err) {
       toast.error('Failed to generate links')
     } finally {
@@ -135,7 +167,7 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
               </div>
             )}
 
-            <div style={{ padding: 24, overflowY: 'auto', flex: 1 }}>
+            <div style={{ padding: 24, overflowY: 'auto', flex: 1 }} onScroll={handleScroll}>
               {activeTab === 'general' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   <div style={{ background: 'rgba(56,189,248,0.05)', border: '1px solid rgba(56,189,248,0.2)', padding: 16, borderRadius: 12 }}>
@@ -239,6 +271,7 @@ export default function ShareLinkModal({ isOpen, onClose, examId, examType, shar
                           )}
                         </div>
                       ))}
+                      {loadingMore && <div style={{ textAlign: 'center', padding: 10 }}><Loader2 size={20} className="spin" style={{ margin: '0 auto', color: 'var(--primary-400)' }} /></div>}
                     </div>
                   )}
                 </>

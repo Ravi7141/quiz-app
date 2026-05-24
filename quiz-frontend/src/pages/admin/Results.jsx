@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Layout from '../../components/Layout'
 import { adminApi } from '../../api/axios'
+import Pagination from '../../components/Pagination'
 import { BarChart2, Search, CheckCircle2, XCircle, Trophy, Filter } from 'lucide-react'
 
 export default function Results() {
@@ -13,18 +14,28 @@ export default function Results() {
   const [minScore, setMinScore] = useState('')
   const [maxScore, setMaxScore] = useState('')
 
-  useEffect(() => {
-    adminApi.getResults()
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+
+  const fetchResults = (pageNum = 0) => {
+    setLoading(true)
+    adminApi.getResults(pageNum, 10)
       .then(r => {
-        const d = (r.data.data || []).map(x => {
+        const pageData = r.data.data
+        const d = (pageData.content || []).map(x => {
           const rawPct = x.totalMarks > 0 ? ((x.score || 0) / x.totalMarks) * 100 : 0;
           const percentage = Math.min(rawPct, 100);
           return { ...x, percentage, passed: percentage >= 60 };
         });
         setResults(d);
+        setTotalPages(pageData.totalPages || 0)
+        setTotalElements(pageData.totalElements || 0)
       })
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { fetchResults(page) }, [page])
 
   const uniqueQuizzes = Array.from(new Set(results.map(r => r.quizTitle))).filter(Boolean).sort()
 
@@ -47,11 +58,11 @@ export default function Results() {
   const passRate = results.length > 0 ? ((results.filter(r => r.passed).length / results.length) * 100).toFixed(0) : '—'
 
   return (
-    <Layout title="All Results" subtitle="Detailed student performance overview">
+    <Layout title="All Results" subtitle={`Detailed student performance overview (${totalElements} total)`}>
       {/* Summary Stats */}
       <div className="results-stat-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 24 }}>
         {[
-          { label: 'Total Attempts', val: results.length, icon: BarChart2, color: '#2563eb', bg: '#eff6ff' },
+          { label: 'Total Attempts', val: totalElements, icon: BarChart2, color: '#2563eb', bg: '#eff6ff' },
           { label: 'Avg Score', val: avg !== '—' ? `${avg}%` : '—', icon: Trophy, color: '#38bdf8', bg: '#e0f2fe' },
           { label: 'Pass Rate', val: passRate !== '—' ? `${passRate}%` : '—', icon: CheckCircle2, color: '#16a34a', bg: '#dcfce7' },
         ].map(({ label, val, icon: Icon, color, bg }, i) => (
@@ -148,6 +159,7 @@ export default function Results() {
           {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '80px 0', color: '#64748b' }}><p style={{ fontSize: 15, fontWeight: 500 }}>No results found matching your filters</p></div>}
         </div>
       )}
+      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
     </Layout>
   )
 }

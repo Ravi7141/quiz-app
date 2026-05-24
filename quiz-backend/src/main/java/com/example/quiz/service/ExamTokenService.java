@@ -129,23 +129,22 @@ public class ExamTokenService {
         return responses;
     }
 
-    public List<TokenResponse> getTokensForExam(String examType, Long examId) {
+    public com.example.quiz.dto.response.PageData<TokenResponse> getTokensForExam(String examType, Long examId, org.springframework.data.domain.Pageable pageable) {
         String title = getExamTitle(examType, examId);
-        return examTokenRepository.findByExamIdAndExamType(examId, examType.toUpperCase())
-                .stream()
-                .map(t -> TokenResponse.builder()
-                        .token(t.getToken())
-                        .examId(t.getExamId())
-                        .examType(t.getExamType())
-                        .studentEmail(t.getStudentEmail())
-                        .studentName(t.getStudentName())
-                        .studentPhone(t.getStudentPhone())
-                        .isUsed(t.isUsed())
-                        .validFrom(t.getValidFrom())
-                        .expiresAt(t.getExpiresAt())
-                        .examTitle(title)
-                        .build())
-                .collect(Collectors.toList());
+        org.springframework.data.domain.Page<ExamToken> page = examTokenRepository.findByExamIdAndExamType(examId, examType.toUpperCase(), pageable);
+        org.springframework.data.domain.Page<TokenResponse> dtoPage = page.map(t -> TokenResponse.builder()
+                .token(t.getToken())
+                .examId(t.getExamId())
+                .examType(t.getExamType())
+                .studentEmail(t.getStudentEmail())
+                .studentName(t.getStudentName())
+                .studentPhone(t.getStudentPhone())
+                .isUsed(t.isUsed())
+                .validFrom(t.getValidFrom())
+                .expiresAt(t.getExpiresAt())
+                .examTitle(title)
+                .build());
+        return com.example.quiz.dto.response.PageData.of(dtoPage);
     }
 
     public TokenVerifyResponse verifyToken(String tokenStr) {

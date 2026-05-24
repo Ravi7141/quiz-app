@@ -77,10 +77,10 @@ export const adminQuizApi = {
 // ─── Admin General ─────────────────────────────────────────────
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
-  getStudents: () => api.get('/admin/students'),
+  getStudents: (page = 0, size = 10) => api.get(`/admin/students?page=${page}&size=${size}`),
   deleteStudent: (id) => api.delete(`/admin/students/${id}`),
   getStudentResults: (id) => api.get(`/admin/students/${id}/results`),
-  getResults: () => api.get('/admin/results'),
+  getResults: (page = 0, size = 10) => api.get(`/admin/results?page=${page}&size=${size}`),
   getQuizResults: (quizId) => api.get(`/admin/quizzes/${quizId}/results`),
 }
 
@@ -101,7 +101,7 @@ export const codingApi = {
 // FIX: removed duplicate /api prefix — baseURL is already /api
 export const examTokenApi = {
   generate: (data) => api.post('/admin/tokens/generate', data),
-  getForExam: (type, id) => api.get(`/admin/tokens/exam/${type}/${id}`),
+  getForExam: (type, id, page = 0, size = 20) => api.get(`/admin/tokens/exam/${type}/${id}?page=${page}&size=${size}`),
   verify: (token) => api.get(`/tokens/verify?token=${token}`),       // was /api/tokens/verify
   consume: (token) => api.post(`/tokens/consume?token=${token}`),    // was /api/tokens/consume
   emailAll: (type, id, baseUrl) =>

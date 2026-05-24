@@ -25,6 +25,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     List<User> findByRoleAndCreatedById(Role role, Long createdById);
 
+    org.springframework.data.domain.Page<User> findByRole(Role role, org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<User> findByRoleAndCreatedById(Role role, Long createdById, org.springframework.data.domain.Pageable pageable);
+
     /** Count users by role — used for admin dashboard stats */
     long countByRole(Role role);
 

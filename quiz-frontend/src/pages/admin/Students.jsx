@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import Layout from '../../components/Layout'
 import { adminApi } from '../../api/axios'
+import Pagination from '../../components/Pagination'
 import toast from 'react-hot-toast'
 import { Users, Search, Mail, ChevronRight, BarChart2, Trash2, Loader2, AlertTriangle } from 'lucide-react'
 
@@ -13,13 +14,23 @@ export default function Students() {
   const [deleting, setDeleting] = useState(null)
   const navigate = useNavigate()
 
-  const fetchStudents = () => {
-    adminApi.getStudents()
-      .then(r => setStudents(r.data.data || []))
+  const [page, setPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+
+  const fetchStudents = (pageNum = 0) => {
+    setLoading(true)
+    adminApi.getStudents(pageNum, 10)
+      .then(r => {
+        const pageData = r.data.data
+        setStudents(pageData.content || [])
+        setTotalPages(pageData.totalPages || 0)
+        setTotalElements(pageData.totalElements || 0)
+      })
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchStudents() }, [])
+  useEffect(() => { fetchStudents(page) }, [page])
 
   const [studentToDelete, setStudentToDelete] = useState(null)
 
@@ -50,7 +61,7 @@ export default function Students() {
   )
 
   return (
-    <Layout title="Students" subtitle={`${students.length} registered accounts`}>
+    <Layout title="Students" subtitle={`${totalElements} registered accounts`}>
       <div className="admin-search" style={{ position: 'relative', width: 300, marginBottom: 24 }}>
         <Search size={15} color="#64748b" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or email..." className="input-field" style={{ paddingLeft: 40, width: '100%' }} />
@@ -58,6 +69,7 @@ export default function Students() {
 
       {loading ? <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}><div className="spinner" /></div>
       : (
+        <>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
@@ -113,6 +125,8 @@ export default function Students() {
           </table>
           {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-sec)' }}><Users size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} /><p>No students found</p></div>}
         </div>
+        <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+      </>
       )}
 
       <AnimatePresence>

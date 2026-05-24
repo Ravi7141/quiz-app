@@ -88,7 +88,7 @@ public class AssessmentController {
     @PostMapping("/assessment/submit")
     public ResponseEntity<ApiResponse<AssessmentAttemptResponse>> submitAttempt(@RequestBody SubmitAttemptRequest body) {
         AssessmentAttemptResponse response = assessmentService.submitAttempt(body.getAttemptId(), body.getAnswers());
-        log.info("ASSESSMENT SUBMIT: Attempt ID [{}] Score [{}]", response.getId(), response.getScore());
+        log.info("ASSESSMENT SUBMIT: Attempt ID [{}] Score [{}]", response.getAttemptId(), response.getScore());
         return ResponseEntity.ok(ApiResponse.success("Assessment attempt submitted successfully", response));
     }
 
