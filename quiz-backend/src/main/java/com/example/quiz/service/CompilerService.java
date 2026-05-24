@@ -181,7 +181,7 @@ public class CompilerService {
             compilerPath = "C:/mingw64/bin/g++.exe";
         }
 
-        String compileResult = executeCommand(dir.toFile(), null, compilerPath, "-static", "main.cpp", "-o", "main.exe");
+        String compileResult = executeCommand(dir.toFile(), null, 20, compilerPath, "-static", "main.cpp", "-o", "main.exe");
         if (compileResult.contains("Command not found")) {
             log.info("g++ not found, falling back to Piston API for C++");
             return runWithPistonAPI("c++", "10.2.0", code, input);
@@ -247,7 +247,7 @@ public class CompilerService {
         Path sourcePath = dir.resolve(className + ".java");
         Files.writeString(sourcePath, code);
 
-        String compileResult = executeCommand(dir.toFile(), null, "javac", "-cp", ".", className + ".java");
+        String compileResult = executeCommand(dir.toFile(), null, 20, "javac", "-cp", ".", className + ".java");
         if (!compileResult.isEmpty() && compileResult.toLowerCase().contains("error")) {
             return "Compile Error:\n" + compileResult;
         }
@@ -255,6 +255,10 @@ public class CompilerService {
     }
 
     private String executeCommand(File dir, String input, String... command) throws Exception {
+        return executeCommand(dir, input, 8, command); // Default 8 seconds
+    }
+
+    private String executeCommand(File dir, String input, long timeoutSeconds, String... command) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(dir);
         pb.redirectErrorStream(true);
@@ -275,14 +279,14 @@ public class CompilerService {
             }
         } catch (IOException ignored) {}
 
-        boolean finished = process.waitFor(8, TimeUnit.SECONDS);
+        boolean finished = process.waitFor(timeoutSeconds, TimeUnit.SECONDS);
         if (!finished) {
             process.destroyForcibly();
             String partialOutput = "";
             if (outputFile.exists()) {
                 partialOutput = Files.readString(outputFile.toPath());
             }
-            return partialOutput + "\nError: Execution Timed Out (8s limit)";
+            return partialOutput + "\nError: Execution Timed Out (" + timeoutSeconds + "s limit)";
         }
 
         if (outputFile.exists()) {
@@ -366,7 +370,7 @@ public class CompilerService {
         Path sourcePath = dir.resolve(className + ".java");
         Files.writeString(sourcePath, code);
 
-        String compileResult = executeCommand(dir.toFile(), null, "javac", "-cp", ".", className + ".java");
+        String compileResult = executeCommand(dir.toFile(), null, 20, "javac", "-cp", ".", className + ".java");
         if (!compileResult.isEmpty() && compileResult.toLowerCase().contains("error")) {
             return Collections.nCopies(inputs.size(), "Compile Error:\n" + compileResult);
         }
@@ -409,7 +413,7 @@ public class CompilerService {
             compilerPath = "C:/mingw64/bin/g++.exe";
         }
 
-        String compileResult = executeCommand(dir.toFile(), null, compilerPath, "-static", "main.cpp", "-o", "main.exe");
+        String compileResult = executeCommand(dir.toFile(), null, 20, compilerPath, "-static", "main.cpp", "-o", "main.exe");
         if (compileResult.contains("Command not found")) {
             log.info("g++ not found, falling back to Piston API for C++");
             List<String> outputs = new ArrayList<>();
