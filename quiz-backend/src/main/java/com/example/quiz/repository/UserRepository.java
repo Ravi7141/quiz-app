@@ -29,6 +29,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     org.springframework.data.domain.Page<User> findByRoleAndCreatedById(Role role, Long createdById, org.springframework.data.domain.Pageable pageable);
 
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE u.role = :role AND (LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR u.phone LIKE CONCAT('%', :search, '%'))")
+    org.springframework.data.domain.Page<User> findByRoleAndSearch(@org.springframework.data.repository.query.Param("role") Role role, @org.springframework.data.repository.query.Param("search") String search, org.springframework.data.domain.Pageable pageable);
+
+    @org.springframework.data.jpa.repository.Query("SELECT u FROM User u WHERE u.role = :role AND u.createdBy.id = :createdById AND (LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR u.phone LIKE CONCAT('%', :search, '%'))")
+    org.springframework.data.domain.Page<User> findByRoleAndCreatedByIdAndSearch(@org.springframework.data.repository.query.Param("role") Role role, @org.springframework.data.repository.query.Param("createdById") Long createdById, @org.springframework.data.repository.query.Param("search") String search, org.springframework.data.domain.Pageable pageable);
+
     /** Count users by role — used for admin dashboard stats */
     long countByRole(Role role);
 

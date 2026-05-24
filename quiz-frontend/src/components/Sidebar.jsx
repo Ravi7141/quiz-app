@@ -31,8 +31,10 @@ export default function Sidebar({ isOpen, toggle }) {
           <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.03em' }} className="grad">AssessSphere</span>
         </Link>
         {/* Close Button */}
-        <button onClick={toggle} style={{ background: 'none', border: 'none', color: 'var(--text-sec)', cursor: 'pointer' }}>
-           <ChevronRight size={18} style={{ transform: 'rotate(180deg)' }} />
+        <button onClick={toggle} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.8)', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', transition: 'background 0.2s' }}
+          onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+          onMouseOut={e => e.currentTarget.style.background = 'none'}>
+           <ChevronRight size={20} style={{ transform: 'rotate(180deg)' }} />
         </button>
       </div>
 
@@ -51,28 +53,30 @@ export default function Sidebar({ isOpen, toggle }) {
       </nav>
 
       {/* User chip — clickable → profile */}
-      <Link to="/profile" className="user-chip" style={{ textDecoration: 'none', margin: '10px 12px', display: 'block' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 11, flexShrink: 0 }}>
+      <Link to="/profile" style={{ textDecoration: 'none', margin: '10px 14px', display: 'block', padding: '12px', background: 'rgba(255,255,255,0.08)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', transition: 'background 0.2s' }}
+        onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.12)'}
+        onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'linear-gradient(135deg, #fff, #e2e8f0)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)', fontWeight: 800, fontSize: 13, flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
             {user?.name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || 'User'}</div>
-            <span className={`badge ${isAdmin ? 'badge-admin' : 'badge-student'}`} style={{ marginTop: 2, fontSize: 10, padding: '2px 7px' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', letterSpacing: '-0.01em' }}>{user?.name || 'User'}</div>
+            <span style={{ display: 'inline-block', marginTop: 3, fontSize: 10, padding: '2px 8px', borderRadius: '4px', background: isAdmin ? 'rgba(59,130,246,0.3)' : 'rgba(16,185,129,0.3)', color: '#fff', fontWeight: 600, border: '1px solid rgba(255,255,255,0.2)' }}>
               {user?.role}
             </span>
           </div>
-          <User size={12} color="rgba(255,255,255,0.5)" />
+          <User size={16} color="rgba(255,255,255,0.8)" />
         </div>
       </Link>
 
       {/* Logout */}
-      <div style={{ padding: '0 14px 14px', borderTop: 'none' }}>
+      <div style={{ padding: '0 14px 14px' }}>
         <button onClick={logout}
-          style={{ display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '11px 14px', borderRadius: 8, background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.55)', fontSize: 15, fontWeight: 600, transition: 'all 0.15s' }}
-          onMouseOver={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.color = '#f87171'; }}
-          onMouseOut={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}>
-          <LogOut size={17} />
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '12px', borderRadius: '10px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', color: '#ffffff', fontSize: 14, fontWeight: 700, transition: 'all 0.2s', letterSpacing: '-0.01em' }}
+          onMouseOver={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(239,68,68,0.3)'; }}
+          onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}>
+          <LogOut size={16} />
           Sign Out
         </button>
       </div>

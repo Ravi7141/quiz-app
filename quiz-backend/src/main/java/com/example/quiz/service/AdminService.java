@@ -66,13 +66,23 @@ public class AdminService {
      * GET /admin/students
      * Returns all users with STUDENT role (no passwords).
      */
-    public com.example.quiz.dto.response.PageData<StudentResponse> getAllStudents(org.springframework.data.domain.Pageable pageable) {
+    public com.example.quiz.dto.response.PageData<StudentResponse> getAllStudents(org.springframework.data.domain.Pageable pageable, String search) {
         User currentAdmin = authService.getCurrentUser();
         org.springframework.data.domain.Page<User> studentPage;
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+
         if (currentAdmin != null) {
-            studentPage = userRepository.findByRoleAndCreatedById(Role.STUDENT, currentAdmin.getId(), pageable);
+            if (hasSearch) {
+                studentPage = userRepository.findByRoleAndCreatedByIdAndSearch(Role.STUDENT, currentAdmin.getId(), search.trim(), pageable);
+            } else {
+                studentPage = userRepository.findByRoleAndCreatedById(Role.STUDENT, currentAdmin.getId(), pageable);
+            }
         } else {
-            studentPage = userRepository.findByRole(Role.STUDENT, pageable);
+            if (hasSearch) {
+                studentPage = userRepository.findByRoleAndSearch(Role.STUDENT, search.trim(), pageable);
+            } else {
+                studentPage = userRepository.findByRole(Role.STUDENT, pageable);
+            }
         }
         org.springframework.data.domain.Page<StudentResponse> responsePage = studentPage.map(this::mapToStudentResponse);
         return com.example.quiz.dto.response.PageData.of(responsePage);

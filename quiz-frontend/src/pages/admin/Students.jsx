@@ -20,7 +20,7 @@ export default function Students() {
 
   const fetchStudents = (pageNum = 0) => {
     setLoading(true)
-    adminApi.getStudents(pageNum, 10)
+    adminApi.getStudents(pageNum, 10, search)
       .then(r => {
         const pageData = r.data.data
         setStudents(pageData.content || [])
@@ -30,7 +30,18 @@ export default function Students() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchStudents(page) }, [page])
+  // Debounce search input
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setPage(0)
+      fetchStudents(0)
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [search])
+
+  useEffect(() => { 
+    fetchStudents(page) 
+  }, [page])
 
   const [studentToDelete, setStudentToDelete] = useState(null)
 
@@ -54,11 +65,6 @@ export default function Students() {
     }
   }
 
-  const filtered = students.filter(s =>
-    s.name?.toLowerCase().includes(search.toLowerCase()) ||
-    s.email?.toLowerCase().includes(search.toLowerCase()) ||
-    s.phone?.includes(search)
-  )
 
   return (
     <Layout title="Students" subtitle={`${totalElements} registered accounts`}>
@@ -80,13 +86,13 @@ export default function Students() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((s, i) => (
+              {students.map((s, i) => (
                 <motion.tr key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                   style={{ cursor: 'pointer' }}
                   onClick={() => navigate(`/admin/students/${s.id}`)}
                   onMouseOver={e => e.currentTarget.style.background = 'rgba(37,99,235,0.04)'}
                   onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
-                  <td style={{ color: 'var(--text-sec)' }}>{i + 1}</td>
+                  <td style={{ color: 'var(--text-sec)' }}>{i + 1 + page * 10}</td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,var(--primary),var(--primary-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
@@ -123,7 +129,7 @@ export default function Students() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-sec)' }}><Users size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} /><p>No students found</p></div>}
+          {students.length === 0 && <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-sec)' }}><Users size={40} style={{ margin: '0 auto 12px', opacity: 0.3 }} /><p>No students found</p></div>}
         </div>
         <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
       </>

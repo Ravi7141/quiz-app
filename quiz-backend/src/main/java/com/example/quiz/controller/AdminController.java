@@ -59,10 +59,11 @@ public class AdminController {
     @GetMapping("/students")
     public ResponseEntity<ApiResponse<com.example.quiz.dto.response.PageData<StudentResponse>>> getAllStudents(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search
     ) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
-        com.example.quiz.dto.response.PageData<StudentResponse> data = adminService.getAllStudents(pageable);
+        com.example.quiz.dto.response.PageData<StudentResponse> data = adminService.getAllStudents(pageable, search);
         return ResponseEntity.ok(ApiResponse.success("Students fetched successfully", data));
     }
 

@@ -77,7 +77,7 @@ export const adminQuizApi = {
 // ─── Admin General ─────────────────────────────────────────────
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
-  getStudents: (page = 0, size = 10) => api.get(`/admin/students?page=${page}&size=${size}`),
+  getStudents: (page = 0, size = 10, search = '') => api.get(`/admin/students?page=${page}&size=${size}${search ? `&search=${encodeURIComponent(search)}` : ''}`),
   deleteStudent: (id) => api.delete(`/admin/students/${id}`),
   getStudentResults: (id) => api.get(`/admin/students/${id}/results`),
   getResults: (page = 0, size = 10) => api.get(`/admin/results?page=${page}&size=${size}`),
