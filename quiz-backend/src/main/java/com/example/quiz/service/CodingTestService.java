@@ -167,10 +167,18 @@ public class CodingTestService {
         int totalTestCases = testCases.size();
         String firstFailedOutput = null;
 
+        List<String> inputs = new java.util.ArrayList<>();
         for (TestCase tc : testCases) {
-            long startTime = System.currentTimeMillis();
-            String output = compilerService.executeCode(request.getCode(), request.getLanguage(), tc.getInput());
-            totalExecutionTimeMs += (System.currentTimeMillis() - startTime);
+            inputs.add(tc.getInput());
+        }
+
+        long startTime = System.currentTimeMillis();
+        List<String> outputs = compilerService.executeMultipleInputs(request.getCode(), request.getLanguage(), inputs);
+        totalExecutionTimeMs = System.currentTimeMillis() - startTime;
+
+        for (int i = 0; i < testCases.size(); i++) {
+            TestCase tc = testCases.get(i);
+            String output = outputs.get(i);
 
             String expected = tc.getExpectedOutput() != null ? tc.getExpectedOutput().trim() : "";
             String actual = output != null ? output.trim() : "";

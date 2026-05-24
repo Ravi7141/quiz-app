@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -265,21 +268,21 @@ public class CompilerService {
             return "Command not found or failed to start: " + String.join(" ", command) + "\nMake sure the compiler/runtime is installed and in your system PATH.";
         }
 
-        if (input != null && !input.isEmpty()) {
-            try (OutputStream os = process.getOutputStream()) {
+        try (OutputStream os = process.getOutputStream()) {
+            if (input != null && !input.isEmpty()) {
                 os.write(input.getBytes());
                 os.flush();
-            } catch (IOException ignored) {}
-        }
+            }
+        } catch (IOException ignored) {}
 
-        boolean finished = process.waitFor(5, TimeUnit.SECONDS);
+        boolean finished = process.waitFor(8, TimeUnit.SECONDS);
         if (!finished) {
             process.destroyForcibly();
             String partialOutput = "";
             if (outputFile.exists()) {
                 partialOutput = Files.readString(outputFile.toPath());
             }
-            return partialOutput + "\nError: Execution Timed Out (5s limit)";
+            return partialOutput + "\nError: Execution Timed Out (8s limit)";
         }
 
         if (outputFile.exists()) {
@@ -298,5 +301,131 @@ public class CompilerService {
             }
         }
         file.delete();
+    }
+
+    public List<String> executeMultipleInputs(String code, String language, List<String> inputs) {
+        if (judge0Enabled) {
+            List<String> results = new ArrayList<>();
+            for (String input : inputs) {
+                try {
+                    results.add(executeWithJudge0(code, language, input));
+                } catch (Exception e) {
+                    log.error("Judge0 execution failed", e);
+                    results.add("Execution Error: " + e.getMessage());
+                }
+            }
+            return results;
+        }
+        return executeLocallyMultiple(code, language, inputs);
+    }
+
+    private List<String> executeLocallyMultiple(String code, String language, List<String> inputs) {
+        List<String> results = new ArrayList<>();
+        try {
+            Path tempDir = Files.createTempDirectory("code_exec_");
+            switch (language.toLowerCase()) {
+                case "java":
+                    results = runJavaMultiple(tempDir, code, inputs);
+                    break;
+                case "python":
+                case "python3":
+                    results = runPythonMultiple(tempDir, code, inputs);
+                    break;
+                case "javascript":
+                case "node":
+                case "js":
+                    results = runJavaScriptMultiple(tempDir, code, inputs);
+                    break;
+                case "cpp":
+                case "c++":
+                    results = runCppMultiple(tempDir, code, inputs);
+                    break;
+                default:
+                    return Collections.nCopies(inputs.size(), "Language not supported: " + language);
+            }
+            deleteDirectory(tempDir.toFile());
+        } catch (Exception e) {
+            log.error("Execution error", e);
+            return Collections.nCopies(inputs.size(), "Execution Error: " + e.getMessage());
+        }
+        return results;
+    }
+
+    private List<String> runJavaMultiple(Path dir, String code, List<String> inputs) throws Exception {
+        String className = "Main";
+        if (code.contains("public class ")) {
+            int start = code.indexOf("public class ") + 13;
+            int end = code.indexOf("{", start);
+            if (end > start) {
+                className = code.substring(start, end).trim();
+                if (className.contains("<")) className = className.substring(0, className.indexOf("<")).trim();
+                if (className.contains("implements")) className = className.substring(0, className.indexOf("implements")).trim();
+                if (className.contains("extends")) className = className.substring(0, className.indexOf("extends")).trim();
+            }
+        }
+        Path sourcePath = dir.resolve(className + ".java");
+        Files.writeString(sourcePath, code);
+
+        String compileResult = executeCommand(dir.toFile(), null, "javac", "-cp", ".", className + ".java");
+        if (!compileResult.isEmpty() && compileResult.toLowerCase().contains("error")) {
+            return Collections.nCopies(inputs.size(), "Compile Error:\n" + compileResult);
+        }
+
+        List<String> outputs = new ArrayList<>();
+        for (String input : inputs) {
+            outputs.add(executeCommand(dir.toFile(), input, "java", "-cp", ".", className));
+        }
+        return outputs;
+    }
+
+    private List<String> runPythonMultiple(Path dir, String code, List<String> inputs) throws Exception {
+        Path scriptPath = dir.resolve("script.py");
+        Files.writeString(scriptPath, code);
+        List<String> outputs = new ArrayList<>();
+        for (String input : inputs) {
+            outputs.add(executeCommand(dir.toFile(), input, "python", "script.py"));
+        }
+        return outputs;
+    }
+
+    private List<String> runJavaScriptMultiple(Path dir, String code, List<String> inputs) throws Exception {
+        Path scriptPath = dir.resolve("script.js");
+        Files.writeString(scriptPath, code);
+        List<String> outputs = new ArrayList<>();
+        for (String input : inputs) {
+            outputs.add(executeCommand(dir.toFile(), input, "node", "script.js"));
+        }
+        return outputs;
+    }
+
+    private List<String> runCppMultiple(Path dir, String code, List<String> inputs) throws Exception {
+        Path sourcePath = dir.resolve("main.cpp");
+        Files.writeString(sourcePath, code);
+
+        String compilerPath = "g++";
+        if (new java.io.File(System.getProperty("user.home") + "/mingw64/bin/g++.exe").exists()) {
+            compilerPath = System.getProperty("user.home") + "/mingw64/bin/g++.exe";
+        } else if (new java.io.File("C:/mingw64/bin/g++.exe").exists()) {
+            compilerPath = "C:/mingw64/bin/g++.exe";
+        }
+
+        String compileResult = executeCommand(dir.toFile(), null, compilerPath, "-static", "main.cpp", "-o", "main.exe");
+        if (compileResult.contains("Command not found")) {
+            log.info("g++ not found, falling back to Piston API for C++");
+            List<String> outputs = new ArrayList<>();
+            for (String input : inputs) {
+                outputs.add(runWithPistonAPI("c++", "10.2.0", code, input));
+            }
+            return outputs;
+        }
+        if (!compileResult.isEmpty() && compileResult.toLowerCase().contains("error")) {
+            return Collections.nCopies(inputs.size(), "Compile Error:\n" + compileResult);
+        }
+        
+        List<String> outputs = new ArrayList<>();
+        for (String input : inputs) {
+            outputs.add(executeCommand(dir.toFile(), input, dir.toFile().getAbsolutePath() + java.io.File.separator + "main.exe"));
+        }
+        return outputs;
     }
 }
