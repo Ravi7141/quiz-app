@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class ExamTokenController {
@@ -23,6 +26,7 @@ public class ExamTokenController {
     @PostMapping("/admin/tokens/generate")
     public ResponseEntity<ApiResponse<List<TokenResponse>>> generateTokens(@Valid @RequestBody TokenGenerateRequest request) {
         List<TokenResponse> data = examTokenService.generateTokens(request);
+        log.info("TOKEN GENERATE: Type [{}] ID [{}] Count [{}]", request.getExamType(), request.getExamId(), request.getNumberOfTokens());
         return ResponseEntity.ok(ApiResponse.success("Tokens generated successfully", data));
     }
 
@@ -42,6 +46,7 @@ public class ExamTokenController {
             @RequestParam String baseUrl
     ) {
         examTokenService.emailAllTokens(type, id, baseUrl);
+        log.info("TOKEN EMAIL ALL: Type [{}] ID [{}]", type, id);
         return ResponseEntity.ok(ApiResponse.success("Emails sent successfully", null));
     }
 
@@ -61,6 +66,7 @@ public class ExamTokenController {
     public ResponseEntity<ApiResponse<Void>> consumeToken(@RequestParam String token) {
         try {
             examTokenService.consumeToken(token);
+            log.info("TOKEN CONSUME: Token [{}]", token);
             return ResponseEntity.ok(ApiResponse.success("Token consumed successfully", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));

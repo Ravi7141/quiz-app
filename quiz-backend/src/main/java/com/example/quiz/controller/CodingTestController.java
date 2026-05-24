@@ -27,6 +27,9 @@ import java.util.Map;
  * DELETE /admin/coding-tests/{id}           → delete problem
  * ─────────────────────────────────────────────────────────────
  */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class CodingTestController {
@@ -69,6 +72,7 @@ public class CodingTestController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> runCode(
             @Valid @RequestBody CodeRunRequest request
     ) {
+        log.info("CODE RUN: Language [{}] CodingTest ID [{}]", request.getLanguage(), request.getCodingTestId());
         Map<String, Object> data = codingTestService.runCode(request);
         return ResponseEntity.ok(ApiResponse.success("Code executed successfully", data));
     }
@@ -80,6 +84,7 @@ public class CodingTestController {
     public ResponseEntity<ApiResponse<Map<String, Object>>> submitCode(
             @Valid @RequestBody CodeRunRequest request
     ) {
+        log.info("CODE SUBMIT: Language [{}] CodingTest ID [{}]", request.getLanguage(), request.getCodingTestId());
         Map<String, Object> data = codingTestService.submitCode(request);
         return ResponseEntity.ok(ApiResponse.success("Code submitted successfully", data));
     }
@@ -99,6 +104,7 @@ public class CodingTestController {
             @Valid @RequestBody CodingTestRequest request
     ) {
         CodingTestResponse data = codingTestService.createCodingTest(request);
+        log.info("CODING TEST CREATE: ID [{}] Title [{}]", data.getId(), data.getTitle());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Coding test created successfully", data));
@@ -122,6 +128,7 @@ public class CodingTestController {
     @DeleteMapping("/admin/coding-tests/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteCodingTest(@PathVariable Long id) {
         codingTestService.deleteCodingTest(id);
+        log.info("CODING TEST DELETE: ID [{}]", id);
         return ResponseEntity.ok(ApiResponse.success("Coding test deleted successfully"));
     }
 

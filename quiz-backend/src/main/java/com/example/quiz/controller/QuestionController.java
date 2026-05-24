@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Question Controller — student GET (answers hidden) + admin full CRUD.
  *
@@ -25,6 +27,7 @@ import java.util.List;
  * GET    /questions/quiz/{quizId}            → questions for students (answer hidden)
  * ─────────────────────────────────────────────────────────────
  */
+@Slf4j
 @RestController
 @Validated
 @RequiredArgsConstructor
@@ -42,6 +45,7 @@ public class QuestionController {
             @Valid @RequestBody QuestionRequest request
     ) {
         QuestionResponse data = questionService.addQuestion(request);
+        log.info("QUESTION ADD: ID [{}] Quiz ID [{}]", data.getId(), request.getQuizId());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Question added successfully", data));
@@ -52,6 +56,7 @@ public class QuestionController {
             @Valid @RequestBody List<QuestionRequest> request
     ) {
         List<QuestionResponse> data = questionService.addQuestionsBulk(request);
+        log.info("QUESTION BULK ADD: Count [{}]", data.size());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Questions imported successfully", data));
@@ -81,6 +86,7 @@ public class QuestionController {
             @RequestBody QuestionRequest request
     ) {
         QuestionResponse data = questionService.updateQuestion(id, request);
+        log.info("QUESTION UPDATE: ID [{}]", id);
         return ResponseEntity.ok(ApiResponse.success("Question updated successfully", data));
     }
 
@@ -90,6 +96,7 @@ public class QuestionController {
     @DeleteMapping("/admin/questions/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteQuestion(@PathVariable Long id) {
         questionService.deleteQuestion(id);
+        log.info("QUESTION DELETE: ID [{}]", id);
         return ResponseEntity.ok(ApiResponse.success("Question deleted successfully"));
     }
 

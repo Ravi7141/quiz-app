@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class AssessmentController {
@@ -29,6 +32,7 @@ public class AssessmentController {
     @PostMapping("/admin/assessments")
     public ResponseEntity<ApiResponse<AssessmentResponse>> createAssessment(@RequestBody AssessmentRequest request) {
         AssessmentResponse response = assessmentService.createAssessment(request);
+        log.info("ASSESSMENT CREATE: Assessment ID [{}] Title [{}]", response.getId(), response.getTitle());
         return ResponseEntity.ok(ApiResponse.success("Assessment created successfully", response));
     }
 
@@ -55,6 +59,7 @@ public class AssessmentController {
     @DeleteMapping("/admin/assessments/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteAssessment(@PathVariable Long id) {
         assessmentService.deleteAssessment(id);
+        log.info("ASSESSMENT DELETE: Assessment ID [{}]", id);
         return ResponseEntity.ok(ApiResponse.success("Assessment deleted successfully", null));
     }
 
@@ -83,6 +88,7 @@ public class AssessmentController {
     @PostMapping("/assessment/submit")
     public ResponseEntity<ApiResponse<AssessmentAttemptResponse>> submitAttempt(@RequestBody SubmitAttemptRequest body) {
         AssessmentAttemptResponse response = assessmentService.submitAttempt(body.getAttemptId(), body.getAnswers());
+        log.info("ASSESSMENT SUBMIT: Attempt ID [{}] Score [{}]", response.getId(), response.getScore());
         return ResponseEntity.ok(ApiResponse.success("Assessment attempt submitted successfully", response));
     }
 

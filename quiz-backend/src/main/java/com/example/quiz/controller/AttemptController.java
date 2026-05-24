@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Phase 4 — Quiz Attempt Controller (No Security)
  *
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
  *                 "submittedAt": "2024-01-01T10:30:00" } }
  * ─────────────────────────────────────────────────────────────
  */
+@Slf4j
 @RestController
 @RequestMapping("/student/quizzes")
 @RequiredArgsConstructor
@@ -56,6 +59,7 @@ public class AttemptController {
             @RequestParam Long studentId
     ) {
         AttemptResponse data = attemptService.startAttempt(quizId, studentId);
+        log.info("QUIZ START: Attempt ID [{}] Quiz ID [{}] Student ID [{}]", data.getAttemptId(), quizId, studentId);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Quiz started successfully", data));
@@ -80,6 +84,7 @@ public class AttemptController {
             @PathVariable Long attemptId
     ) {
         AttemptResponse data = attemptService.submitAttempt(attemptId);
+        log.info("QUIZ SUBMIT: Attempt ID [{}]", attemptId);
         return ResponseEntity.ok(ApiResponse.success("Quiz submitted successfully", data));
     }
 

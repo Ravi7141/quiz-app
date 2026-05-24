@@ -11,6 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
@@ -18,32 +21,43 @@ public class AuthController {
     private final AuthService authService;
     private final com.example.quiz.service.OtpService otpService;
 
-
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(
             @Valid @RequestBody RegisterRequest request
     ) {
-        AuthResponse data = authService.registerUser(request);
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Registered successfully", data));
+        try {
+            AuthResponse data = authService.registerUser(request);
+            log.info("USER REGISTER: Success for email [{}]", request.getEmail());
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Registered successfully", data));
+        } catch (Exception e) {
+            log.error("USER REGISTER FAIL: email [{}] - {}", request.getEmail(), e.getMessage());
+            throw e;
+        }
     }
-
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(
             @Valid @RequestBody LoginRequest request
     ) {
-        AuthResponse data = authService.loginUser(request);
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(ApiResponse.success("Login successful", data));
+        try {
+            AuthResponse data = authService.loginUser(request);
+            log.info("USER LOGIN: Success for email [{}]", request.getEmail());
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(ApiResponse.success("Login successful", data));
+        } catch (Exception e) {
+            log.error("USER LOGIN FAIL: email [{}] - {}", request.getEmail(), e.getMessage());
+            throw e;
+        }
     }
 
     @PostMapping("/forgot-password/request")
     public ResponseEntity<ApiResponse<Void>> requestForgotPassword(
             @Valid @RequestBody com.example.quiz.dto.request.ForgotPasswordRequest request
     ) {
+        log.info("PASSWORD RESET REQUEST: email [{}]", request.getEmail());
         otpService.generateAndSendOtp(request.getEmail());
         return ResponseEntity.ok(ApiResponse.success("Verification code sent to your email address", null));
     }
@@ -52,6 +66,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(
             @Valid @RequestBody com.example.quiz.dto.request.ResetPasswordRequest request
     ) {
+        log.info("PASSWORD RESET COMPLETE: email [{}]", request.getEmail());
         otpService.verifyOtpAndResetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
         return ResponseEntity.ok(ApiResponse.success("Password reset successfully", null));
     }

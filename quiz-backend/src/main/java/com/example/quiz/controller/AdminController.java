@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Admin General Controller — stats, students, all results.
  *
@@ -33,6 +35,7 @@ import java.util.List;
  *       "data": [ { "attemptId": 1, "studentName": "Alice", ... } ] }
  * ─────────────────────────────────────────────────────────────
  */
+@Slf4j
 @RestController
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -96,6 +99,7 @@ public class AdminController {
     @DeleteMapping("/students/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
         userService.deleteStudent(id);
+        log.info("STUDENT DELETE: Student ID [{}]", id);
         return ResponseEntity.ok(ApiResponse.success("Student deleted successfully"));
     }
 

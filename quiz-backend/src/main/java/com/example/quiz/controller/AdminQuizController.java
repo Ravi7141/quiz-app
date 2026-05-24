@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Admin Quiz Controller — full CRUD.
  *
@@ -22,6 +24,7 @@ import java.util.List;
  * DELETE /admin/quizzes/{id}     → delete quiz
  * ─────────────────────────────────────────────────────────────
  */
+@Slf4j
 @RestController
 @RequestMapping("/admin/quizzes")
 @RequiredArgsConstructor
@@ -37,6 +40,7 @@ public class AdminQuizController {
             @Valid @RequestBody QuizRequest request
     ) {
         QuizResponse data = quizService.createQuiz(request);
+        log.info("QUIZ CREATE: Quiz ID [{}] Title [{}]", data.getId(), data.getTitle());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Quiz created successfully", data));
@@ -72,6 +76,7 @@ public class AdminQuizController {
             @RequestBody QuizRequest request
     ) {
         QuizResponse data = quizService.updateQuiz(id, request);
+        log.info("QUIZ UPDATE: Quiz ID [{}] Title [{}]", data.getId(), data.getTitle());
         return ResponseEntity.ok(ApiResponse.success("Quiz updated successfully", data));
     }
 
@@ -81,6 +86,7 @@ public class AdminQuizController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteQuiz(@PathVariable Long id) {
         quizService.deleteQuiz(id);
+        log.info("QUIZ DELETE: Quiz ID [{}]", id);
         return ResponseEntity.ok(ApiResponse.success("Quiz deleted successfully"));
     }
 }
