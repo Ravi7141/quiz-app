@@ -1,3 +1,4 @@
+# Stage 1 — Build
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
 
@@ -14,17 +15,23 @@ RUN ./mvnw dependency:go-offline
 COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
-# Run stage
+# Stage 2 — Run
 FROM eclipse-temurin:21-jdk-jammy
+WORKDIR /app
 
-# Install compilers (Python, Node.js, C++)
+# Install compilers (Python, Node.js, C++, Java already in base image)
 RUN apt-get update && \
     apt-get install -y python3 python-is-python3 nodejs g++ && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Render exposes the port dynamically, but defaults to 8080 for Spring Boot
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# JVM memory limits for Northflank free tier (512MB container)
+ENTRYPOINT ["java", \
+  "-Xms128m", \
+  "-Xmx256m", \
+  "-XX:+UseContainerSupport", \
+  "-XX:MaxRAMPercentage=60.0", \
+  "-jar", "app.jar"]
