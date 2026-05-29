@@ -52,24 +52,23 @@ public class CompilerService {
             throw new IllegalArgumentException("Unsupported language for Judge0: " + language);
         }
 
-        // Prepare request body
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("source_code", code);
-        requestBody.put("language_id", languageId);
-        requestBody.put("stdin", input != null ? input : "");
+        // Serialize manually — avoids RestTemplate converter issues with Map<String,Object>
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        String jsonBody = mapper.writeValueAsString(java.util.Map.of(
+                "source_code", code,
+                "language_id", languageId,
+                "stdin", input != null ? input : ""
+        ));
+        log.info("Judge0 request — language: {}, languageId: {}, url: {}, codeLen: {}", language, languageId, judge0Url, code.length());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        if (judge0ApiKey != null && !judge0ApiKey.trim().isEmpty()) {
-            headers.set("X-RapidAPI-Key", judge0ApiKey.trim());
-            headers.set("X-RapidAPI-Host", "judge0-ce.p.rapidapi.com");
-        }
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        String submitUrl = judge0Url.trim() + "/submissions?base64_encoded=false&wait=true";
+        HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
+        java.net.URI submitUri = java.net.URI.create(judge0Url.trim() + "/submissions?base64_encoded=false&wait=true");
 
-        log.info("Sending request to Judge0: {}", submitUrl);
-        ResponseEntity<Map> response = restTemplate.postForEntity(submitUrl, entity, Map.class);
+        log.info("Sending to Judge0: {}", submitUri);
+        ResponseEntity<Map> response = restTemplate.exchange(submitUri, org.springframework.http.HttpMethod.POST, entity, Map.class);
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             Map<String, Object> body = response.getBody();
@@ -109,17 +108,17 @@ public class CompilerService {
     private int getJudge0LanguageId(String language) {
         switch (language.toLowerCase()) {
             case "java":
-                return 91; // JDK 17
+                return 62; // Java (OpenJDK 13.0.1)
             case "python":
             case "python3":
-                return 71; // Python 3.8.1
+                return 71; // Python (3.8.1)
             case "javascript":
             case "node":
             case "js":
-                return 93; // Node.js 18.15.0
+                return 63; // JavaScript (Node.js 12.14.0)
             case "cpp":
             case "c++":
-                return 75; // Clang 9
+                return 54; // C++ (GCC 9.2.0)
             default:
                 return -1;
         }
